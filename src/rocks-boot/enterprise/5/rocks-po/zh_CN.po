@@ -1,0 +1,328 @@
+##
+##
+## messages for Rocks 
+
+msgid "Install Roll"
+msgstr ""
+
+msgid "Put Roll disk '%s' "
+msgstr ""
+
+msgid "in the drive\n"
+msgstr ""
+
+msgid "Scanning Media"
+msgstr ""
+
+msgid "Scanning the media for rolls..."
+msgstr ""
+
+msgid "Copying Roll '%s'\n\n"
+msgstr ""
+
+msgid "This will take some time..."
+msgstr ""
+
+msgid "Error while retrieving:\n\n%s\n\n%s"
+msgstr ""
+
+msgid "Break"
+msgstr ""
+
+msgid "From %s"
+msgstr ""
+
+msgid "Retrieving %s..."
+msgstr ""
+
+msgid "%s roll"
+msgstr ""
+
+msgid "Missing Roll"
+msgstr ""
+
+msgid "Cannot find/install roll '%s'"
+msgstr ""
+
+msgid "Found Roll"
+msgstr ""
+
+msgid "Found Roll '%s'"
+msgstr ""
+
+msgid "Rolls available on %s"
+msgstr ""
+
+msgid "Arch: %s\tDist: %s"
+msgstr ""
+
+msgid "Arch"
+msgstr ""
+
+msgid "Available Rolls"
+msgstr ""
+
+msgid "Choose Architecture"
+msgstr ""
+
+msgid "No CD Rolls"
+msgstr ""
+
+msgid "No %s Rolls found on CD/DVD"
+msgstr ""
+
+msgid "Add Roll CD/DVD"
+msgstr ""
+
+msgid "Insert the Roll CD/DVD and press 'Ok'\n"
+msgstr ""
+
+msgid "Roll CD/DVD"
+msgstr ""
+
+msgid "Do you have a roll CD/DVD?\n"
+msgstr ""
+
+msgid "CD Roll"
+msgstr ""
+
+msgid "Installed CD/DVD Rolls"
+msgstr ""
+
+msgid "Do you have another roll CD/DVD?"
+msgstr ""
+
+msgid "No Network Rolls"
+msgstr ""
+
+msgid "No %s Rolls found in %s"
+msgstr ""
+
+msgid  "Network Roll"
+msgstr ""
+
+msgid "Do you have %s roll server?\n"
+msgstr ""
+
+msgid "Use 'all' client"
+msgstr ""
+
+msgid "Roll Server"
+msgstr ""
+
+msgid "Enter the full name (FQDN) of your Roll Server"
+msgstr ""
+
+msgid "Server:"
+msgstr ""
+
+msgid "Dist:"
+msgstr ""
+
+msgid "Access:"
+msgstr ""
+
+msgid "Rocks v%s "
+msgstr ""
+
+msgid "CACL Setup Information"
+msgstr ""
+
+msgid "Information Used to Configure CACL System"
+msgstr ""
+
+msgid "Organization Name:"
+msgstr ""
+
+msgid "Organization Unit:"
+msgstr ""
+
+msgid "Must Select Manual Partitioning"
+msgstr ""
+
+msgid "When upgrading, you must select manual "
+"partitioning.\n\n"
+"Please select 'Disk Druid' or 'fdisk'."
+msgstr ""
+
+msgid "Finding all attached disks\n\n"
+"This may take some time..."
+msgstr ""
+
+msgid "- (private cluster network)"
+msgstr ""
+
+msgid " - (public cluster network)"
+msgstr ""
+
+msgid "Which network time server would you like to use?"
+msgstr ""
+
+msgid "Time Configuration"
+msgstr ""
+
+msgid "Bad Name"
+msgstr ""
+
+msgid "Cluster Name cannot contain the '/' character"
+msgstr ""
+
+msgid "Should be exactly %s characters long"
+msgstr ""
+
+msgid "Should be between %s and %s characters long"
+msgstr ""
+
+msgid "Should be at most %s characters"
+msgstr ""
+
+msgid "Field Length Error"
+msgstr ""
+
+msgid "'%s' is not the right length.\n%s"
+msgstr ""
+
+msgid "Our Cluster"
+msgstr ""
+
+msgid "Cluster Information"
+msgstr ""
+
+msgid "Fully Qualified Hostname:"
+msgstr ""
+
+msgid "Cluster Name:"
+msgstr ""
+
+msgid "Organization:"
+msgstr ""
+
+msgid "Locality:"
+msgstr ""
+
+msgid "State:"
+msgstr ""
+
+msgid "Country:"
+msgstr ""
+
+msgid "Contact:"
+msgstr ""
+
+msgid "LatLong:"
+msgstr ""
+
+msgid
+"You must supply a value for the\n"
+"'%s'"
+msgstr ""
+
+msgid "User 1 Title"
+msgstr ""
+
+msgid "User 1 text\n"
+msgstr ""
+
+msgid "User 2 Title"
+msgstr ""
+
+msgid "Value:"
+msgstr ""
+
+msgid "User 3 Title"
+msgstr ""
+
+msgid "yoda is %s\n"
+msgstr ""
+
+msgid "Define OptIPuter Site Router"
+msgstr ""
+
+msgid "IP Address of OptIPuter Site Router : "
+msgstr ""
+
+msgid "Netmask CIDR-Style (e.g. /24) : "
+msgstr ""
+
+msgid "Bad Allocation Id"
+msgstr ""
+
+msgid "Allocation id must be an integer"
+msgstr ""
+
+msgid "Allocation id: "
+msgstr ""
+
+msgid "Server: "
+msgstr ""
+
+msgid "Resource Allocation"
+msgstr ""
+
+msgid "Name your Allocated Blocks"
+msgstr ""
+
+#
+# Add from loader patch file
+msgid "Name"
+msgstr ""
+
+msgid "Country"
+msgstr ""
+
+msgid "State"
+msgstr ""
+
+msgid "Locality"
+msgstr ""
+
+msgid "Contact"
+msgstr ""
+
+msgid "Org Unit"
+msgstr ""
+
+msgid "Org"
+msgstr ""
+
+msgid "Installation Server:"
+msgstr ""
+
+msgid "Certified by:"
+msgstr ""
+
+msgid "Authenticate Installation Server"
+msgstr ""
+
+msgid "GET File Error"
+msgstr ""
+
+msgid "Could not get file:\n\nhttp://%s/%s\n\n%s"
+msgstr ""
+
+msgid  "Server Busy"
+msgstr ""
+
+msgid "I will retry for a ks file after a %d sec sleep..."
+msgstr ""
+
+msgid "Skeptical"
+msgstr ""
+
+msgid ""
+"The security credentials of server '%s' do "
+"not match those saved on our last install.\n\n"
+"This can happen if you are installing from a "
+"different parent server, or if the desired "
+"server has been compromised."
+msgstr ""
+
+msgid "another"
+msgstr ""
+
+msgid "a"
+msgstr " "
+
+msgid "Ok"
+msgstr ""
+

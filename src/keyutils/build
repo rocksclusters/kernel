@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo rpm -Uvh $ROCKS_REBUILD_SRPM
+rpm -Uvh $ROCKS_REBUILD_SRPM
+
+export SPECFILE=keyutils.spec
+
+awk ' /NO_ARLIB=1/ { \
+	next; \
+} \
+/^%{usrlibdir}\/libkeyutils.so/ {\
+	printf("\%{usrlibdir}/libkeyutils.a\n");
+} \
+{ print $0 } ' $REDHATSPECS/$SPECFILE > /tmp/$SPECFILE
+
+rpmbuild -bb --define="dist .el5" /tmp/$SPECFILE
+

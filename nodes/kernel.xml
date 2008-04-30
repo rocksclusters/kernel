@@ -1,0 +1,141 @@
+<?xml version="1.0" standalone="no"?>
+
+<kickstart>
+
+
+	<description>
+	The Kernel Roll
+
+	This file contains all the default kernel packages
+	</description>
+
+	<copyright>
+	Copyright (c) 2000 - 2008 The Regents of the University of California.
+	All rights reserved. Rocks(r) v5.0 www.rocksclusters.org
+	</copyright>
+
+	<changelog>
+	$Log: kernel.xml,v $
+	Revision 1.22  2008/04/17 21:54:07  bruno
+	kernel-smp packages are dead
+	
+	Revision 1.21  2008/03/25 19:18:07  bruno
+	make sure all the kernel packages get put on the OS roll.
+	
+	Revision 1.20  2008/03/06 23:41:55  mjk
+	copyright storm on
+	
+	Revision 1.19  2007/12/17 22:22:26  bruno
+	for building
+	
+	Revision 1.18  2007/06/23 04:03:48  mjk
+	mars hill copyright
+	
+	Revision 1.17  2006/10/06 21:40:54  bruno
+	fix for building drivers on a uniprocessor node
+	
+	Revision 1.16  2006/09/11 22:49:10  mjk
+	monkey face copyright
+	
+	Revision 1.15  2006/08/10 00:11:14  mjk
+	4.2 copyright
+	
+	Revision 1.14  2005/10/12 18:10:01  mjk
+	final copyright for 4.1
+	
+	Revision 1.13  2005/09/16 01:03:38  mjk
+	updated copyright
+	
+	Revision 1.12  2005/06/23 22:47:58  bruno
+	fixes to allow GM to build on x86_64
+	
+	Revision 1.11  2005/06/23 22:02:21  bruno
+	need kernel-smp-devel package too.
+	also, did a bit of cleanup.
+	
+	Revision 1.10  2005/06/23 02:44:25  najib
+	The kernel-devel package is enough to build the kernel modules like
+	myrinet, qsnet and pvfs2 drivers. Also, added a new pre-09-prep-kernel
+	script that knows how to link to the correct kernel headers to match
+	its running kernel.
+	
+	Revision 1.9  2005/04/12 18:16:35  bruno
+	GM (the myrinet driver) now runs under 4.0.0
+	
+	Revision 1.8  2005/03/31 22:18:58  bruno
+	make a link to the 2.6 kernel source
+	
+	Revision 1.7  2005/03/12 00:01:59  bruno
+	minor checkin
+	
+	Revision 1.6  2005/03/04 01:40:09  mjk
+	massive graph cleanup
+	
+	Revision 1.5  2004/09/30 17:12:19  bruno
+	itanic don't have no smp
+	
+	Revision 1.4  2004/09/18 15:09:35  bruno
+	ok, i think i really got it now.
+	
+	backed out the change to kgen.py
+	
+	moved the 'disable' kernel package from node-thin to media-server
+	
+	and, make sure that a kickstarting host doesn't explictly call out the
+	kernel or kernel-smp packages
+	
+	Revision 1.3  2004/09/18 14:30:16  bruno
+	some tweaks to let anaconda decide which package to install (kernel or
+	kernel-smp) because if we explictly set it (e.g., kernel-smp), then
+	there is the case where the kernel-smp package is installed on an EM64T
+	node and only the 'kernel' package should be on it.
+	
+	Revision 1.2  2004/09/16 21:48:37  bruno
+	make sure kernel, kernel-smp and the unsupported kernel modules are
+	installed, while still including the kernel-bigmem RPMS in the roll
+	
+	Revision 1.1  2004/09/15 01:24:54  bruno
+	phil -- you hate me, you love me.
+	
+	</changelog>
+
+	<package>kernel-doc</package>
+	<package>kernel-devel</package>
+	<package>kernel-headers</package>
+
+	<package>rocks-boot</package>
+
+	<!-- needed to rebuild kernel and kernel modules -->
+	<package>redhat-rpm-config</package>
+	<package>glibc-devel</package>
+	<package>gcc</package>
+	<package>libdhcp-devel</package>
+	<package>audit-libs-devel</package>
+
+
+<post>
+<file name="/etc/rc.d/rocksconfig.d/pre-09-prep-kernel-source" perms="755">
+#!/opt/rocks/bin/python
+import os
+
+if os.uname()[2].find('smp') &lt; 0:
+	smp = 0
+else:
+	smp = 1
+
+kver = os.uname()[2].split('smp')[0]
+karch = os.uname()[-1]
+
+if smp:
+	kdir = '-'.join([kver,'smp',karch])
+else:
+	kdir = '-'.join([kver,karch])
+
+os.system('rm -f /usr/src/linux-2.6')
+os.system('ln -sf /usr/src/kernels/%s /usr/src/linux-2.6' % kdir)
+</file>
+</post>
+
+
+</kickstart>
+

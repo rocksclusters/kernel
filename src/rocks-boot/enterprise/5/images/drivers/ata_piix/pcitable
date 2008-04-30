@@ -1,0 +1,13 @@
+0x8086	0x24d1	"ata_piix"	"Intel Corp.|82801EB (ICH5) SATA Controller"
+0x8086	0x24df	"ata_piix"	"Intel Corp.|82801ER (ICH5R) SATA Controller"
+0x8086	0x25a3	"ata_piix"	"Intel Corp.|6300ESB SATA Storage Controller
+0x8086	0x25b0	"ata_piix"	"Intel Corp.|6300ESB SATA RAID Controller"
+0x8086	0x2651	"ata_piix"	"Intel Corp.|82801FB/FW (ICH6/ICH6W) SATA Controller"
+0x8086	0x2652	"ata_piix"	"Intel Corp.|82801FR/FRW (ICH6R/ICH6RW) SATA Controller"
+0x8086	0x2653	"ata_piix"	"Intel Corp.|82801FBM (ICH6M) SATA Controller"
+0x8086	0x2680	"ata_piix"	"Intel Corp.|631xESB/632xESB/3100 Chipset SATA Storage Controller IDE"
+0x8086	0x27c0	"ata_piix"	"Intel Corp.|82801GB/GR/GH (ICH7 Family) Serial ATA Storage Controller IDE"
+0x8086	0x27c4	"ata_piix"	"Intel Corp.|82801GBM/GHM (ICH7 Family) Serial ATA Storage Controller IDE"
+0x8086	0x2820	"ata_piix"	"Intel Corp.|82801H (ICH8 Family) 4 port SATA IDE Controller"
+0x8086	0x2825	"ata_piix"	"Intel Corp.|82801H (ICH8 Family) 2 port SATA IDE Controller"
+0x8086	0x2828	"ata_piix"	"Intel Corp.|Mobile SATA IDE Controller"

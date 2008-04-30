@@ -1,0 +1,4 @@
+This directory contains a template layout for a new driver update module:
+
+rpm/SPECS/tmpl.spec  - A spec file governing the build of the Driver Update.
+rpm/SOURCES/kmodtool - A support script used during the build process.

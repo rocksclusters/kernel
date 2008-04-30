@@ -1,0 +1,82 @@
+<?xml version="1.0" standalone="no"?>
+
+<graph>
+
+	<description>
+	The Kernel Roll
+	</description>
+
+
+	<copyright>
+	Copyright (c) 2000 - 2008 The Regents of the University of California.
+	All rights reserved. Rocks(r) v5.0 www.rocksclusters.org
+	</copyright>
+
+
+	<changelog>
+	$Log: kernel.xml,v $
+	Revision 1.11  2008/03/06 23:41:55  mjk
+	copyright storm on
+	
+	Revision 1.10  2008/02/22 19:16:26  bruno
+	new XML node file to help support kernel roll rebuilding
+	
+	Revision 1.9  2007/06/23 04:03:48  mjk
+	mars hill copyright
+	
+	Revision 1.8  2006/09/11 22:49:09  mjk
+	monkey face copyright
+	
+	Revision 1.7  2006/08/10 00:11:14  mjk
+	4.2 copyright
+	
+	Revision 1.6  2005/10/12 18:10:01  mjk
+	final copyright for 4.1
+	
+	Revision 1.5  2005/09/16 01:03:38  mjk
+	updated copyright
+	
+	Revision 1.4  2005/03/04 01:40:09  mjk
+	massive graph cleanup
+	
+	Revision 1.3  2004/09/18 14:30:15  bruno
+	some tweaks to let anaconda decide which package to install (kernel or
+	kernel-smp) because if we explictly set it (e.g., kernel-smp), then
+	there is the case where the kernel-smp package is installed on an EM64T
+	node and only the 'kernel' package should be on it.
+	
+	Revision 1.2  2004/09/16 21:48:36  bruno
+	make sure kernel, kernel-smp and the unsupported kernel modules are
+	installed, while still including the kernel-bigmem RPMS in the roll
+	
+	Revision 1.1  2004/09/15 01:24:54  bruno
+	phil -- you hate me, you love me.
+	
+	</changelog>
+
+
+<!--
+	ensure that the extra kernel packages are included in the roll
+	while not having all the kernel packages installed on the frontend
+	and/or appliance (e.g., we don't want to install the kernel-bigmem
+	package by default.
+-->
+	
+	<edge from="kernel-extra">
+		<to>kernel</to>
+	</edge>
+
+<!--
+	and here is the edge to the node for all the kernel packages that
+	we do want installed
+-->
+	<edge from="base">
+		<to>kernel</to>
+	</edge>
+
+	<edge from="server">
+		<to>kernel-server</to>
+	</edge>
+
+</graph>
+

@@ -1,0 +1,169 @@
+##
+## Generic rules for building modules for driver disks
+##
+
+.PHONY:	kmods disk diskimg diskiso distclean build clean module modclean \
+		cleankmods cleandiskfs cleandiskimg cleandiskiso cleanimage
+
+kmods:
+	@for KVER in $(KVERSIONS) ; \
+	do \
+		echo -e "\nBuilding modules for kernel $${KVER}..." ; \
+		if [ ! -d modules/$${KVER}/$(KARCH) ] ; \
+		then \
+			mkdir -p modules/$${KVER}/$(KARCH) ; \
+		fi ; \
+		for SUBDIR in $(SUBDIRS) ; \
+		do \
+			echo -e "\nBuilding $$SUBDIR module...\n" ; \
+			$(MAKE) -C $$SUBDIR -f Makefile.build \
+				TOPDIR=$(TOPDIR) PWD=$(PWD)/$$SUBDIR \
+				KVER=$$KVER KARCH=$(KARCH) build ; \
+		done ; \
+	done
+
+disk: kmods
+	@if [ ! -d disk ] ; \
+	then \
+		mkdir disk ; \
+	fi
+	@cp src/rhdd disk
+	@echo "Version 0" > disk/modinfo
+	@:> disk/modules.dep
+	@:> disk/pcitable
+	@for SUBDIR in $(SUBDIRS) ; \
+	do \
+		cat $${SUBDIR}/modinfo >> disk/modinfo ; \
+		cat $${SUBDIR}/modules.dep >> disk/modules.dep ; \
+		cat $${SUBDIR}/pcitable >> disk/pcitable ; \
+	done
+	@sort disk/pcitable -o disk/pcitable
+	@sort disk/modules.dep -o disk/modules.dep
+	@cd modules ; \
+	(find . -print | cpio -o -H crc | gzip -9) \
+		>../disk/modules.cgz 2>/dev/null
+
+images:
+	@mkdir images
+
+diskimg: disk images cleandiskimg
+	@dd if=/dev/zero of=images/dd.img bs=1440k count=1 >/dev/null 2>&1
+	@if [ ! -d images/tmp ] ; \
+	then \
+		mkdir images/tmp ; \
+	fi
+	@echo -e "\nBuilding disk image (superuser authority required)..."
+	@$(SU) root bin/makedisk $(FSTYPE) images/dd.img images/tmp
+	@rmdir images/tmp
+	@gzip -9 images/dd.img >/dev/null 2>&1
+	@if [ -f images/dd.img.gz ] ; \
+	then \
+		echo -e "\n...disk image written as images/dd.img.gz." ; \
+	else \
+		echo -e "\n...disk image creation failed!" ; \
+	fi
+
+diskiso: disk images cleandiskiso
+	@echo -e "\nBuilding ISO image..."
+	@mkisofs -o images/dd.iso disk >/dev/null 2>&1
+	@gzip -9 images/dd.iso >/dev/null 2>&1
+	@if [ -f images/dd.iso.gz ] ; \
+	then \
+		echo -e "\n...ISO image written as images/dd.iso.gz." ; \
+	else \
+		echo -e "\n...ISO image creation failed!" ; \
+	fi
+
+sources:
+	@while read file ; \
+	do \
+		dir=`dirname $$file` ; \
+		if [ ! -d disk/src/$$dir ] ; \
+		then \
+			mkdir -p disk/src/$$dir ; \
+		fi ; \
+		cp $$file disk/src/$$file ; \
+	done < dist
+
+distclean: clean cleanimage
+
+clean: cleandiskfs cleankmods
+
+cleankmods:
+	@for KVER in $(KVERSIONS) ; \
+	do \
+		for SUBDIR in $(SUBDIRS) ; \
+		do \
+			$(MAKE) -C $$SUBDIR -f Makefile.build TOPDIR=$(TOPDIR) \
+				KVER=$$KVER KARCH=$(KARCH) modclean ; \
+		done ; \
+	done
+	@rm -rf modules
+
+cleandiskfs:
+	@rm -rf disk
+
+cleandiskimg:
+	@rm -f images/dd.img.gz
+
+cleandiskiso:
+	@rm -f images/dd.iso.gz
+
+cleanimage: cleandiskimg cleandiskiso
+	@if [ -d images ] ; \
+	then \
+		rm -rf images ; \
+	fi
+
+build:
+	@if [ ! -d $(KVER)-$(KARCH) ] ; \
+	then \
+		mkdir $(KVER)-$(KARCH) ; \
+		ln -s ../Makefile $(KVER)-$(KARCH) ; \
+		ln -s ../Makefile.build $(KVER)-$(KARCH) ; \
+		for src in $(SOURCES) $(HEADERS) ; \
+		do \
+			base=`basename $${src}` ; \
+			if [ x$${base} != x$${src} ] ; \
+			then \
+				dir=`dirname $${src}` ; \
+				mkdir -p $(KVER)-$(KARCH)/$${dir} ; \
+				depth=".." ; \
+				tmp=`dirname $${dir}` ; \
+				while [ x$${tmp} != x"." ] ; \
+				do \
+					depth=$${depth}"/.." ; \
+					tmp=`dirname $${tmp}` ; \
+				done ; \
+			else \
+				depth="." ; \
+				dir="." ; \
+			fi ; \
+			ln -s ../$${depth}/$${dir}/$${base} \
+				$(KVER)-$(KARCH)/$${dir}/$${base} ; \
+		done ; \
+	fi
+	$(MAKE) -C $(KVER)-$(KARCH) -f Makefile.build \
+		PWD=$(PWD)/$(KVER)-$(KARCH) modules
+
+modclean:
+	@if [ -n "$(KVER)" ] && [ -n "$(KARCH)" ] ; \
+	then \
+		rm -rf $(KVER)-$(KARCH) ; \
+	fi
+
+#
+# Below here are the rules used to actually build and copy modules
+#
+
+modules: $(patsubst %.o,../../modules/$(KVER)/$(KARCH)/%.ko,$(obj-m))
+
+../../modules/$(KVER)/$(KARCH)/%.ko: %.ko
+	@cp -a $< $@
+	@strip -g $@
+
+$(subst .o,.ko,$(obj-m)):
+	make -C $(KERNEL_SOURCE_ROOT)/lib/modules/$(KVER)/build \
+		SUBDIRS=$(PWD) modules
+	#make -C ../../../i386/kernel/lib/modules/$(KVER)/build \
+		#SUBDIRS=$(PWD) modules

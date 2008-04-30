@@ -1,0 +1,3 @@
+qla2xxx
+	scsi
+	"QLogic 2xxx HBA."

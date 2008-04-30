@@ -1,0 +1,45 @@
+Version 0.9.5
+4 August 2005
+	-- Update example sources to match RHEL4 U1 (except sk98lin)
+
+Version 0.9.4
+13 May 2005
+	-- Added facility for including sources on disk image
+
+Version 0.9.3
+7 April 2005
+	-- Improved support for building multiple modules within a
+	   driver subdirectory in order to avoid symbol versioning problems
+	-- Reorganized the directory structure to utilize above support
+	   for ata_piix and libata
+	-- Removed include subdirectory (should not be necessary due to
+	   support above)
+	-- Changed name of "drivers" file to "subdirs" (since directories
+	   now may contain multiple drivers)
+	-- Added 'strip -g' to module post-build
+
+Version 0.9.2
+18 February 2005
+	-- Change base Makefile to read kernel versions from external file
+	-- Change base Makefile to read driver list from external file
+	-- Add TODO file
+
+Version 0.9.1
+11 January 2005
+	-- Build.rules handles drivers w/ multi-level directories
+	-- Changed sample KVERSIONS value to match current RHEL4
+	-- Cleaned-up #include handling in driver Makefiles e.g. -I$(PWD)
+	-- Added sk98lin and cciss examples
+
+Version 0.9.0
+20 December 2004
+	-- Defaulted KVERSIONS to match running kernel
+	-- Added COPYING file
+
+Version 0.8.1
+2 December 2004
+	-- Added INSTALL file
+
+Version 0.8.0
+2 December 2004
+	-- Limited release for comments...

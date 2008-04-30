@@ -1,0 +1,114 @@
+%if %{!?kernelextension: 1}
+%define kernelversion %{version}-%{release}
+%else
+%define kernelversion %{version}-%{release}%{kernelextension}
+%endif
+
+
+Summary: The Linux Kernel
+Name: @KERNELNAME@
+Version: @VERSION@
+Release: @RELEASE@
+License: GPL
+Group: System Environment/Kernel
+Vendor: The Linux Community
+URL: http://www.kernel.org
+Source0: linux-%{version}.tar.gz
+Source1: .config
+BuildRoot: /var/tmp/%{name}-buildroot
+Requires: kudzu
+Requires: mkinitrd
+
+%description
+The Linux Kernel, the operating system core itself
+
+
+%package devel
+Summary: Development package for building kernel modules to match the kernel.
+Group: System Environment/Kernel
+
+%description devel
+This package provides kernel headers and makefiles sufficient to build modules
+against the kernel package.
+
+
+%prep
+%setup -q -n linux-%{version}
+cp %{SOURCE1} .config
+
+%if %{!?kernelextension: 1}
+echo -%{release} > localversion
+%else
+echo -%{release}%{kernelextension} > localversion
+%endif
+
+
+%build
+make oldconfig 
+make 
+
+
+%install
+mkdir -p $RPM_BUILD_ROOT/lib
+make INSTALL_MOD_PATH=$RPM_BUILD_ROOT modules_install
+
+mkdir -p $RPM_BUILD_ROOT/boot
+make INSTALL_PATH=$RPM_BUILD_ROOT/boot install
+rm -f $RPM_BUILD_ROOT/boot/*.old
+rm -f $RPM_BUILD_ROOT/boot/System.map
+rm -f $RPM_BUILD_ROOT/boot/vmlinuz
+
+cp .config $RPM_BUILD_ROOT/boot/config-%{kernelversion}
+
+#
+# for the 'devel' package
+#
+DEVELVERSION=%{version}-%{release}
+
+%if %{!?kernelextension: 0}
+DEVELVERSION=$DEVELVERSION-%{kernelextension}
+%endif
+
+DEVELVERSION=$DEVELVERSION-%{_arch}
+
+rm -f $RPM_BUILD_ROOT/lib/modules/%{kernelversion}/build
+rm -f $RPM_BUILD_ROOT/lib/modules/%{kernelversion}/source
+
+(
+	cd $RPM_BUILD_ROOT/lib/modules/%{kernelversion} ;
+	ln -s /usr/src/kernels/$DEVELVERSION build ;
+	ln -s build source
+)
+
+make clean
+
+mkdir -p $RPM_BUILD_ROOT/usr/src/kernels/$DEVELVERSION
+cp -r . $RPM_BUILD_ROOT/usr/src/kernels/$DEVELVERSION
+
+
+##
+## files
+##
+%files
+/boot
+/lib
+
+%files devel
+/usr
+
+
+##
+## post
+##
+%post 
+[ -x /usr/sbin/module_upgrade ] && /usr/sbin/module_upgrade
+[ -x /sbin/new-kernel-pkg ] && /sbin/new-kernel-pkg --package %{name} \
+	--mkinitrd --depmod --install %{kernelversion}
+
+
+##
+## clean
+##
+%clean
+echo -rf $RPM_BUILD_ROOT
+

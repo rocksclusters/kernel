@@ -1,0 +1,13 @@
+#
+# put a list of all the driver directories that you'd like to build.
+#
+# for example, to build the 'e1000' driver, uncomment the line below:
+#e1000
+
+#
+# you can list multiple driver directories in this file, just make each driver
+# is on its own line, for example:
+#e1000
+#sk98lin
+#
+

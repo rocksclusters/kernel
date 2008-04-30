@@ -1,0 +1,7 @@
+##
+## A standard Makefile.build for building modules for driver disks
+##
+
+include Makefile
+
+include $(TOPDIR)/Build.rules

@@ -1,0 +1,262 @@
+INSTALLATION
+
+This file includes information on customizing your ddiskit installation
+in order to suit your Device Driver Update Disk (DDUD) generation needs.
+
+COMPILER VERSION IS IMPORTANT
+
+In the 2.6.x kernel series (and likely beyond), the compiler version is
+included in the "version magic" information of each kernel module.  If
+this value does not match the version used to build the main body of the
+kernel, the kernel module will not load.  Make sure you use the same
+compiler (or a compatible one) to build both the kernel and the modules.
+
+DEVICE DRIVER UPDATE DISK TITLE
+
+The file src/rhdd contains the one-line title used to describe the
+contents of your DDUD.  The contents of this file should be changed to
+appropriately reflect the contents of your DDUD.
+
+TOP-LEVEL MAKEFILE
+
+The top-level Makefile controls which driver modules are built and
+which kernels those modules are built against.  This Makefile also
+controls for which architecture those modules are built, although it
+will usually be best to let this default to match the running kernel.
+Finally, this Makefile contains some site-specific settings and some
+other house-keeping entries that may require attention under certain
+(perhaps unforeseeable) circumstances.
+
+Selecting Kernel Versions
+
+The kversions file is the preferred method for specifying the list of
+kernel versions against which to build the driver modules.  Below is
+shown an example of the contents of a kversions file (indented here
+for readability):
+
+	########################################
+	# Build for the standard RHEL4 kernels #
+	########################################
+
+	2.6.9-5.EL
+	2.6.9-5.ELhugemem
+	2.6.9-5.ELsmp
+
+As you can see, the values correspond to the names of the kernel
+packages without the leading "kernel-".  The actual values used should
+be selected to match the set of kernels which need to be supported by the
+DDUD you create.  You may also note that the hash character (i.e. '#')
+can be used to place comments inside the kversions file as desired.
+
+Note: The kernel-*devel-* package must be installed on the build machine
+for each kernel designated in the kversions file.
+
+Note2: The old method of modifying the KVERSIONS definition in the
+top-level Makefile is still a viable option as well, if that is your
+preference.
+
+Selecting Modules
+
+The subdirs file is the preferred method for specifying the list of
+driver modules to build for each kernel version.  Below is shown
+an example of the contents of a subdirs file (indented here for
+readability):
+
+	##############################################
+	# Full list of example driver subdirectories #
+	##############################################
+
+	tg3
+	e1000
+	ata_piix
+	sk98lin
+	cciss
+
+Please note that the modules specified correspond to sub-directories off
+the top-level ddiskit directory.
+
+Building for a Different Architecture
+
+The KARCH definition in the top-level Makefile actually only
+controls what architecture modules are identified as matching --
+it has no direct effect on how the modules are built.  Do not change
+this definition or override it on the make command-line unless you
+absolutely know what you are doing.  You have been warned -- THIS
+MEANS YOU.
+
+Building for Multiple Architectures
+
+Default Red Hat installations do not support cross-compilation, so
+neither does ddiskit.  If support for multiple architectures is desired,
+the following steps are recommended:
+
+	-- Install ddiskit in a shared networked directory
+	-- Login in-turn to a machine of each architecture type
+		-- Issue a "make kmods" command in the top-level
+		   ddiskit directory
+		-- Proceed to the next machine
+	-- Issue a "make all" command in the top-level ddiskit directory
+
+The above sequence should result in a DDUD with support for multiple
+architectures.
+
+Building a Diskette Image
+
+A diskette image can be built either by issuing a "make diskimg"
+command in the top-level ddiskit directory or by making sure that
+'diskimg' is included as a dependency of the 'all' rule and then
+issuing a "make all" in the top-level directory.
+
+The top-level Makefile includes a definition for FSTYPE.  This value
+can be either "ext2" or "vfat", and it corresponds to the type of
+filesystem which will be used to create the DDUD image.
+
+Please not that the size of a diskette image is constrained by the
+capacity of the physical diskette media.  When building a diskette
+image, it is advisable to limit both the number of modules and the
+number of kernel versions supported by the DDUD.
+
+Building an ISO Image
+
+An ISO image can be built either by issuing a "make diskiso" command
+in the top-level ddiskit directory or by making sure that 'diskiso'
+is included as a dependency of the 'all' rule and then issuing a
+"make all" in the top-level directory.
+
+DRIVER MAKEFILES
+
+For each subdirectory listed in the subdirs file in the top-level
+directory, the top-level Makefile will issue "make -f Makefile.build
+build" in the corresponding directory with the following definitions:
+
+	-- TOPDIR corresponds to the path to the top-level
+	   ddiskit directory
+	-- PWD corresponds to the path to the driver's directory
+	-- KVER corresponds to the kernel version for which the
+	   given driver is to be built during this invocation
+	-- KARCH corresponds to the architecture for which the
+	   given driver is to be built during this invocation
+
+As previously noted, the template Makefiles only use the KARCH definition
+for identification purposes.  If you provide your own Makefiles (and you
+know what you are doing) you may choose to make more interesting uses of
+the KARCH value AT YOUR OWN RISK.
+
+Using the Module Makefile Templates
+
+The tmpl directory contains two Makefiles, one simply called Makefile
+and one called Makefile.build.  When adding a new driver module to the
+build, these Makefiles should be copied to the new module's directory
+and modified appropriately.
+
+Makefile contains definitions for MODULES, SOURCES (or *_SOURCES), and
+HEADERS, which should be defined as follows:
+
+	-- MODULES is the names of all the modules to be built in that
+	   subdirectory, without any extension (i.e. "tg3" rather than
+	   "tg3.o" or "tg3.ko")
+	-- SOURCES lists every '.c' file required to build a single
+	   module; or, *_SOURCES list every '.c' file required to build
+	   each individual module within a subdirectory (replace * with
+	   each module's name)
+	-- HEADERS lists header files and any other files required to
+	   build the modules which are not '.c' files
+
+This file will be included in the kernel Makefile as part of the
+kernel's build process.  Please note that with normal usage it will be
+unnecessary for you to define "obj-m" or "module-objs" so long as the
+macros above are defined correctly.
+
+Makefile.build includes both Makefile and the Build.rules file from the
+top-level ddiskit directory.  Under normal circumstances, it should be
+unnecessary for you to modify this file.
+
+How the Module Makefile Templates Work
+
+When Makefile.build is invoked from the top-level Makefile, it uses
+the KVER and KARCH definitions to create a unique subdirectory
+for that combination of those values.  Within that subdirectory,
+Makefile.build creates a link to Makefile, Makefile.build, and
+every file listed in the SOURCES and HEADERS definitions.  Finally,
+Makefile.build re-invokes itself through the link it just created in
+order to run the module rule.
+
+The module rule invokes Makefile through the kernel build system in
+order to build the module itself.  Then, it copies the module to its
+proper location so that diskette and ISO images can later be built.
+
+While this system may seem somewhat complex, the details have already
+been settled and it works quite well.  This is the advantage to using
+the Makefile templates provided.
+
+DRIVER MODULE INFORMATION FOR THE DDUD
+
+In order to be available to the installer, each driver module must
+contribute certain information about itself to files that reside in
+the root of the created DDUD.  The pieces of these files particular
+to each driver are kept in files within the module directory:
+
+	-- modinfo
+
+		-- Only modules that should be selectable from the
+		   installer need to populate this file
+		-- First line, module name with no indentation
+		   (no extension, like MODNAME above)
+		-- Second line, driver type (scsi or net) with a
+		   single tab character for indentation
+		-- Third line, short description of module with a
+		   single tab character for indentation
+
+	-- modules.dep
+
+		-- Modules with no dependencies shall not populate
+		   this file
+		-- Like modules.dep on a live system, but only
+		   references modules included on the DDUD
+		-- no quotes, no indents, single space for whitespace
+		-- no pathnames or extensions on the module names
+
+	-- pcitable
+
+		-- Sorted, unique list of PCI Vendor/Device IDs
+		   paired with a module name in the third column
+		   and a Vendor|Product name pair in the fourth column
+		-- Single tab of whitespace between columns
+		-- Similar to data in /usr/share/hwdata/pcitable, but
+		   with fourth column added
+
+See any of the module directories for examples of the above files.
+Modules which need no information in one or more of the above files
+still need at least 0-byte placeholders for each file above.
+
+EXAMPLE DRIVERS
+
+Each of the following drivers was chosen to illustrate a specific
+feature of building a DDUD with ddiskit:
+
+	-- tg3 is a simple net driver with a single object file
+	-- e1000 is a net driver with multiple object files
+	-- ata_piix is a scsi driver which depends on the libata
+	   driver built in the same directory
+	-- sk98lin is a large net driver with its own header sub-directory
+	-- cciss is a scsi driver which includes more than just '.h' files
+	   in its HEADERS definition
+
+These examples should prove adequate in order to facilitate adding your
+custom drivers to ddiskit.
+
+SOURCES ON DISK
+
+By default, all files listed in the dist file in the top-level
+directory will be included on the disk image.  These source files
+will be placed under a directory on the disk image named src.
+
+This behaviour can be eliminated by editing the 'all' rule in the
+top-level Makefile to exclude the 'sources' dependency.  Otherwise,
+please ensure that the files listed in the dist file reflect the list
+of files you wish to have included on your disk image.
+
+--
+John W. Linville <linville@redhat.com>
+Red Hat, Inc.
+13 May 2005

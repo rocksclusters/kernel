@@ -1,0 +1,35 @@
+<?xml version="1.0" standalone="no"?>
+
+<kickstart>
+
+<description>
+Packages and configuration that should only be installed on servers
+(e.g., frontend machines)
+</description>
+
+
+<copyright>
+Copyright (c) 2000 - 2007 The Regents of the University of California.
+All rights reserved. Rocks(tm) v4.3 www.rocksclusters.org
+</copyright>
+
+
+<changelog>
+$Log: kernel-server.xml,v $
+Revision 1.2  2008/03/31 21:00:18  bruno
+needed to rebuild kernel roll
+
+Revision 1.1  2008/02/22 19:16:26  bruno
+new XML node file to help support kernel roll rebuilding
+
+</changelog>
+
+
+<!-- packages that are needed to correctly rebuild the kernel roll -->
+<package>pcre</package>
+<package>pcre-devel</package>
+<package>keyutils-libs-devel</package>
+
+
+</kickstart>
+

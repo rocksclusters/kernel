@@ -1,0 +1,3 @@
+ata_piix
+	scsi
+	"Update ICH SATA driver"

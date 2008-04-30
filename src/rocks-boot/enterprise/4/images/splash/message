@@ -1,0 +1,21 @@
+Rocks Cluster Distribution
+
+
+What do you want to kickstart?
+
+- Frontend:
+   type "frontend"
+
+- Upgrade your frontend:
+   type "frontend upgrade"
+   
+- Frontend Network Install
+   type "frontend central=name"
+    where name is "Rocks", or the 
+    FQDN of your central server.
+
+- Rescue
+   type "frontend rescue"
+
+- Cluster node: 
+   do nothing or press return

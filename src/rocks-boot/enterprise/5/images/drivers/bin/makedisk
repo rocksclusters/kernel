@@ -1,0 +1,17 @@
+#!/bin/bash
+
+FSTYPE=$1
+FSIMG=$2
+FSMNT=$3
+
+if [ "$FSTYPE" = "ext2" ]
+then
+	FSARGS=-F
+fi
+
+/sbin/mkfs -t ${FSTYPE} ${FSARGS} ${FSIMG} >/dev/null 2>&1
+mount -o loop -t ${FSTYPE} ${FSIMG} ${FSMNT}
+
+cp -dR disk/* ${FSMNT}
+
+umount ${FSMNT}
