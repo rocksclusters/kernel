@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.5 2008/03/06 23:41:55 mjk Exp $
+# $Id: Makefile,v 1.6 2008/05/02 00:13:10 anoop Exp $
 #
 # @Copyright@
 # 
@@ -55,6 +55,9 @@
 # @Copyright@
 #
 # $Log: Makefile,v $
+# Revision 1.6  2008/05/02 00:13:10  anoop
+# lighttpd added
+#
 # Revision 1.5  2008/03/06 23:41:55  mjk
 # copyright storm on
 #
@@ -72,7 +75,7 @@
 #
 #
 
-PKGROOT		= /lighttpd
+PKGROOT		= /opt/rocks
 REDHAT.ROOT     = $(CURDIR)/../../
 ROCKSROOT       = ../../../../..
 -include $(ROCKSROOT)/etc/Rules.mk
@@ -80,22 +83,27 @@ include Rules.mk
 
 
 build:
-	tar zvfx $(NAME)-$(VERSION).tar.gz
-	(								\
-		cd $(NAME)-$(VERSION) ;					\
-		./configure --prefix=$(PKGROOT) ;			\
-		$(MAKE) ; 						\
+	gunzip -c $(NAME)-$(VERSION).tar.gz | $(TAR) -xf -
+	(						\
+		cd $(NAME)-$(VERSION) ;			\
+		./configure --prefix=$(PKGROOT) 	\
+			LDFLAGS=-L/opt/rocks/lib	\
+			CPPFLAGS=-I/opt/rocks/include;	\
+		$(MAKE) ; 				\
 	)
 
 install::
 	mkdir -p $(ROOT)/$(PKGROOT)
+	mkdir -p $(ROOT)/$(INIT_SCRIPTS_DIR)
+	mkdir -p $(ROOT)/etc/lighttpd/
 	(								\
 		cd $(NAME)-$(VERSION) ;					\
 		$(MAKE) prefix=$(ROOT)/$(PKGROOT) install;		\
 	)
-	mkdir -p $(ROOT)/$(PKGROOT)/conf
-	cp conf/lighttpd.conf $(ROOT)/$(PKGROOT)/conf
-	
+	$(INSTALL) -m0755 lighttpd.init \
+		$(ROOT)/$(INIT_SCRIPTS_DIR)/lighttpd
+	$(INSTALL) -m0644 conf/lighttpd.conf-example \
+		$(ROOT)/etc/lighttpd/lighttpd.conf-example
 
 clean::
 	rm -rf $(NAME)-$(VERSION)

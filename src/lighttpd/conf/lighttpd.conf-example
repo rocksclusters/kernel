@@ -1,22 +1,23 @@
 server.port			= 80
-server.document-root		= "/"
+server.document-root		= "/var/lighttpd"
 
 accesslog.filename		= "/tmp/httpd.log"
-server.errorlog-use-syslog	= "enable"
+server.errorlog			= "/tmp/httpd.log"
+server.pid-file			= "/tmp/httpd.pid"
 
-dir-listing.activate		= "enable"
+dir-listing.activate		= "disable"
 
 server.modules			= (
 	"mod_rewrite",
 	"mod_cgi",
-	"mod_accesslog"
+	"mod_accesslog",
+	"mod_redirect",
 )
 
-index-file.names		= ( "/index.cgi" )
+index-file.names		= ( "/index.html" )
 
 cgi.assign			= (
-	".cgi"	=> "",
-	".py"	=> ""
+	".cgi"	=> "/usr/bin/perl",
 )
 
 mimetype.assign			= (
@@ -72,14 +73,3 @@ mimetype.assign			= (
 	".tbz"          =>      "application/x-bzip-compressed-tar",
 	".tar.bz2"      =>      "application/x-bzip-compressed-tar"
 )
-
-#
-# rocks.conf contains var.serverip
-#
-include "../../../tmp/rocks.conf"
-
-$HTTP["host"] == "127.0.0.1" { 
-	url.rewrite = ( "^/install/(.+)$"	=>
-"/opt/rocks/bittorrent/rocks-bt.py?filename=/install/$1&serverip=" + var.serverip )
-}
-

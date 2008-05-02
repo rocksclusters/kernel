@@ -1,0 +1,40 @@
+#!/sbin/sh
+
+# $Id: lighttpd.init,v 1.1 2008/05/02 00:13:10 anoop Exp $
+
+# @COPYRIGHT@
+# @COPYRIGHT@
+
+# $Log: lighttpd.init,v $
+# Revision 1.1  2008/05/02 00:13:10  anoop
+# lighttpd added
+#
+
+LIGHTTPD_CONF=/etc/lighttpd/lighttpd.conf
+LIGHTTPD_EXEC=/opt/rocks/sbin/lighttpd
+
+PIDFILE=/tmp/httpd.pid
+
+case $1 in
+
+'start')
+	$LIGHTTPD_EXEC -f $LIGHTTPD_CONF
+	;;
+
+'stop')
+	pid=`/usr/bin/cat $PIDFILE`
+	/usr/bin/kill -KILL $pid
+	;;
+
+'restart')
+	pid=`/usr/bin/cat $PIDFILE`
+	/usr/bin/kill -HUP $pid
+	;;
+
+*)
+	echo "Usage: $0 { start | stop | restart}"
+	exit 1
+	;;
+esac
+
+exit $?
