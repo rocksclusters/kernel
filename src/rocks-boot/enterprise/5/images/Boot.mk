@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.9 2008/04/17 21:59:17 bruno Exp $
+# $Id: Boot.mk,v 1.10 2008/05/22 21:02:07 bruno Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -59,6 +59,12 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.10  2008/05/22 21:02:07  bruno
+# rocks-dist is dead!
+#
+# moved default location of distro from /export/home/install to
+# /export/rocks/install
+#
 # Revision 1.9  2008/04/17 21:59:17  bruno
 # tweaks to build driver disks on V
 #
@@ -125,10 +131,10 @@ install:
 	install isolinux/{initrd.img,vmlinuz}	$(ROOT)/boot/kickstart/default/
 	install isolinux/*			$(ROOT)/rocks/isolinux/
 	mkdir -p				$(ROOT)/rocks/images/
-	install rocks-dist/lan/$(ARCH)/images/stage2.img \
+	install rocks-dist/$(ARCH)/images/stage2.img \
 						$(ROOT)/rocks/images/
 	mkdir -p				$(ROOT)/boot/kickstart/xen/
-	install rocks-dist/lan/$(ARCH)/images/xen/vmlinuz \
+	install rocks-dist/$(ARCH)/images/xen/vmlinuz \
 						$(ROOT)/boot/kickstart/xen/
 	install initrd-xen.iso.gz		$(ROOT)/boot/kickstart/xen/
 
@@ -216,7 +222,7 @@ initrd-%.iso: $(LOADER)/loader prep-initrd make-driver-disk
 	#
 	if [ ! -d stage2 ] ; then mkdir stage2 ; fi
 	mount -o loop -t squashfs \
-		rocks-dist/lan/$(ARCH)/images/stage2.img stage2
+		rocks-dist/$(ARCH)/images/stage2.img stage2
 	cp -r stage2/lib* $@.new/
 	cp -r stage2/etc $@.new/
 	umount stage2
@@ -275,7 +281,7 @@ isolinux: /usr/lib/syslinux/isolinux.bin initrd-boot.iso.gz initrd-xen.iso.gz $(
 	cp /usr/lib/syslinux/isolinux.bin $@
 	cp $(SPLASH)/{boot.msg,splash.lss} isolinux.cfg $@
 	cp initrd-boot.iso.gz   $@/initrd.img
-	cp rocks-dist/lan/$(ARCH)/isolinux/vmlinuz $@/vmlinuz
+	cp rocks-dist/$(ARCH)/isolinux/vmlinuz $@/vmlinuz
 	echo
 	ls -l $@
 	echo

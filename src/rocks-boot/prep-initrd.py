@@ -1,6 +1,6 @@
 #!/opt/rocks/bin/python
 #
-# $Id: prep-initrd.py,v 1.22 2008/04/17 21:59:17 bruno Exp $
+# $Id: prep-initrd.py,v 1.23 2008/05/22 21:02:07 bruno Exp $
 #
 # @Copyright@
 # 
@@ -56,6 +56,12 @@
 # @Copyright@
 #
 # $Log: prep-initrd.py,v $
+# Revision 1.23  2008/05/22 21:02:07  bruno
+# rocks-dist is dead!
+#
+# moved default location of distro from /export/home/install to
+# /export/rocks/install
+#
 # Revision 1.22  2008/04/17 21:59:17  bruno
 # tweaks to build driver disks on V
 #
@@ -241,11 +247,12 @@ class Distribution:
 
 	
 	def getPath(self):
-		return os.path.join(self.name, 'lan', self.arch)
+		return os.path.join(self.name, self.arch)
 		
 	def generate(self, flags=""):
-		rocks.util.system('rocks-dist %s --dist=%s --notorrent dist' % 
-			(flags, self.name))
+		#rocks.util.system('rocks-dist %s --dist=%s --notorrent dist' % 
+			#(flags, self.name))
+		rocks.util.system('/opt/rocks/bin/rocks create distro')
 		self.tree = rocks.file.Tree(os.path.join(os.getcwd(), 
 			self.getPath()))
 		
