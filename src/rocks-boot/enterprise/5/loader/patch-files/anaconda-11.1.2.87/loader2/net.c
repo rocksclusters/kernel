@@ -1935,7 +1935,7 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 
 	if (found == 0) {
 		logMessage(ERROR,
-			"kickstartNetworkUp:unable to setup networking");
+			"rocksNetworkUp:unable to setup networking");
 		return -1;
 	}
 
