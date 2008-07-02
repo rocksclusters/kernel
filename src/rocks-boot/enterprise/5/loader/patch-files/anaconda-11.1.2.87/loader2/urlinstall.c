@@ -609,20 +609,29 @@ int getFileFromUrl(char * url, char * dest,
       * Call non-interactive, exhaustive NetworkUp() if we are
       * a cluster appliance.
       */
-    logMessage(INFO, "ROCKS:getFileFromUrl:calling kickstartNetworkUp");
-    if (!strlen(url))
+    if (!strlen(url)) {
+	    logMessage(INFO, "ROCKS:getFileFromUrl:calling rocksNetworkUp");
             rc = rocksNetworkUp(loaderData, &netCfg);
-    else
+    } else {
+	    logMessage(INFO, "ROCKS:getFileFromUrl:calling kickstartNetworkUp");
             rc = kickstartNetworkUp(loaderData, &netCfg);
+    }
+
     if (rc) return 1;
     fd = 0;
 
     /*
      * this will be used when starting up mini_httpd()
      */
+
     tip = &(netCfg.dev.nextServer);
     inet_ntop(tip->sa_family, IP_ADDR(tip), ret, IP_STRLEN(tip));
-    loaderData->nextServer = strdup(ret);
+
+    if (strlen(ret) > 0) {
+        loaderData->nextServer = strdup(ret);
+    } else {
+        loaderData->nextServer = NULL;
+    }
 #else
     if (kickstartNetworkUp(loaderData, &netCfg)) {
         logMessage(ERROR, "unable to bring up network");
@@ -694,7 +703,11 @@ int getFileFromUrl(char * url, char * dest,
 	 */
 	tip = &(netCfg.dev.nextServer);
 	sin = (struct sockaddr_in *)IP_ADDR(tip);
-	srand((unsigned int)sin->sin_addr.s_addr);
+	if (sin == NULL) {
+		srand(time(NULL));
+	} else {
+		srand((unsigned int)sin->sin_addr.s_addr);
+	}
 
 	dist = "";
 	if (loaderData->distName)
