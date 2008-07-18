@@ -752,7 +752,7 @@ static void parseCmdLineFlags(struct loaderData_s * loaderData,
         else if (!strncasecmp(argv[i], "ekv", 3)) {
             loaderData->ekv = 1;
         }
-        else if (!strncasecmp(argv[i], "server", 6)) {
+        else if (!strncasecmp(argv[i], "build", 5)) {
             loaderData->server = 1;
         }
         else if (!strncasecmp(argv[i], "mac=", 4)) {
