@@ -23,7 +23,7 @@
 #include <sys/mount.h>
 #include <unistd.h>
 
-#ifdef  SDSC
+#ifdef  ROCKS
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -48,7 +48,7 @@
 #include "urls.h"
 #include "windows.h"
 
-#ifdef  SDSC
+#ifdef  ROCKS
 extern int intelDetectSMP(void);
 extern int ia64DetectSMP(void);
 extern int detectHT(void);
@@ -161,7 +161,7 @@ static int loadUrlImages(struct iurlinfo * ui) {
     snprintf(tmpstr1, sizeof(tmpstr1), "images/%s", stage2img);
     snprintf(tmpstr2, sizeof(tmpstr2), "/tmp/ramfs/%s", stage2img);
 
-#ifdef  SDSC
+#ifdef  ROCKS
     rc = loadSingleUrlImage(ui, tmpstr1, tmpstr2, "/mnt/runtime", "loop2", 0);
 #else
     rc = loadSingleUrlImage(ui, tmpstr1, tmpstr2,
@@ -174,9 +174,9 @@ static int loadUrlImages(struct iurlinfo * ui) {
         return 1;
     }
 
-#ifndef	SDSC
+#ifndef	ROCKS
     /*
-     * SDSC - we don't want to check the stamp since we routinely rebuild
+     * ROCKS - we don't want to check the stamp since we routinely rebuild
      * the distribution.
      */
 
@@ -229,7 +229,7 @@ static char * getLoginName(char * login, struct iurlinfo ui) {
     return login;
 }
 
-#ifdef SDSC
+#ifdef ROCKS
 void
 start_httpd(char *nextServer)
 {
@@ -392,7 +392,7 @@ char * mountUrlImage(struct installMethod * method,
                 break;
             }
 
-#ifdef  SDSC
+#ifdef  ROCKS
 	    if (loaderData->server) {
 	    	start_httpd(NULL);
 	    } else {
@@ -458,7 +458,7 @@ char * mountUrlImage(struct installMethod * method,
     return url;
 }
 
-#ifdef	SDSC
+#ifdef	ROCKS
 char *
 get_driver_name(char *dev)
 {
@@ -600,11 +600,11 @@ int getFileFromUrl(char * url, char * dest,
     struct networkDeviceConfig netCfg;
     char * ehdrs = NULL;
     ip_addr_t *tip;
-#ifdef  SDSC
+#ifdef  ROCKS
     char *drivername;
 #endif
 
-#ifdef  SDSC
+#ifdef  ROCKS
      /*
       * Call non-interactive, exhaustive NetworkUp() if we are
       * a cluster appliance.
@@ -642,12 +642,11 @@ int getFileFromUrl(char * url, char * dest,
     memset(&ui, 0, sizeof(ui));
     ui.protocol = proto;
 
-#ifdef	SDSC
+#ifdef	ROCKS
 {
 	unsigned int		np;
 	struct sockaddr_in	*sin;
 	int			string_size;
-	int prefix;
 	char *arch;
 	char *base;
 	char *dist;
@@ -674,17 +673,41 @@ int getFileFromUrl(char * url, char * dest,
 		host = strdup(loaderData->nextServer);
 	}
 	else {
-		prefix = (proto==URL_METHOD_HTTP) ? 7 : 6;
-		base = strchr(url + prefix, '/') + 1;
-		host = strdup(url + prefix);
-		*strchr(host, '/') = '\0';
+		char	*p, *q;
+
+		base = NULL;
+		host = NULL;
+
+		p = strstr(url, "//");
+		if (p != NULL) {
+			p += 2;
+
+			/*
+			 * 'base' is the file name
+			 */
+			base = strchr(p, '/');
+			if (base != NULL) {
+				base += 1;
+			}
+
+			/*
+		 	 * now get the host portion of the URL
+			 */
+			q = strchr(p, '/');
+			if (q != NULL) {
+				*q = '\0';
+				host = strdup(p);
+			}
+		}
+		
 		if (!base || !host) {
 			logMessage(ERROR,
-				"kickstartFromUrl:url not well formed.\n");
-			return 1;
+				"kickstartFromUrl:url (%s) not well formed.\n",
+				url);
+			return(1);
 		}
 	}
-	
+
 	/* We always retrieve our kickstart file via HTTPS, 
 	 * however the official install method (for *.img and rpms)
 	 * is still HTTP.
@@ -772,12 +795,12 @@ int getFileFromUrl(char * url, char * dest,
             dev = devices[i]->device;
             mac = netlink_interfaces_mac2str(dev);
 
-#ifdef  SDSC
+#ifdef  ROCKS
             drivername = get_driver_name(dev);
 #endif
 
             if (mac) {
-#ifdef  SDSC
+#ifdef  ROCKS
                 /* A hint as to our primary interface. */
                 if (!strcmp(dev, loaderData->netDev)) {
                         snprintf(tmpstr, sizeof(tmpstr),
@@ -793,7 +816,7 @@ int getFileFromUrl(char * url, char * dest,
                          "X-RHN-Provisioning-MAC-%d: %s %s\r\n", i, dev, mac);
 #endif
 
-#ifdef  SDSC
+#ifdef  ROCKS
                 free(drivername);
 #endif
                 free(mac);
@@ -812,7 +835,7 @@ int getFileFromUrl(char * url, char * dest,
         }
     }
 	
-#ifdef SDSC
+#ifdef ROCKS
 {
         /* Retrieve the kickstart file via HTTPS */
 
