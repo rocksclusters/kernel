@@ -743,9 +743,6 @@ static void parseCmdLineFlags(struct loaderData_s * loaderData,
         else if (!strcasecmp(argv[i], "ks") || !strncasecmp(argv[i], "ks=", 3))
             loaderData->ksFile = strdup(argv[i]);
 #ifdef SDSC
-        else if (!strncasecmp(argv[i], "dist=", 5)) {
-            loaderData->distName = strdup(argv[i]+5);
-        }
         else if (!strncasecmp(argv[i], "dropcert", 8)) {
             loaderData->dropCert = 1;
         }

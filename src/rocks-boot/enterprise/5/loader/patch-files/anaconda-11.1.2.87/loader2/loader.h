@@ -123,7 +123,6 @@ struct loaderData_s {
     short int dropCert;
     short int authParent;
     char * mac;
-    char * distName;
     char * cert_filename;
     char * priv_filename;
     char * ca_filename;

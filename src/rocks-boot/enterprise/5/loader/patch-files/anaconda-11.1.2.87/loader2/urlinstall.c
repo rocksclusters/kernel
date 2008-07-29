@@ -48,13 +48,6 @@
 #include "urls.h"
 #include "windows.h"
 
-#ifdef  ROCKS
-extern int intelDetectSMP(void);
-extern int ia64DetectSMP(void);
-extern int detectHT(void);
-void watchdog_off(void);
-#endif
-
 /* boot flags */
 extern uint64_t flags;
 
@@ -644,12 +637,10 @@ int getFileFromUrl(char * url, char * dest,
 
 #ifdef	ROCKS
 {
-	unsigned int		np;
 	struct sockaddr_in	*sin;
 	int			string_size;
-	char *arch;
-	char *base;
-	char *dist;
+	char			*arch;
+	char			*base;
 
 #if defined(__i386__)
 	arch = "i386";
@@ -658,15 +649,6 @@ int getFileFromUrl(char * url, char * dest,
 #elif defined(__x86_64__)
 	arch = "x86_64";
 #endif
-
-#if defined(__i386__) || defined(__x86_64)
-	np = intelDetectSMP();
-#elif defined(__ia64__)
-	np = ia64DetectSMP();
-#endif
-
-	if (np < 1)
-		np = 1;
 
 	if (!strlen(url)) {
 		base = netCfg.dev.bootFile;
@@ -732,25 +714,14 @@ int getFileFromUrl(char * url, char * dest,
 		srand((unsigned int)sin->sin_addr.s_addr);
 	}
 
-	dist = "";
-	if (loaderData->distName)
-		dist = loaderData->distName;
-
-	string_size = strlen(base) +
-		strlen("?arch=&np=XXXX&project=&dist=") +
-		strlen(arch) + strlen(PROJECT_NAME) +
-		strlen(dist) + 1;
+	string_size = strlen(base) + strlen("?arch=") + strlen(arch) + 1;
 	if ((file = alloca(string_size)) == NULL) {
-		logMessage(ERROR, "kickstartFromUrl:malloc failed\n");
+		logMessage(ERROR, "kickstartFromUrl:alloca failed\n");
 		return(1);
 	}
 	memset(file, 0, string_size);
 
-	sprintf(file, "/%s?arch=%s&np=%u&project=%s",
-		base, arch, np, PROJECT_NAME);
-
-	if (strlen(dist))
-		sprintf(file, "%s&dist=%s", file, dist);
+	sprintf(file, "/%s?arch=%s", base, arch);
 }
 
 	logMessage(INFO, "ks location: https://%s%s", host, file);
