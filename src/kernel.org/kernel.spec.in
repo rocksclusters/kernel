@@ -1,4 +1,4 @@
-%if %{kernelextension}
+%if %{with_extension}
 %define kernelversion %{version}-%{release}%{kernelextension}
 %else
 %define kernelversion %{version}-%{release}
@@ -36,7 +36,7 @@ against the kernel package.
 %setup -q -n linux-%{version}
 cp %{SOURCE1} .config
 
-%if %{kernelextension}
+%if %{with_extension}
 echo -%{release}%{kernelextension} > localversion
 %else
 echo -%{release} > localversion
@@ -65,7 +65,7 @@ cp .config $RPM_BUILD_ROOT/boot/config-%{kernelversion}
 #
 DEVELVERSION=%{version}-%{release}
 
-%if %{kernelextension}
+%if %{with_extension}
 DEVELVERSION=$DEVELVERSION-%{kernelextension}
 %endif
 

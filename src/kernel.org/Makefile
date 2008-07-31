@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.11 2008/04/10 21:16:07 bruno Exp $
+# $Id: Makefile,v 1.12 2008/07/31 19:19:46 bruno Exp $
 #
 # @Copyright@
 # 
@@ -55,6 +55,9 @@
 # @Copyright@
 #
 # $Log: Makefile,v $
+# Revision 1.12  2008/07/31 19:19:46  bruno
+# can build all varieties of kernels now
+#
 # Revision 1.11  2008/04/10 21:16:07  bruno
 # first whack at building kernels in V
 #
@@ -99,16 +102,17 @@ include Rules.mk
 
 ifeq ($(PAE),1)
 SEDSPEC += -e 's%@KERNELNAME@%$(NAME)-PAE%g'
-MAKE.rpmflag += --define="kernelextension PAE"
-else
-SEDSPEC += -e 's%@KERNELNAME@%$(NAME)%g'
+MAKE.rpmflag += --define="with_extension 1" --define="kernelextension PAE"
 endif
 
 ifeq ($(XEN),1)
 SEDSPEC += -e 's%@KERNELNAME@%$(NAME)-xen%g'
-MAKE.rpmflag += --define="kernelextension xen"
-else
+MAKE.rpmflag += --define="with_extension 1" --define="kernelextension xen"
+endif
+
+ifeq ($(PAE)$(XEN),00)
 SEDSPEC += -e 's%@KERNELNAME@%$(NAME)%g'
+MAKE.rpmflag += --define="with_extension 0"
 endif
 
 ifeq ($(ARCH),i386)
