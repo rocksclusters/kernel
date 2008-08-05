@@ -652,7 +652,7 @@ int getFileFromUrl(char * url, char * dest,
 #endif
 
 	if (!strlen(url)) {
-		base = netCfg.dev.bootFile;
+		base = strdup("install/sbin/kickstart.cgi");
 		host = strdup(loaderData->nextServer);
 	}
 	else {
@@ -716,6 +716,7 @@ int getFileFromUrl(char * url, char * dest,
 	}
 
 	string_size = strlen(base) + strlen("?arch=") + strlen(arch) + 1;
+
 	if ((file = alloca(string_size)) == NULL) {
 		logMessage(ERROR, "kickstartFromUrl:alloca failed\n");
 		return(1);
