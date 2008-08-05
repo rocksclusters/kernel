@@ -110,5 +110,5 @@ cp -r . $RPM_BUILD_ROOT/usr/src/kernels/$DEVELVERSION
 ## clean
 ##
 %clean
-echo -rf $RPM_BUILD_ROOT
+rm -rf $RPM_BUILD_ROOT
 
