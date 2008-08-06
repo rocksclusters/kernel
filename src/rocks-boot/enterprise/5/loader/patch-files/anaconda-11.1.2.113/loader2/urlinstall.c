@@ -52,6 +52,10 @@
 /* boot flags */
 extern uint64_t flags;
 
+#ifdef	ROCKS
+static int num_cpus();
+#endif
+
 static int loadSingleUrlImage(struct iurlinfo * ui, char * file,
                               char * dest, char * mntpoint, char * device,
                               int silentErrors) {
@@ -640,6 +644,8 @@ int getFileFromUrl(char * url, char * dest,
 {
 	struct sockaddr_in	*sin;
 	int			string_size;
+	int			ncpus;
+	char			np[16];
 	char			*arch;
 	char			*base;
 
@@ -715,7 +721,11 @@ int getFileFromUrl(char * url, char * dest,
 		srand((unsigned int)sin->sin_addr.s_addr);
 	}
 
-	string_size = strlen(base) + strlen("?arch=") + strlen(arch) + 1;
+	ncpus = num_cpus();
+	sprintf(np, "%d", ncpus);
+
+	string_size = strlen(base) + strlen("?arch=") + strlen(arch) +
+		strlen("&np=") + strlen(np) + 1;
 
 	if ((file = alloca(string_size)) == NULL) {
 		logMessage(ERROR, "kickstartFromUrl:alloca failed\n");
@@ -723,7 +733,7 @@ int getFileFromUrl(char * url, char * dest,
 	}
 	memset(file, 0, string_size);
 
-	sprintf(file, "/%s?arch=%s", base, arch);
+	sprintf(file, "/%s?arch=%s&np=%s", base, arch, np);
 }
 
 	logMessage(INFO, "ks location: https://%s%s", host, file);
@@ -905,5 +915,35 @@ void setKickstartUrl(struct loaderData_s * loaderData, int argc,
 
     logMessage(INFO, "results of url ks, url %s", url);
 }
+
+#ifdef	ROCKS
+static int
+num_cpus()
+{
+	FILE	*file;
+	int	cpus = 0;
+	char	str[128];
+
+	if ((file = fopen("/proc/cpuinfo", "r")) != NULL) {
+
+		while (fscanf(file, "%s", str) != EOF) {
+			if (strcmp(str, "processor") == 0) {
+				++cpus;
+			}
+		}
+
+		fclose(file);
+	}
+
+	/*
+	 * always return at least 1 CPU
+	 */
+	if (cpus == 0) {
+		cpus = 1;
+	}
+
+	return(cpus);
+}
+#endif
 
 /* vim:set shiftwidth=4 softtabstop=4: */
