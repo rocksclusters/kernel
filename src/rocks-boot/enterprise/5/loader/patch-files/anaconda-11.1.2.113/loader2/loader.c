@@ -755,6 +755,9 @@ static void parseCmdLineFlags(struct loaderData_s * loaderData,
         else if (!strncasecmp(argv[i], "build", 5)) {
             loaderData->server = 1;
         }
+        else if (!strncasecmp(argv[i], "nowatchdog", 10)) {
+            loaderData->nowatchdog = 1;
+        }
         else if (!strncasecmp(argv[i], "mac=", 4)) {
             loaderData->mac = strdup(argv[i]+4);
         }
@@ -1729,11 +1732,15 @@ int main(int argc, char ** argv) {
              * pop up (good for debuging) but reboot the machine and try
              * again using the watchdog.
              */
-            watchdog_on(loaderData.server);
+            if (loaderData.nowatchdog == 0) {
+                watchdog_on(loaderData.server);
+            }
 #endif
             getKickstartFile(&loaderData);
 #ifdef ROCKS
-            watchdog_off();
+            if (loaderData.nowatchdog == 0) {
+                watchdog_off();
+            }
         }
 #endif
         if (FL_KICKSTART(flags) && 

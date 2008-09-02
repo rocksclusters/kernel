@@ -121,6 +121,7 @@ struct loaderData_s {
 #ifdef ROCKS
     short int ekv;
     short int server;
+    short int nowatchdog;
     short int dropCert;
     short int authParent;
     char * mac;
