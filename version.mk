@@ -1,3 +1,4 @@
+ROLLNAME 	= kernel
 RELEASE		= 0
 COLOR		= firebrick
 
