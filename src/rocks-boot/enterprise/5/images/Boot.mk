@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.10 2008/05/22 21:02:07 bruno Exp $
+# $Id: Boot.mk,v 1.11 2008/10/18 00:56:12 mjk Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -9,7 +9,7 @@
 # 
 # 				Rocks(r)
 # 		         www.rocksclusters.org
-# 		            version 5.0 (V)
+# 		           version 5.1  (VI)
 # 
 # Copyright (c) 2000 - 2008 The Regents of the University of California.
 # All rights reserved.	
@@ -59,6 +59,9 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.11  2008/10/18 00:56:12  mjk
+# copyright 5.1
+#
 # Revision 1.10  2008/05/22 21:02:07  bruno
 # rocks-dist is dead!
 #
