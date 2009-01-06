@@ -1,5 +1,5 @@
 # --------------------------------------------------- -*- Makefile -*- --
-# $Id: Makefile,v 1.14 2008/10/18 00:56:12 mjk Exp $
+# $Id: Makefile,v 1.15 2009/01/06 18:27:31 bruno Exp $
 #
 # @Copyright@
 # 
@@ -55,6 +55,9 @@
 # @Copyright@
 #
 # $Log: Makefile,v $
+# Revision 1.15  2009/01/06 18:27:31  bruno
+# more versioning of the vmlinuz and initrd.img
+#
 # Revision 1.14  2008/10/18 00:56:12  mjk
 # copyright 5.1
 #
@@ -251,15 +254,15 @@ SEDSPEC += -e s%@REDHAT_RELEASE@%$(REDHAT_RELEASE)%g
 build:: cluster-kickstart
 
 install build clean::
-	$(MAKE) ROOT=$(ROOT) PROJECT_NAME=$(PROJECT_NAME) REDHAT_RELEASE=$(REDHAT_RELEASE) -C $(REDHAT_RELEASE)/images/$(ARCH) $@
-	$(MAKE) ROOT=$(ROOT) PROJECT_NAME=$(PROJECT_NAME) REDHAT_RELEASE=$(REDHAT_RELEASE) -C $(REDHAT_RELEASE)/images/splash $@
-	$(MAKE) ROOT=$(ROOT) PROJECT_NAME=$(PROJECT_NAME) REDHAT_RELEASE=$(REDHAT_RELEASE) -C $(REDHAT_RELEASE)/loader $@
+	$(MAKE) ROOT=$(ROOT) PROJECT_NAME=$(PROJECT_NAME) REDHAT_RELEASE=$(REDHAT_RELEASE) VERSION=$(VERSION) -C $(REDHAT_RELEASE)/images/$(ARCH) $@
+	$(MAKE) ROOT=$(ROOT) PROJECT_NAME=$(PROJECT_NAME) REDHAT_RELEASE=$(REDHAT_RELEASE) VERSION=$(VERSION) -C $(REDHAT_RELEASE)/images/splash $@
+	$(MAKE) ROOT=$(ROOT) PROJECT_NAME=$(PROJECT_NAME) REDHAT_RELEASE=$(REDHAT_RELEASE) VERSION=$(VERSION) -C $(REDHAT_RELEASE)/loader $@
 
 install:: 
 	install cluster-kickstart $(ROOT)/boot/kickstart/
 	install init.d/rocks-grub $(ROOT)/etc/rc.d/init.d/
 	install -m 755 prep-grub.sh $(ROOT)/boot/kickstart/prep-grub
-	tar cf $(ROOT)/boot/kickstart/rocks-install-kernel-$(VERSION)-$(ARCH).tar -C $(ROOT) boot/kickstart/default/vmlinuz boot/kickstart/default/initrd.img
+	tar cf $(ROOT)/boot/kickstart/rocks-install-kernel-$(VERSION)-$(ARCH).tar -C $(ROOT) boot/kickstart/default/vmlinuz-$(VERSION)-$(ARCH) boot/kickstart/default/initrd.img-$(VERSION)-$(ARCH)
 
 
 cluster-kickstart: cluster-kickstart.o

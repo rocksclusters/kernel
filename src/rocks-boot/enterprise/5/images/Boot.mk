@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.11 2008/10/18 00:56:12 mjk Exp $
+# $Id: Boot.mk,v 1.12 2009/01/06 18:27:31 bruno Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -59,6 +59,9 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.12  2009/01/06 18:27:31  bruno
+# more versioning of the vmlinuz and initrd.img
+#
 # Revision 1.11  2008/10/18 00:56:12  mjk
 # copyright 5.1
 #
@@ -131,15 +134,20 @@ make-driver-disk:
 		KERNEL_SOURCE_ROOT=../../../$(ARCH)/kernel diskimg)
 
 install:
-	install isolinux/{initrd.img,vmlinuz}	$(ROOT)/boot/kickstart/default/
-	install isolinux/*			$(ROOT)/rocks/isolinux/
-	mkdir -p				$(ROOT)/rocks/images/
-	install rocks-dist/$(ARCH)/images/stage2.img \
-						$(ROOT)/rocks/images/
-	mkdir -p				$(ROOT)/boot/kickstart/xen/
+	install isolinux/vmlinuz \
+		$(ROOT)/boot/kickstart/default/vmlinuz-$(VERSION)-$(ARCH)
+	install isolinux/initrd.img \
+		$(ROOT)/boot/kickstart/default/initrd.img-$(VERSION)-$(ARCH)
+	install isolinux/* $(ROOT)/rocks/isolinux/
+
+	mkdir -p $(ROOT)/rocks/images/
+	install rocks-dist/$(ARCH)/images/stage2.img $(ROOT)/rocks/images/
+
+	mkdir -p $(ROOT)/boot/kickstart/xen/
 	install rocks-dist/$(ARCH)/images/xen/vmlinuz \
-						$(ROOT)/boot/kickstart/xen/
-	install initrd-xen.iso.gz		$(ROOT)/boot/kickstart/xen/
+		$(ROOT)/boot/kickstart/xen/vmlinuz-$(VERSION)-$(ARCH)
+	install initrd-xen.iso.gz \
+		$(ROOT)/boot/kickstart/xen/initrd-xen.iso.gz-$(VERSION)-$(ARCH)
 
 
 $(LOADER)/loader:
@@ -300,8 +308,8 @@ bootdisk: isolinux
 		-boot-load-size 4 -boot-info-table .)
 
 pxe: isolinux
-	cp isolinux/initrd.img /tftpboot/pxelinux/
-	cp isolinux/vmlinuz /tftpboot/pxelinux/
+	cp isolinux/vmlinuz /tftpboot/pxelinux/vmlinuz-$(VERSION)-$(ARCH)
+	cp isolinux/initrd.img /tftpboot/pxelinux/initrd.img-$(VERSION)-$(ARCH)
 
 # To refresh the boot.iso with a new loader without running
 # the long buildinstall script (done by prep-initrd.py).
