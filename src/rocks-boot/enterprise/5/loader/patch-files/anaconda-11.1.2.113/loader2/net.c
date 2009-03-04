@@ -2347,38 +2347,31 @@ int kickstartNetworkUp(struct loaderData_s * loaderData,
 			"ROCKS:unable to open file /tmp/netinfo-rocks");
 	} else {
 		if (netCfgPtr->dev.set & PUMP_INTFINFO_HAS_IP) {
-			fprintf(f, "<var name=\"Kickstart_PublicAddress\" ");
-
 			tip = &(netCfgPtr->dev.ip);
 			inet_ntop(tip->sa_family, IP_ADDR(tip), ret,
 				IP_STRLEN(tip));
 
-			fprintf(f, "val=\"%s\"/>\n", ret);
+			fprintf(f, "Kickstart_PublicAddress:%s\n", ret);
 		}
 
 		if (netCfgPtr->dev.set & PUMP_INTFINFO_HAS_NETMASK) {
-			fprintf(f, "<var name=\"Kickstart_PublicNetmask\" ");
-
 			tip = &(netCfgPtr->dev.netmask);
 			inet_ntop(tip->sa_family, IP_ADDR(tip), ret,
 				IP_STRLEN(tip));
 
-			fprintf(f, "val=\"%s\"/>\n", ret);
+			fprintf(f, "Kickstart_PublicNetmask:%s\n", ret);
 		}
 
 		if (netCfgPtr->dev.set & PUMP_NETINFO_HAS_GATEWAY) {
-			fprintf(f, "<var name=\"Kickstart_PublicGateway\" ");
-
 			tip = &(netCfgPtr->dev.gateway);
 			inet_ntop(tip->sa_family, IP_ADDR(tip), ret,
 				IP_STRLEN(tip));
 
-			fprintf(f, "val=\"%s\"/>\n", ret);
+			fprintf(f, "Kickstart_PublicGateway:%s\n", ret);
 		}
 
 		if (netCfgPtr->dev.numDns > 0) {
-			fprintf(f, "<var name=\"Kickstart_PublicDNSServers\" ");
-			fprintf(f, "val=\"");
+			fprintf(f, "Kickstart_PublicDNSServers:");
 		}
 		for (i = 0; i < netCfgPtr->dev.numDns; i++) {
 			tip = &(netCfgPtr->dev.dnsServers[i]);
@@ -2396,7 +2389,7 @@ int kickstartNetworkUp(struct loaderData_s * loaderData,
 			}
 		}
 		if (netCfgPtr->dev.numDns > 0) {
-			fprintf(f, "\"/>\n");
+			fprintf(f, "\n");
 		}
 
 		fclose(f);
