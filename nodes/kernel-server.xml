@@ -16,6 +16,9 @@ All rights reserved. Rocks(tm) v4.3 www.rocksclusters.org
 
 <changelog>
 $Log: kernel-server.xml,v $
+Revision 1.4  2009/05/22 16:26:14  bruno
+need keyutils to rebuild kernel roll
+
 Revision 1.3  2009/05/01 17:36:03  bruno
 package needed to build rocks-boot
 
@@ -31,6 +34,7 @@ new XML node file to help support kernel roll rebuilding
 <!-- packages that are needed to correctly rebuild the kernel roll -->
 <package>pcre</package>
 <package>pcre-devel</package>
+<package>keyutils</package>
 <package>keyutils-libs-devel</package>
 <package>iscsi-initiator-utils</package>
 
