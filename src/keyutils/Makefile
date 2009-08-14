@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.4 2009/05/01 19:07:20 mjk Exp $
+# $Id: Makefile,v 1.5 2009/08/14 18:00:12 bruno Exp $
 #
 # @Copyright@
 # 
@@ -55,6 +55,9 @@
 # @Copyright@
 #
 # $Log: Makefile,v $
+# Revision 1.5  2009/08/14 18:00:12  bruno
+# install keyutils after building it
+#
 # Revision 1.4  2009/05/01 19:07:20  mjk
 # chimi con queso
 #
@@ -108,4 +111,5 @@ include Rules.mk
 rpm::	$(HOME)/.rpmmacros
 	ROCKS_REBUILD_SRPM=$(NAME)-$(VERSION)-$(RELEASE).el5.src.rpm \
 		REDHATSPECS=$(REDHAT.SPECS) ./build
+	rpm -i --force $(REDHAT.RPMS)/$(ARCH)/*rpm
 
