@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.13 2009/05/01 19:07:20 mjk Exp $
+# $Id: Boot.mk,v 1.14 2009/08/28 21:49:53 bruno Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -59,6 +59,9 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.14  2009/08/28 21:49:53  bruno
+# the start of the "most scalable installer in the universe!"
+#
 # Revision 1.13  2009/05/01 19:07:20  mjk
 # chimi con queso
 #
@@ -223,8 +226,15 @@ initrd-%.iso: $(LOADER)/loader prep-initrd make-driver-disk
 	cp -R lighttpd/lighttpd $@.new/
 	mkdir -p $@.new/lib
 	mkdir -p $@.new/lib64
-	-cp /lib/libpcre* $@.new/lib
-	-cp /lib64/libpcre* $@.new/lib64
+	-cp -d /lib/libpcre* $@.new/lib
+	-cp -d /lib64/libpcre* $@.new/lib64
+
+	# the rocks tracker client
+	cp -R rocks-tracker-client/tracker $@.new/
+	-cp -d /usr/lib/libcurl* $@.new/lib
+	-cp -d /usr/lib64/libcurl* $@.new/lib64
+	-cp -d /usr/lib/libidn* $@.new/lib
+	-cp -d /usr/lib64/libidn* $@.new/lib64
 
 	# For createrepo
 	#mkdir -p $@.new/usr/share
@@ -237,7 +247,7 @@ initrd-%.iso: $(LOADER)/loader prep-initrd make-driver-disk
 	if [ ! -d stage2 ] ; then mkdir stage2 ; fi
 	mount -o loop -t squashfs \
 		rocks-dist/$(ARCH)/images/stage2.img stage2
-	cp -r stage2/lib* $@.new/
+	cp -r -d stage2/lib* $@.new/
 	cp -r stage2/etc $@.new/
 	umount stage2
 
@@ -331,6 +341,7 @@ clean::
 	rm -rf kernel*
 	rm -rf mnt
 	rm -rf lighttpd
+	rm -rf tracker
 	rm -rf hwdata
 	rm -rf anaconda-runtime
 	rm -rf rpmdb

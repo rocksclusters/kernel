@@ -1,6 +1,6 @@
 #!/opt/rocks/bin/python
 #
-# $Id: prep-initrd.py,v 1.25 2009/05/01 19:07:20 mjk Exp $
+# $Id: prep-initrd.py,v 1.26 2009/08/28 21:49:53 bruno Exp $
 #
 # @Copyright@
 # 
@@ -56,6 +56,9 @@
 # @Copyright@
 #
 # $Log: prep-initrd.py,v $
+# Revision 1.26  2009/08/28 21:49:53  bruno
+# the start of the "most scalable installer in the universe!"
+#
 # Revision 1.25  2009/05/01 19:07:20  mjk
 # chimi con queso
 #
@@ -331,7 +334,7 @@ class App(rocks.app.Application):
 		return
 
 
-	def run_v2(self):
+	def run(self):
 		print "Prep-initrd starting..."
 		print "Arch:", self.getArch()
 
@@ -343,7 +346,8 @@ class App(rocks.app.Application):
 		#
 		# install some packages to this local build tree
 		#
-		pkgs = [ 'anaconda-runtime', 'lighttpd' ]
+		pkgs = [ 'anaconda-runtime', 'lighttpd',
+			'rocks-tracker-client' ]
 
 		for pkg in pkgs:
 			RPM = self.thinkLocally(pkg, self.getArch())
@@ -425,214 +429,6 @@ class App(rocks.app.Application):
 			self.boot.applyRPM(RPM, 
 				os.path.join(os.getcwd(), 'kernels'),
 					flags='--noscripts --excludedocs')
-
-		return
-
-
-	def run(self):
-		self.run_v2()
-		return
-
-		print "Prep-initrd starting..."
-		print "Arch:", self.getArch()
-
-		self.dist = Distribution(self.getArch())
-		self.dist.generate()
-
-		self.boot = rocks.bootable.Bootable(self.dist)
-
-		# 
-		# find and apply the kernel package
-		#
-		if self.getArch() == "i386":
-			kernelarch = "i686"
-			modulesarch = "i686"
-		else:
-			kernelarch = self.getArch()
-			modulesarch = self.getArch()
-
-		#
-		# install some packages to this local build tree
-		#
-		pkgs = [ 'anaconda-runtime', 'hwdata', 'lighttpd', 'kernel',
-			'kernel-xen' ]
-
-		for pkg in pkgs:
-			RPM = self.thinkLocally(pkg, self.getArch())
-			if not RPM:
-				RPM = self.boot.getBestRPM(pkg)
-				if not RPM:
-					raise DistError, \
-						"Could not find %s rpm" % (pkg)
-
-			self.boot.applyRPM(RPM, 
-				os.path.join(os.getcwd(), pkg),
-					flags='--noscripts --excludedocs')
-
-		#
-		# increase the size of the ia64 boot image
-		#
-		cmd = "awk '/--bootdisksize 20480/ { " \
-		+ 'printf("--bootdisksize 40960 "); ' \
-		+ 'next; ' \
-		+ '}' \
-		+ "{ print $0 } ' " \
-		+ 'anaconda-runtime/usr/lib/anaconda-runtime/mk-images.ia64 ' \
-		+ '> /tmp/mk-images.ia64'
-
-		os.system(cmd)
-
-		cmd = 'mv /tmp/mk-images.ia64 ' \
-		+ 'anaconda-runtime/usr/lib/anaconda-runtime/mk-images.ia64 ;' \
-		+ 'chmod 755 ' \
-		+ 'anaconda-runtime/usr/lib/anaconda-runtime/mk-images.ia64'
-
-		os.system(cmd)
-
-		for k in [ 'kernel', 'kernel-xen' ]:
-			kernelrpm = None
-
-			#
-			# look for a kernel locally. if one doesn't exist,
-			# then look for one in the distro
-			# 
-			kernelrpm = self.thinkLocally(k, kernelarch)
-			if not kernelrpm:
-				kernelrpm = self.boot.getBestRPM(k)
-
-			if not kernelrpm:
-				raise DistError, \
-					"Could not find correct %s arch!" % (k)
-
-			#
-			# merge all the modules 
-			#
-			kernel_version = "%s-%s" % \
-				(kernelrpm.getPackageVersionString(),
-				kernelrpm.getPackageReleaseString())
-
-			if k == 'kernel-xen':
-				kernel_version += 'xen'
-
-			print "Kernel Version:", kernel_version
-
-			modules_dir = 'modules-%s/%s/%s' % \
-				(k, kernel_version, modulesarch)
-			os.system('mkdir -p %s' % (modules_dir))
-		
-			modules = '%s/lib/modules/%s' % (k, kernel_version)
-		
-			cmd = 'find %s -type f -name "*.ko" ' % (modules) + \
-				'-not -name "jfs.*"'
-		
-			child_stdout, child_stdin = popen2.popen2(cmd)
-		
-			for line in child_stdout.readlines():
-				os.system('cp %s %s' % (line[:-1], modules_dir))
-
-			#
-			# get module-info file
-			#
-			cmd = 'cp anaconda-runtime/usr/lib/anaconda-runtime/'
-			cmd += 'loader/module-info '
-			cmd += 'modules-%s/module-info' % (k)
-			os.system(cmd)
-
-			#
-			# build the modules.dep file
-			#
-			cwd = os.getcwd()
-			os.chdir(modules_dir)
-			basedir = '../../..'
-			cmd = 'depmod -a -F %s/%s/boot/System.map-%s ' \
-				% (basedir, k, kernel_version) + \
-				'-b %s/%s %s ' % (basedir, k, kernel_version)
-			os.system(cmd)
-
-			anacondadir = 'anaconda-runtime/usr/lib/'
-			anacondadir += 'anaconda-runtime'
-			cmd = 'cat %s/%s/lib/modules/%s/modules.dep | ' \
-					% (basedir, k, kernel_version) + \
-				'%s/%s/filtermoddeps' % (basedir, anacondadir) \
-					+ \
-				' > %s/modules-%s/modules.dep' % (basedir, k)
-			os.system(cmd)
-
-			cmd = 'cp %s/%s/lib/modules/%s/modules.alias ' \
-				% (basedir, k, kernel_version) + \
-				' %s/modules-%s/' % (basedir, k)
-			os.system(cmd)
-
-			os.chdir(cwd)
-
-			#
-			# get the 'pci.ids' file
-			#
-			cmd = 'cp hwdata/usr/share/hwdata/pci.ids '
-			cmd += 'modules-%s' % (k)
-			os.system(cmd)
-		
-		#
-		# make stage2.img 
-		#
-		cwd = os.getcwd()
-		os.chdir('anaconda-runtime/usr/lib/anaconda-runtime')
-		version = "%s.%s.%s" % \
-			(self.projectVersionMajor, 
-			self.projectVersionMinor, 
-			self.projectVersionMicro)
-
-		# Capitalize first letter in project. Selfishly rocks biased.
-		projectName = self.projectName[0].upper() + self.projectName[1:]
-
-		cmd = './buildinstall --product "%s" ' % projectName \
-			+'--prodpath "RedHat" ' \
-			+ '--version "%s" ' % version \
-			+ '--release "0" ' \
-			+ os.path.join(cwd, self.dist.getPath())
-		print "Buildinstall cmd:", cmd
-		os.system(cmd)
-		os.chdir(cwd)
-
-		#
-		# before copying stage2.img up to this directory, patch it
-		#
-		#self.patchImage()
-
-		os.system('mkdir -p mnt')
-		os.system('cp %s .' % \
-			os.path.join(self.dist.getPath(),
-					'images','stage2.img'))
-		os.system('mount -o loop -t squashfs stage2.img mnt')
-		
-		os.system('mkdir -p stage2')
-		cwd = os.getcwd()
-		os.chdir('mnt')
-		os.system('find . | cpio -pdu ../stage2')
-		os.chdir(cwd)
-		
-		os.system('umount mnt')
-
-		if self.getArch() == 'ia64':
-			images = os.path.join(self.dist.getPath(), 'images')
-			os.system('cp %s/boot.img .' % (images))
-
-			os.system('mount -o loop boot.img mnt')
-			os.system('cp mnt/initrd.img . ')
-			os.system('umount mnt')
-		else:
-			cmd = 'cp -f %s initrd-boot.img' % \
-				os.path.join(self.dist.getPath(),
-                                'isolinux', 'initrd.img')
-			rc = os.system(cmd)
-			if rc != 0:
-				raise DistError, "Could not find initrd. " + \
-					"Did buildinstall complete?"
-
-			cmd = 'cp -f %s initrd-xen.img' % \
-				os.path.join(self.dist.getPath(),
-                                'images', 'xen', 'initrd.img')
-			rc = os.system(cmd)
 
 		return
 
