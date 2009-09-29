@@ -36,17 +36,24 @@ BINS = loader
 
 HWOBJS = pcmcia.o usb.o firewire.o hardware.o
 METHOBJS = method.o cdinstall.o hdinstall.o nfsinstall.o urlinstall.o 
+# ROCKS
 OBJS = log.o moduleinfo.o loadermisc.o modules.o moduledeps.o windows.o \
 	lang.o kbd.o modstubs.o driverdisk.o selinux.o \
-	md5.o mediacheck.o kickstart.o driverselect.o \
+	mediacheck.o kickstart.o driverselect.o \
 	getparts.o dirbrowser.o fwloader.o \
 	$(HWOBJS) $(METHOBJS)
+#OBJS = log.o moduleinfo.o loadermisc.o modules.o moduledeps.o windows.o \
+	#lang.o kbd.o modstubs.o driverdisk.o selinux.o \
+	#md5.o mediacheck.o kickstart.o driverselect.o \
+	#getparts.o dirbrowser.o fwloader.o \
+	#$(HWOBJS) $(METHOBJS)
+# end
 LOADEROBJS = loader.o loader-pcmcia.o
 NETOBJS = net.o urls.o ftp.o telnet.o telnetd.o
 PCMCIAOBJS = pcmcia.o $(NETOBJS)
 SOURCES = $(subst .o,.c,$(OBJS)) loader.c
 
-LIBS += -lkudzu_loader -lpci
+LIBS += -lkudzu_loader -lpci -lblkid -luuid
 
 CFLAGS += -DUSE_LOGDEV -DVERSION='"$(VERSION)"'
 # ROCKS
@@ -59,9 +66,11 @@ LIBS += ../stubs/libunicode-lite.a ../wlite/libwlite.a
 
 # linuxrc + shutdown on s390, init everywhere else
 ifneq (,$(filter s390 s390x,$(ARCH)))
-BINS += linuxrc.s390 shutdown
+BINS += linuxrc.s390 lsznet.raw shutdown
 SHUTDOWNOPTS = -DAS_SHUTDOWN=1
 else
+OBJS += ibft.o
+LIBS += -lfwparam
 BINS += init
 endif
 
@@ -85,6 +94,9 @@ loader.po: $(wildcard *.c)
 	sed -i 's/charset=CHARSET/charset=UTF-8/' $@
 
 linuxrc.s390:
+	@echo "Nothing to do for $@"
+
+lsznet.raw:
 	@echo "Nothing to do for $@"
 
 init: init.o undomounts.o shutdown.o

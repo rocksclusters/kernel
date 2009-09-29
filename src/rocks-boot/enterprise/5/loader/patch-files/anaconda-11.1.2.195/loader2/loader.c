@@ -64,6 +64,7 @@
 #include "moduledeps.h"
 #include "modstubs.h"
 
+#include "getparts.h"
 #include "driverdisk.h"
 
 /* hardware stuff */
@@ -115,9 +116,7 @@ int num_link_checks = 5;
 int post_link_sleep = 0;
 
 static struct installMethod installMethods[] = {
-#if !defined(__s390__) && !defined(__s390x__)
     { N_("Local CDROM"), "cdrom", 0, CLASS_CDROM, mountCdromImage },
-#endif
     { N_("Hard drive"), "hd", 0, CLASS_HD, mountHardDrive },
     { N_("NFS image"), "nfs", 1, CLASS_NETWORK, mountNfsImage },
     { "FTP", "ftp", 1, CLASS_NETWORK, mountUrlImage },
@@ -450,6 +449,7 @@ static void readNetInfo(struct loaderData_s ** ld) {
     loaderData->ctcprot = NULL;
     loaderData->layer2 = NULL;
     loaderData->macaddr = NULL;
+    loaderData->portno = NULL;
 
     /*
      * The /tmp/netinfo file is written out by /sbin/init on s390x (which is
@@ -509,6 +509,9 @@ static void readNetInfo(struct loaderData_s ** ld) {
 
             if (!strncmp(vname, "LAYER2", 6))
                 loaderData->layer2 = strdup(vparm);
+
+            if (!strncmp(vname, "PORTNO", 6))
+                loaderData->portno = strdup(vparm);
 
             if (!strncmp(vname, "MACADDR", 7))
                 loaderData->macaddr = strdup(vparm);
@@ -684,6 +687,10 @@ static void parseCmdLineFlags(struct loaderData_s * loaderData,
         else if (!strcasecmp(argv[i], "dd") || 
                  !strcasecmp(argv[i], "driverdisk"))
             flags |= LOADER_FLAGS_MODDISK;
+        else if (!strcasecmp(argv[i], "dlabel=on"))
+            flags |= LOADER_FLAGS_AUTOMODDISK;
+        else if (!strcasecmp(argv[i], "dlabel=off"))
+            flags &= ~LOADER_FLAGS_AUTOMODDISK;
         else if (!strcasecmp(argv[i], "rescue"))
             flags |= LOADER_FLAGS_RESCUE;
         else if (!strcasecmp(argv[i], "nopass"))
@@ -722,6 +729,20 @@ static void parseCmdLineFlags(struct loaderData_s * loaderData,
         }
         else if (!strncasecmp(argv[i], "ksdevice=", 9)) {
             loaderData->netDev = strdup(argv[i] + 9);
+
+            /* Scan the MAC address and replace '-' with ':'.  This shouldn't
+             * really be getting supplied, but it was accidentally supported
+             * in RHEL4 and we need to continue support for now.
+             */
+            front = loaderData->netDev;
+            if (front) {
+                while (*front != '\0') {
+                    if (*front == '-')
+                        *front = ':';
+                    front++;
+                }
+            }
+
             loaderData->netDev_set = 1;
         }
         else if (!strncmp(argv[i], "BOOTIF=", 7)) {
@@ -1538,7 +1559,11 @@ int main(int argc, char ** argv) {
     int testing = 0;
     int mediacheck = 0;
     char * virtpcon = NULL;
+    
+    struct ddlist *dd, *dditer;
+
     poptContext optCon;
+
     struct poptOption optionTable[] = {
         { "cmdline", '\0', POPT_ARG_STRING, &cmdLine, 0, NULL, NULL },
         { "ksfile", '\0', POPT_ARG_STRING, &ksFile, 0, NULL, NULL },
@@ -1607,6 +1632,12 @@ int main(int argc, char ** argv) {
 #if defined(__s390__) && !defined(__s390x__)
     flags |= LOADER_FLAGS_NOSHELL | LOADER_FLAGS_NOUSB;
 #endif
+
+    /* XXX if RHEL, enable the AUTODD feature by default,
+     * but we should come with more general way how to control this */
+    if(!strncmp(getProductName(), "Red Hat", 7)){
+      flags |= LOADER_FLAGS_AUTOMODDISK;
+    }
 
     openLog(FL_TESTING(flags));
     if (!FL_TESTING(flags))
@@ -1690,6 +1721,7 @@ int main(int argc, char ** argv) {
     loaderData.modDepsPtr = &modDeps;
     loaderData.modInfo = modInfo;
 
+
     if (!canProbeDevices() || FL_MODDISK(flags)) {
         startNewt();
         
@@ -1701,6 +1733,26 @@ int main(int argc, char ** argv) {
         getDDFromSource(&loaderData, "path:/dd.img");
     }
     
+    /* The detection requires at least the basic device nodes to be present... */
+    createPartitionNodes();
+
+    if(FL_AUTOMODDISK(flags)){
+      mkdirChain("/etc/blkid");
+      logMessage(INFO, "Trying to detect vendor driver discs");
+      dd = findDriverDiskByLabel();
+      dditer = dd;
+      while(dditer){
+	if(loadDriverDiskFromPartition(&loaderData, dditer->device)){
+	  logMessage(ERROR, "Automatic driver disk loader failed for %s.", dditer->device);
+	}
+	else{
+	  logMessage(INFO, "Automatic driver disk loader succeeded for %s.", dditer->device);
+	}
+	dditer = dditer->next;
+      }
+      ddlist_free(dd);
+    }
+    
     /* this allows us to do an early load of modules specified on the
      * command line to allow automating the load order of modules so that
      * eg, certain scsi controllers are definitely first.
@@ -1708,14 +1760,32 @@ int main(int argc, char ** argv) {
      *        but is done as a quick hack for the present.
      */
     earlyModuleLoad(modInfo, modLoaded, modDeps, 0);
-
-    busProbe(modInfo, modLoaded, modDeps, 0);
-
-    /* JKFIXME: we'd really like to do this before the busprobe, but then
-     * we won't have network devices available (and that's the only thing
-     * we support with this right now */
     if (loaderData.ddsrc != NULL) {
+	/* If we load DUD over network (from ftp, http, or nfs location)
+         * do not load storage drivers so that they can be updated
+	 * from DUD before loading (#454478).
+	 */
+        if (!strncmp(loaderData.ddsrc, "nfs:", 4) || 
+            !strncmp(loaderData.ddsrc, "ftp://", 6) ||
+            !strncmp(loaderData.ddsrc, "http://", 7)) {
+            uint64_t save_flags = flags;
+            flags |= LOADER_FLAGS_NOSTORAGE;
+            busProbe(modInfo, modLoaded, modDeps, 0);
+            flags = save_flags;
+        } else {
+            busProbe(modInfo, modLoaded, modDeps, 0);
+        }
         getDDFromSource(&loaderData, loaderData.ddsrc);
+    } else {
+        busProbe(modInfo, modLoaded, modDeps, 0);
+    }
+
+    /*
+     * BUG#514971: If the mlx4_core is loaded load the mlx4_en too, since we do not use the modprobe rules
+     */
+    if(mlModuleInList("mlx4_core", modLoaded)){
+        logMessage(INFO, "mlx4_core module detected, trying to load the Ethernet part of it (mlx4_en)");
+        mlLoadModuleSet("mlx4_en", modLoaded, modDeps, modInfo);
     }
 
     /* JKFIXME: loaderData->ksFile is set to the arg from the command line,
@@ -1806,7 +1876,7 @@ int main(int argc, char ** argv) {
     else if (FL_UPDATES(flags))
         loadUpdates(&loaderData);
 
-    mlLoadModuleSet("md:raid0:raid1:raid5:raid6:raid456:fat:msdos:jbd:ext3:lock_nolock:gfs2:reiserfs:jfs:xfs:dm-mod:dm-zero:dm-mirror:dm-snapshot:dm-multipath:dm-round-robin:dm-emc", modLoaded, modDeps, modInfo);
+    mlLoadModuleSet("md:raid0:raid1:raid10:raid5:raid6:raid456:dm-raid45:fat:msdos:jbd2:crc16:ext4:jbd:ext3:lock_nolock:gfs2:reiserfs:jfs:xfs:dm-mod:dm-zero:dm-mirror:dm-snapshot:dm-multipath:dm-round-robin:dm-emc:dm-crypt:dm-mem-cache:dm-region_hash:dm-message:aes_generic:sha256", modLoaded, modDeps, modInfo);
 
     usbInitializeMouse(modLoaded, modDeps, modInfo);
 
@@ -1914,6 +1984,9 @@ int main(int argc, char ** argv) {
 
         tmparg++;
     }
+
+    if (FL_AUTOMODDISK(flags))
+        *argptr++ = "--dlabel";
 
     if (FL_NOIPV4(flags))
         *argptr++ = "--noipv4";
@@ -2045,7 +2118,7 @@ int main(int argc, char ** argv) {
             ret = fgets(buf, 256, f);
             pid = atoi(buf);
         }
-        kill(pid, SIGUSR1);
+        kill(pid, SIGUSR2);
 #endif
         stop_fw_loader(&loaderData);
         return rc;

@@ -1048,7 +1048,6 @@ urlinstStartSSLTransfer(struct iurlinfo * ui, char * filename,
 	int	tries = 1;
 	int	rc;
 	int	errorcode = -1;
-	int	sleeptime;
 	int	sleepmin = KS_RETRY_MIN;
 	BIO	*sbio = 0;
 
@@ -1063,11 +1062,27 @@ urlinstStartSSLTransfer(struct iurlinfo * ui, char * filename,
 		sbio = httpsGetFileDesc(ui->address, -1, filename,
 			extraHeaders, &errorcode);
 		if (errorcode == FTPERR_FAILED_DATA_CONNECT) {
-			/* Server busy. Backoff a random interval between
-			 * KS_RETRY_MIN and KS_RETRY_MAX */
-			sleeptime = sleepmin + 
-				((KS_RETRY_MAX - sleepmin) * (rand()/(float) RAND_MAX));
-			
+			/*
+			 * read the retry value from the return message
+			 */
+			char	*ptr;
+			int	sleeptime = 0;
+
+			if ((ptr = strstr(extraHeaders, "Retry-After:"))
+					!= NULL) {
+				sscanf(ptr, "Retry-After: %d", &sleeptime);
+			}
+
+			if (sleeptime <= 0) {
+				/*
+				 * Backoff a random interval between
+				 * KS_RETRY_MIN and KS_RETRY_MAX
+				 */
+				sleeptime = sleepmin +
+					((KS_RETRY_MAX - sleepmin) *
+					(rand()/(float)RAND_MAX));
+			}
+
 			winStatus(55, 3, _("Server Busy"), _("I will retry "
 				"for a ks file after a %d sec sleep..."), 
 				sleeptime, 0);

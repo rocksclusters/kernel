@@ -58,6 +58,10 @@
 #include "net.h"
 #include "windows.h"
 
+#if !defined(__s390__) && !defined(__s390x__)
+#include "ibft.h"
+#endif
+
 /* boot flags */
 extern uint64_t flags;
 
@@ -381,6 +385,7 @@ void setupNetworkDeviceConfig(struct networkDeviceConfig * cfg,
     struct in_addr addr;
     struct in6_addr addr6;
     char *c;
+    enum{USE_DHCP, USE_IBFT_STATIC, USE_STATIC} configMode = USE_STATIC;
 
     /* set to 1 to get ks network struct logged */
 #if 0
@@ -413,8 +418,87 @@ void setupNetworkDeviceConfig(struct networkDeviceConfig * cfg,
             setupWireless(cfg);
         }
 
+#if !defined(__s390__) && !defined(__s390x__)
+	if (!strncmp(loaderData->ip, "ibft", 4)) {
+	    char *devmacaddr = nl_mac2str(loaderData->netDev);
+	    configMode = USE_IBFT_STATIC;
+            cfg->isiBFT = 1;
+
+	    /* Problems with getting the info from iBFT or iBFT uses dhcp*/
+	    if(!devmacaddr || !ibft_present() || ibft_iface_dhcp()){
+		configMode = USE_DHCP;
+                logMessage(INFO, "iBFT is not present or is configured to use DHCP");
+	    }
+	    /* MAC address doesn't match */
+	    else if(strcasecmp(ibft_iface_mac(), devmacaddr)){
+		configMode = USE_DHCP;
+                logMessage(INFO, "iBFT doesn't know what NIC to use - falling back to DHCP");
+	    }
+
+	    if(devmacaddr) free(devmacaddr);
+	}
+#endif
+
         /* this is how we specify dhcp */
         if (!strncmp(loaderData->ip, "dhcp", 4)) {
+	    configMode = USE_DHCP;
+	}
+
+#if !defined(__s390__) && !defined(__s390x__)
+	if (configMode == USE_IBFT_STATIC){
+	    /* Problems with getting the info from iBFT */
+	    if(!ibft_iface_ip() || !ibft_iface_mask() || !ibft_iface_gw()){
+		configMode = USE_DHCP;
+                logMessage(INFO, "iBFT doesn't have necessary information - falling back to DHCP");
+	    }
+	    else{
+		/* static setup from iBFT table */
+		if(inet_pton(AF_INET, ibft_iface_ip(), &addr)>=1){
+		    cfg->dev.ip = ip_addr_in(&addr);
+		    cfg->dev.ipv4 = ip_addr_in(&addr);
+		    cfg->dev.set |= PUMP_INTFINFO_HAS_IP|PUMP_INTFINFO_HAS_IPV4_IP;
+		    cfg->isDynamic = 0;
+		    logMessage(INFO, "iBFT: setting IP to %s", ibft_iface_ip());
+		}
+		
+		if(inet_pton(AF_INET, ibft_iface_mask(), &addr)>=1){
+		    cfg->dev.netmask = ip_addr_in(&addr);
+		    cfg->dev.set |= PUMP_INTFINFO_HAS_NETMASK;
+		    logMessage(INFO, "iBFT: setting NETMASK to %s", ibft_iface_mask());
+		}
+        
+		if(inet_pton(AF_INET, ibft_iface_gw(), &addr)>=1){
+		    cfg->dev.gateway = ip_addr_in(&addr);
+		    cfg->dev.set |= PUMP_NETINFO_HAS_GATEWAY;
+		    logMessage(INFO, "iBFT: setting GW to %s", ibft_iface_gw());
+		}
+                
+		if(cfg->dev.numDns<MAX_DNS_SERVERS){
+		    if(ibft_iface_dns1() && inet_pton(AF_INET, ibft_iface_dns1(), &addr)>=1){
+			cfg->dev.dnsServers[cfg->dev.numDns] = ip_addr_in(&addr);
+			cfg->dev.numDns++;
+			logMessage(INFO, "iBFT: setting DNS1 to %s", ibft_iface_dns1());
+		    }
+		}
+		if(cfg->dev.numDns<MAX_DNS_SERVERS){
+		    if(ibft_iface_dns2() && inet_pton(AF_INET, ibft_iface_dns2(), &addr)>=1){
+			cfg->dev.dnsServers[cfg->dev.numDns] = ip_addr_in(&addr);
+			cfg->dev.numDns++;
+			logMessage(INFO, "iBFT: setting DNS2 to %s", ibft_iface_dns2());
+		    }
+		}
+	    
+		if (cfg->dev.numDns)
+		    cfg->dev.set |= PUMP_NETINFO_HAS_DNS;
+
+		cfg->preset = 1;
+	    }
+	}
+#endif
+	
+	if (configMode == USE_IBFT_STATIC){
+	    /* do nothing, already done */
+	} else if (configMode == USE_DHCP) {
             /* JKFIXME: this soooo doesn't belong here.  and it needs to
              * be broken out into a function too */
             logMessage(INFO, "sending dhcp request through device %s",
@@ -553,6 +637,10 @@ void setupNetworkDeviceConfig(struct networkDeviceConfig * cfg,
         cfg->layer2 = strdup(loaderData->layer2);
     }
 
+    if (loaderData->portno) {
+        cfg->portno = strdup(loaderData->portno);
+    }
+
     if (loaderData->macaddr) {
         cfg->macaddr = strdup(loaderData->macaddr);
     }
@@ -589,6 +677,7 @@ int readNetConfig(char * device, struct networkDeviceConfig * cfg,
     newCfg.essid = NULL;
     newCfg.wepkey = NULL;
     newCfg.isDynamic = cfg->isDynamic;
+    newCfg.isiBFT = cfg->isiBFT;
     newCfg.noDns = cfg->noDns;
     newCfg.dhcpTimeout = cfg->dhcpTimeout;
     newCfg.preset = cfg->preset;
@@ -668,6 +757,7 @@ int readNetConfig(char * device, struct networkDeviceConfig * cfg,
     }
 
     cfg->isDynamic = newCfg.isDynamic;
+    cfg->isiBFT = newCfg.isiBFT;
     memcpy(&cfg->dev,&newCfg.dev,sizeof(newCfg.dev));
 
     if (!(cfg->dev.set & PUMP_NETINFO_HAS_GATEWAY)) {
@@ -1442,11 +1532,14 @@ int doDhcp(struct networkDeviceConfig *dev) {
     char *r = NULL, *class = NULL;
     char namebuf[HOST_NAME_MAX];
     time_t timeout;
-    int loglevel, status, ret = 0, i;
+    int loglevel, status, ret = 0, i, sz = 0;
     int shmpump;
     DHCP_Preference pref = 0;
     pid_t pid;
     key_t key;
+    int mturet;
+    int culvert[2];
+    char buf[PATH_MAX];
 
     /* clear existing IP addresses */
     clearInterface(dev->dev.device);
@@ -1511,9 +1604,25 @@ int doDhcp(struct networkDeviceConfig *dev) {
 
         strncpy(pumpdev->device, dev->dev.device, IF_NAMESIZE);
 
+        if (pipe(culvert) == -1) {
+            logMessage(ERROR, "%s: pipe(): %s", __func__, strerror(errno));
+            return 1;
+        }
+
         /* call libdhcp in a separate process because libdhcp is bad */
         pid = fork();
         if (pid == 0) {
+            close(culvert[0]);
+
+            if (pumpdev->set & PUMP_INTFINFO_HAS_MTU) {
+                mturet = nl_set_device_mtu((char *) pumpdev->device, pumpdev->mtu);
+
+                if (mturet) {
+                    logMessage(ERROR, "unable to set %s mtu to %d (code %d)",
+                               (char *) pumpdev->device, pumpdev->mtu, mturet);
+                }
+            }
+
             r = pumpDhcpClassRun(pumpdev, NULL, class, pref, 0,
                                  timeout, netlogger, loglevel);
 
@@ -1558,14 +1667,24 @@ int doDhcp(struct networkDeviceConfig *dev) {
                 }
             }
 
-            /* we lose bootFile here, but you know, I just don't care, because
-             * we don't need it past doDhcp() calls, so whatever   --dcantrell
-             */
+            if (pumpdev->set & PUMP_INTFINFO_HAS_BOOTFILE) {
+                if (pumpdev->bootFile) {
+                    if (write(culvert[1], pumpdev->bootFile,
+                              strlen(pumpdev->bootFile) + 1) == -1) {
+                        logMessage(ERROR, "failed to send bootFile to parent "
+                                          "in %s: %s", __func__,
+                                   strerror(errno));
+                    }
+                }
+            }
 
+            close(culvert[1]);
             exit(0);
         } else if (pid == -1) {
             logMessage(CRITICAL, "dhcp client failed to start");
         } else {
+            close(culvert[1]);
+
             if (waitpid(pid, &status, 0) == -1) {
                 logMessage(ERROR, "waitpid() failure in %s", __func__);
             }
@@ -1633,6 +1752,36 @@ int doDhcp(struct networkDeviceConfig *dev) {
                 }
             }
 
+            if (dev->dev.set & PUMP_INTFINFO_HAS_BOOTFILE) {
+                memset(&buf, '\0', sizeof(buf));
+                free(dev->dev.bootFile);
+                dev->dev.bootFile = NULL;
+
+                while ((sz = read(culvert[0], &buf, sizeof(buf))) > 0) {
+                    if (dev->dev.bootFile == NULL) {
+                        dev->dev.bootFile = calloc(sizeof(char), sz + 1);
+                        if (dev->dev.bootFile == NULL) {
+                            logMessage(ERROR, "unable to read bootfile");
+                            break;
+                        }
+
+                        dev->dev.bootFile = strncpy(dev->dev.bootFile, buf, sz);
+                    } else {
+                        dev->dev.bootFile = realloc(dev->dev.bootFile,
+                                                    strlen(dev->dev.bootFile) +
+                                                    sz + 1);
+                        if (dev->dev.bootFile == NULL) {
+                            logMessage(ERROR, "unable to read bootfile");
+                            break;
+                        }
+
+                        dev->dev.bootFile = strncat(dev->dev.bootFile, buf, sz);
+                    }
+                }
+            }
+
+            close(culvert[0]);
+
             if (shmdt(pumpdev) == -1) {
                 logMessage(ERROR, "%s: shmdt() pumpdev: %s", __func__,
                            strerror(errno));
@@ -1651,11 +1800,22 @@ int doDhcp(struct networkDeviceConfig *dev) {
 }
 
 int configureNetwork(struct networkDeviceConfig * dev) {
+    int mturet;
     char *rc = NULL;
 
     if (!dev->isDynamic) {
         clearInterface(dev->dev.device);
         setupWireless(dev);
+
+        if (dev->dev.set & PUMP_INTFINFO_HAS_MTU) {
+            mturet = nl_set_device_mtu((char *) &dev->dev.device, dev->dev.mtu);
+
+            if (mturet) {
+                logMessage(ERROR, "unable to set %s mtu to %d (code %d)",
+                           (char *) &dev->dev.device, dev->dev.mtu, mturet);
+            }
+        }
+
         rc = pumpSetupInterface(&dev->dev);
         if (rc != NULL) {
             logMessage(INFO, "result of pumpSetupInterface is %s", rc);
@@ -1677,6 +1837,7 @@ int writeNetInfo(const char * fn, struct networkDeviceConfig * dev) {
     struct device ** devices;
     char ret[48];
     ip_addr_t *tip;
+    char osa_opts[512] = "";
 
     devices = probeDevices(CLASS_NETWORK, BUS_UNSPEC, PROBE_LOADED);
     if (!devices)
@@ -1691,7 +1852,9 @@ int writeNetInfo(const char * fn, struct networkDeviceConfig * dev) {
 
     fprintf(f, "ONBOOT=yes\n");
 
-    if (dev->isDynamic) {
+    if (dev->isiBFT) {
+	fprintf(f, "BOOTPROTO=ibft\n");
+    } else if (dev->isDynamic) {
         fprintf(f, "BOOTPROTO=dhcp\n");
     } else {
         fprintf(f, "BOOTPROTO=static\n");
@@ -1733,10 +1896,20 @@ int writeNetInfo(const char * fn, struct networkDeviceConfig * dev) {
         fprintf(f, "NETTYPE=%s\n", dev->nettype);
     if (dev->ctcprot)
         fprintf(f, "CTCPROT=%s\n", dev->ctcprot);
+
     if (dev->layer2 && !strcmp(dev->layer2, "1"))
-        fprintf(f, "OPTIONS=\"layer2=1\"\n");
-    else if (dev->subchannels)
+	strcat(osa_opts, "layer2=1");
+    else if (dev->subchannels && !strcmp(dev->nettype, "qeth"))
 	fprintf(f, "ARP=no\n");
+    if (dev->portno && !strcmp(dev->portno, "1")) {
+	if (strlen(osa_opts) != 0) {
+	    strcat(osa_opts, " ");
+	}
+	strcat(osa_opts, "portno=1");
+    } 
+    if ((strlen(osa_opts) > 0))
+        fprintf(f, "OPTIONS=\"%s\"\n", osa_opts);
+
     if (dev->macaddr)
         fprintf(f, "MACADDR=%s\n", dev->macaddr);
 
@@ -1976,15 +2149,15 @@ void setKickstartNetwork(struct loaderData_s * loaderData, int argc,
 /* if multiple interfaces get one to use from user.   */
 /* NOTE - uses kickstart data available in loaderData */
 int chooseNetworkInterface(struct loaderData_s * loaderData) {
-    int i, rc;
+    int i, rc, ask, idrc, secs, deviceNums = 0, deviceNum, foundDev = 0;
     unsigned int max = 40;
-    int deviceNums = 0;
-    int deviceNum;
-    char ** devices;
-    char ** deviceNames;
-    int foundDev = 0;
-    struct device ** devs;
-    char * ksMacAddr = NULL;
+    int lookForLink = 0;
+    char **devices;
+    char **deviceNames;
+    char *ksMacAddr = NULL, *seconds = strdup("10"), *idstr = NULL;
+    struct device **devs;
+    struct newtWinEntry entry[] = {{_("Seconds:"), (const char **) &seconds, 0},
+                                   {NULL, NULL, 0 }};
 #ifdef ROCKS
     char * mac;
 #endif
@@ -2093,8 +2266,70 @@ int chooseNetworkInterface(struct loaderData_s * loaderData) {
         return LOADER_NOOP;
     }
 
+#if !defined(__s390__) && !defined(__s390x__)
+    /* set the netDev method to ibft if not requested differently */
+    if(loaderData->netDev==NULL && ibft_present()){
+	loaderData->netDev = strdup("ibft");
+	loaderData->netDev_set = 1;
+	logMessage(INFO, "networking will be configured using iBFT values");
+    }
+#endif
+
+    while((loaderData->netDev && (loaderData->netDev_set == 1)) &&
+	!strcmp(loaderData->netDev, "ibft")){
+        char *devmacaddr = NULL;
+	char *ibftmacaddr = "";
+	
+#if !defined(__s390__) && !defined(__s390x__)
+	/* get MAC from the iBFT table */
+	if(!(ibftmacaddr = ibft_iface_mac())){ /* iBFT not present or error */
+	    lookForLink = 0; /* the iBFT defaults to ask? */
+	    break;
+	}
+#endif
+
+        logMessage(INFO, "looking for iBFT configured device %s with link", ibftmacaddr);
+	lookForLink = 0;
+
+	for (i = 0; devs[i]; i++) {
+	    if (!devs[i]->device)
+		continue;
+            devmacaddr = nl_mac2str(devs[i]->device);
+	    if(!strcasecmp(devmacaddr, ibftmacaddr)){
+                logMessage(INFO, "%s has the right MAC (%s), checking for link", devmacaddr, devices[i]);
+		free(devmacaddr);
+		if(get_link_status(devices[i]) == 1){
+		    lookForLink = 0;
+		    loaderData->netDev = devices[i];
+                    logMessage(INFO, "%s has link, using it", devices[i]);
+
+		    /* set the IP method to ibft if not requested differently */
+		    if(loaderData->ip==NULL){
+			loaderData->ip = strdup("ibft");
+			logMessage(INFO, "%s will be configured using iBFT values", devices[i]);
+		    }
+                    return LOADER_NOOP;
+		}
+		else{
+                    logMessage(INFO, "%s has no link, skipping it", devices[i]);
+		}
+		break;
+	    }
+	    else{
+                logMessage(DEBUGLVL, "%s (%s) is not it...", devices[i], devmacaddr);
+		free(devmacaddr);
+	    }
+	}
+
+	break;
+    }
+
     if ((loaderData->netDev && (loaderData->netDev_set == 1)) &&
         !strcmp(loaderData->netDev, "link")) {
+	lookForLink = 1;
+    }
+
+    if (lookForLink){
         logMessage(INFO, "looking for first netDev with link");
         for (rc = 0; rc < 5; rc++) {
             for (i = 0; i < deviceNums; i++) {
@@ -2116,13 +2351,81 @@ int chooseNetworkInterface(struct loaderData_s * loaderData) {
 
     /* JKFIXME: should display link status */
     deviceNum = 0;
-    rc = newtWinMenu(_("Networking Device"), 
-		     _("You have multiple network devices on this system. "
-		       "Which would you like to install through?"), max, 10, 10,
-		     deviceNums < 6 ? deviceNums : 6, deviceNames,
-		     &deviceNum, _("OK"), _("Back"), NULL);
-    if (rc == 2)
-        return LOADER_BACK;
+    ask = 1;
+    while (ask) {
+        rc = newtWinMenu(_("Networking Device"),
+                         _("You have multiple network devices on this system. "
+                           "Which would you like to install through?"),
+                         max, 10, 10,
+                         deviceNums < 6 ? deviceNums : 6, deviceNames,
+                         &deviceNum, _("OK"), _("Identify"), _("Back"), NULL);
+
+        if (rc == 2) {
+            if (!devices[deviceNum]) {
+                logMessage(ERROR, "NIC %d contains no device name", deviceNum);
+                continue;
+            }
+
+            if (asprintf(&idstr, "%s %s %s",
+                         _("You can identify the physical port for"),
+                         devices[deviceNum],
+                         _("by flashing the LED lights for a number of "
+                           "seconds.  Enter a number between 1 and 300 to "
+                           "set the duration to flash the LED port "
+                           "lights.")) == -1) {
+                logMessage(ERROR, "asprintf() failure in %s: %m", __func__);
+                abort();
+            }
+
+            i = 1;
+            while (i) {
+                idrc = newtWinEntries(_("Identify NIC"), idstr, 50, 5, 15, 24,
+                                      entry, _("OK"), _("Back"), NULL);
+
+                if (idrc == 0 || idrc == 1) {
+                    errno = 0;
+                    secs = strtol((const char *) seconds, NULL, 10);
+                    if (errno == EINVAL || errno == ERANGE) {
+                        logMessage(ERROR, "strtol() failure in %s: %m",
+                                   __func__);
+                        continue;
+                    }
+
+                    if (secs <= 0 || secs > 300) {
+                        newtWinMessage(_("Invalid Duration"), _("OK"),
+                                       _("You must enter the number of "
+                                         "seconds as an integer between 1 "
+                                         "and 300."));
+                        continue;
+                    }
+
+                    idrc = 41 + strlen(devices[deviceNum]);
+                    if (secs > 9) {
+                        idrc += 1;
+                    }
+
+                    winStatus(idrc, 3, NULL,
+                              _("Flashing %s port lights for %d seconds..."),
+                              devices[deviceNum], secs);
+
+                    if (identifyNIC(devices[deviceNum], secs)) {
+                        logMessage(ERROR,
+                                   "error during physical NIC identification");
+                    }
+
+                    newtPopWindow();
+                    i = 0;
+                } else if (idrc == 2) {
+                    i = 0;
+                }
+            }
+        } else if (rc == 3) {
+            ask = 0;
+            return LOADER_BACK;
+        } else {
+            ask = 0;
+        }
+    }
 
     loaderData->netDev = devices[deviceNum];
 
