@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.14 2009/08/28 21:49:53 bruno Exp $
+# $Id: Boot.mk,v 1.15 2009/10/03 00:19:40 bruno Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -59,6 +59,9 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.15  2009/10/03 00:19:40  bruno
+# can build compute nodes with RHEL 5.4
+#
 # Revision 1.14  2009/08/28 21:49:53  bruno
 # the start of the "most scalable installer in the universe!"
 #
@@ -230,11 +233,11 @@ initrd-%.iso: $(LOADER)/loader prep-initrd make-driver-disk
 	-cp -d /lib64/libpcre* $@.new/lib64
 
 	# the rocks tracker client
-	cp -R rocks-tracker-client/tracker $@.new/
-	-cp -d /usr/lib/libcurl* $@.new/lib
-	-cp -d /usr/lib64/libcurl* $@.new/lib64
-	-cp -d /usr/lib/libidn* $@.new/lib
-	-cp -d /usr/lib64/libidn* $@.new/lib64
+	#cp -R rocks-tracker-client/tracker $@.new/
+	#-cp -d /usr/lib/libcurl* $@.new/lib
+	#-cp -d /usr/lib64/libcurl* $@.new/lib64
+	#-cp -d /usr/lib/libidn* $@.new/lib
+	#-cp -d /usr/lib64/libidn* $@.new/lib64
 
 	# For createrepo
 	#mkdir -p $@.new/usr/share
