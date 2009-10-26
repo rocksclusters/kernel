@@ -1,0 +1,10 @@
+keyutils
+keyutils-libs
+keyutils-libs-devel
+lighttpd
+rocks-boot
+rocks-boot-auto
+rocks-boot-cdrom
+rocks-boot-netstage
+rocks-boot-xen
+roll-kernel-kickstart
