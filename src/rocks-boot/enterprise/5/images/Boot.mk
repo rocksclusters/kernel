@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.16 2009/10/07 17:42:14 bruno Exp $
+# $Id: Boot.mk,v 1.17 2009/10/26 19:28:40 bruno Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -59,6 +59,9 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.17  2009/10/26 19:28:40  bruno
+# suppress errors
+#
 # Revision 1.16  2009/10/07 17:42:14  bruno
 # add a library for firefox
 #
@@ -243,8 +246,8 @@ initrd-%.iso: $(LOADER)/loader prep-initrd make-driver-disk
 	#-cp -d /usr/lib64/libidn* $@.new/lib64
 
 	# for firefox
-	cp -d /lib/libasound* $@.new/lib
-	cp -d /lib64/libasound* $@.new/lib64
+	-cp -d /lib/libasound* $@.new/lib
+	-cp -d /lib64/libasound* $@.new/lib64
 
 	# For createrepo
 	#mkdir -p $@.new/usr/share
