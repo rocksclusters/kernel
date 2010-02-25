@@ -1,6 +1,6 @@
 #!/opt/rocks/bin/python
 #
-# $Id: prep-initrd.py,v 1.27 2009/10/03 00:19:40 bruno Exp $
+# $Id: prep-initrd.py,v 1.28 2010/02/25 05:45:48 bruno Exp $
 #
 # @Copyright@
 # 
@@ -56,6 +56,9 @@
 # @Copyright@
 #
 # $Log: prep-initrd.py,v $
+# Revision 1.28  2010/02/25 05:45:48  bruno
+# makin' progress
+#
 # Revision 1.27  2009/10/03 00:19:40  bruno
 # can build compute nodes with RHEL 5.4
 #
@@ -349,10 +352,7 @@ class App(rocks.app.Application):
 		#
 		# install some packages to this local build tree
 		#
-		# pkgs = [ 'anaconda-runtime', 'lighttpd',
-			# 'rocks-tracker-client' ]
-
-		pkgs = [ 'anaconda-runtime', 'lighttpd' ]
+		pkgs = [ 'anaconda-runtime', 'lighttpd', 'rocks-tracker' ]
 
 		for pkg in pkgs:
 			RPM = self.thinkLocally(pkg, self.getArch())

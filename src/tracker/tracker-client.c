@@ -1,10 +1,13 @@
 /*
- * $Id: tracker-client.c,v 1.1 2010/02/24 20:27:32 bruno Exp $
+ * $Id: tracker-client.c,v 1.2 2010/02/25 05:45:48 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.2  2010/02/25 05:45:48  bruno
+ * makin' progress
+ *
  * Revision 1.1  2010/02/24 20:27:32  bruno
  * moved new tracker from base roll to kernel roll
  *
@@ -188,6 +191,9 @@ outputfile(char *filename, char *range)
 		return(-1);
 	}
 
+logmsg("outputfile:range(0x%x)\n", range);
+logmsg("outputfile:filesize (%d)\n", statbuf.st_size);
+
 	/*
 	 * if a range is supplied, then we need to calculate the offset
 	 * and total number of bytes to read
@@ -209,20 +215,19 @@ outputfile(char *filename, char *range)
 			/*
 			 * case 1
 			 */
-			sscanf(range, "-%d", (int *)&lastbyte);
+			sscanf(range, "-%ld", &lastbyte);
 			offset = 0;
 		} else if (range[strlen(range) - 1] == '-') {
 			/*
 			 * case 2
 			 */
-			sscanf(range, "%d-", (int *)&offset);
+			sscanf(range, "%ld-", &offset);
 			lastbyte = statbuf.st_size;
 		} else {
 			/*
 			 * case 3
 			 */
-			sscanf(range, "%d-%d", (int *)&offset,
-				(int *)&lastbyte);
+			sscanf(range, "%ld-%ld", &offset, &lastbyte);
 		}
 
 		totalbytes = (lastbyte - offset) + 1;
@@ -232,12 +237,31 @@ outputfile(char *filename, char *range)
 		totalbytes = statbuf.st_size;
 	}
 
+logmsg("outputfile:totalbytes (%d)\n", totalbytes);
+logmsg("outputfile:offset (%d)\n", offset);
+
 	if ((fd = open(filename, O_RDONLY)) < 0) {
+		logmsg("outputfile:open failed:errno (%d)\n", errno);
 		return(-1);
 	}
 
+if (stat(filename, &statbuf) != 0) {
+	logmsg("outputfile:stat failed (%d)\n", errno);
+} else {
+	logmsg("outputfile:filesize (%d)\n", statbuf.st_size);
+}
+
 	if (offset > 0) {
-		if (lseek(fd, offset, SEEK_SET) < 0) {
+		int	s;
+
+logmsg("outputfile:fd (%d)\n", fd);
+		if ((s = lseek(fd, offset, SEEK_SET)) < 0) {
+			logmsg("outputfile:lseek failed:errno (%d)\n", errno);
+			logmsg("outputfile:lseek failed:s (%d)\n", s);
+			close(fd);
+
+logmsg("outputfile:sleeping for 30\n");
+sleep(30);
 			return(-1);
 		}
 	}
@@ -306,7 +330,7 @@ downloadfile(CURL *curlhandle, char *url, char *range)
 
 	if ((curlcode = curl_easy_setopt(curlhandle, CURLOPT_URL, url)) !=
 			CURLE_OK) {
-		fprintf(stderr, "downloadfile:curl_easy_setopt():failed:(%d)\n",
+		logmsg("downloadfile:curl_easy_setopt():failed:(%d)\n",
 			curlcode);
 		return(-1);
 	}
@@ -320,8 +344,7 @@ downloadfile(CURL *curlhandle, char *url, char *range)
 	if (range != NULL) {
 		if ((curlcode = curl_easy_setopt(curlhandle, CURLOPT_RANGE,
 				range)) != CURLE_OK) {
-			fprintf(stderr,
-				"downloadfile:curl_easy_setopt():failed:(%d)\n",
+			logmsg("downloadfile:curl_easy_setopt():failed:(%d)\n",
 				curlcode);
 			return(-1);
 		}
@@ -333,8 +356,7 @@ downloadfile(CURL *curlhandle, char *url, char *range)
 	}
 
 	if ((curlcode = curl_easy_perform(curlhandle)) != CURLE_OK) {
-		fprintf(stderr,
-			"downloadfile:curl_easy_perform():failed:(%d)\n",
+		logmsg("downloadfile:curl_easy_perform():failed:(%d)\n",
 			curlcode);
 		return(-1);
 	}
@@ -406,7 +428,7 @@ getlocal(char *filename, char *range)
 		status = HTTP_OK;
 
 		if (outputfile(filename, range) != 0) {
-			fprintf(stderr, "outputfile():failed:(%d)\n", errno);
+			logmsg("outputfile():failed:(%d)\n", errno);
 			return(-1);
 		}
 	} else {
@@ -527,13 +549,12 @@ getremote(char *filename, in_addr_t *ip, char *range)
 		status = HTTP_NOT_FOUND;
 	}
 
+	fclose(file);
+
 	/*
 	 * cleanup curl
 	 */
 	curl_easy_cleanup(curlhandle);
-
-	fflush(file);
-	fclose(file);
 
 #ifdef	DEBUG
 	logmsg("getremote:status (%d)\n", status);
@@ -545,7 +566,7 @@ getremote(char *filename, in_addr_t *ip, char *range)
 	 */
 	if ((status >= HTTP_OK) && (status <= HTTP_MULTI_STATUS)) {
 		if (outputfile(filename, range) != 0) {
-			fprintf(stderr, "outputfile():failed:(%d)\n", errno);
+			logmsg("getremote:outputfile():failed:(%d)\n", errno);
 			return(-1);
 		}
 	} else {
@@ -709,12 +730,12 @@ trackfile(char *filename, char *range)
 
 	if (init(&num_trackers, &trackers, &maxpeers, &num_pkg_servers,
 			&pkg_servers) != 0) {
-		fprintf(stderr, "main:init failed\n");
+		logmsg("trackfile:init failed\n");
 		return(-1);
 	}
 
 	if ((sockfd = init_tracker_comm(0)) < 0) {
-		fprintf(stderr, "main:init_tracker_comm failed\n");
+		logmsg("trackfile:init_tracker_comm failed\n");
 		return(-1);
 	}
 
@@ -773,10 +794,10 @@ trackfile(char *filename, char *range)
 	infoptr = tracker_info;
 	if ((info_count > 0) && (infoptr->hash == hash)) {
 #ifdef	DEBUG
-		logmsg("getfile:hash (0x%lx)\n", infoptr->hash);
-		logmsg("getfile:numpeers (%d)\n", infoptr->numpeers);
+		logmsg("trackfile:hash (0x%lx)\n", infoptr->hash);
+		logmsg("trackfile:numpeers (%d)\n", infoptr->numpeers);
 
-		logmsg("getfile:peers:\n");
+		logmsg("trackfile:peers:\n");
 
 		for (i = 0 ; i < infoptr->numpeers; ++i) {
 			struct in_addr	in;
@@ -792,17 +813,17 @@ trackfile(char *filename, char *range)
 			/*
 			 * not a critical error, but it should be logged
 			 */
-			fprintf(stderr, "getfile:shuffle:failed\n");
+			logmsg("trackfile:shuffle:failed\n");
 		}
 
 #ifdef	DEBUG
-		fprintf(stderr, "getfile:peers:after shuffle: ");
+		logmsg("trackfile:peers:after shuffle:\n");
 
 		for (i = 0 ; i < infoptr->numpeers; ++i) {
 			struct in_addr	in;
 
 			in.s_addr = infoptr->peers[i];
-			fprintf(stderr, "%s\n", inet_ntoa(in));
+			logmsg("%s\n", inet_ntoa(in));
 		}
 #endif
 		for (i = 0 ; i < infoptr->numpeers; ++i) {

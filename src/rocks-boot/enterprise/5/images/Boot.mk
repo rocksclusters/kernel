@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.17 2009/10/26 19:28:40 bruno Exp $
+# $Id: Boot.mk,v 1.18 2010/02/25 05:45:48 bruno Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -59,6 +59,9 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.18  2010/02/25 05:45:48  bruno
+# makin' progress
+#
 # Revision 1.17  2009/10/26 19:28:40  bruno
 # suppress errors
 #
@@ -239,11 +242,12 @@ initrd-%.iso: $(LOADER)/loader prep-initrd make-driver-disk
 	-cp -d /lib64/libpcre* $@.new/lib64
 
 	# the rocks tracker client
-	#cp -R rocks-tracker-client/tracker $@.new/
-	#-cp -d /usr/lib/libcurl* $@.new/lib
-	#-cp -d /usr/lib64/libcurl* $@.new/lib64
-	#-cp -d /usr/lib/libidn* $@.new/lib
-	#-cp -d /usr/lib64/libidn* $@.new/lib64
+	mkdir -p $@.new/tracker
+	cp rocks-tracker/opt/rocks/bin/tracker-client.cgi $@.new/tracker/
+	-for i in curl idn gssapi_krb5 krb5 k5crypto z krb5support ; do \
+		cp -d /usr/lib/lib$$i.so* $@.new/lib ; \
+		cp -d /usr/lib64/lib$$i.so* $@.new/lib64 ; \
+	done
 
 	# for firefox
 	-cp -d /lib/libasound* $@.new/lib
@@ -354,7 +358,7 @@ clean::
 	rm -rf kernel*
 	rm -rf mnt
 	rm -rf lighttpd
-	rm -rf tracker
+	rm -rf rocks-tracker
 	rm -rf hwdata
 	rm -rf anaconda-runtime
 	rm -rf rpmdb

@@ -1,10 +1,13 @@
 #
-# $Id: Makefile,v 1.1 2010/02/24 20:27:32 bruno Exp $
+# $Id: Makefile,v 1.2 2010/02/25 05:45:48 bruno Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.2  2010/02/25 05:45:48  bruno
+# makin' progress
+#
 # Revision 1.1  2010/02/24 20:27:32  bruno
 # moved new tracker from base roll to kernel roll
 #
@@ -35,7 +38,7 @@ INCLUDE	= -I/usr/include/apr-1
 #LIBS	= -lcurl -lssl -lidn -lgssapi_krb5 -lkrb5 -lk5crypto -lkrb5support -lpthread -lcrypto -lz -ldl -lcom_err -lkeyutils -lresolv -lselinux -lsepol
 LIBS	= -lcurl
 #EXTRA	= -Wall
-EXTRA	= -Wall -DDEBUG -pg
+EXTRA	= -Wall -DDEBUG -pg -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
 build:	tracker-client.cgi server stop-server
 
