@@ -1,10 +1,13 @@
 /*
- * $Id: tracker-client.c,v 1.2 2010/02/25 05:45:48 bruno Exp $
+ * $Id: tracker-client.c,v 1.3 2010/03/02 22:27:24 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.3  2010/03/02 22:27:24  bruno
+ * rudimentary code to remove hashes (files) that are no longer being tracked
+ *
  * Revision 1.2  2010/02/25 05:45:48  bruno
  * makin' progress
  *
@@ -783,16 +786,16 @@ trackfile(char *filename, char *range)
 				tracker_info = NULL;
 			}
 		}
-
-		/*
-		 * write the prediction info to a file	
-		 */
-		write_prediction_info(tracker_info, info_count);
 	}
 
 	success = 0;
 	infoptr = tracker_info;
 	if ((info_count > 0) && (infoptr->hash == hash)) {
+		/*
+		 * write the prediction info to a file	
+		 */
+		write_prediction_info(tracker_info, info_count);
+
 #ifdef	DEBUG
 		logmsg("trackfile:hash (0x%lx)\n", infoptr->hash);
 		logmsg("trackfile:numpeers (%d)\n", infoptr->numpeers);
@@ -836,32 +839,31 @@ trackfile(char *filename, char *range)
 				break;
 			}
 		}
+	}
 
-		if (!success) {
-			/*
-			 * unable to download the file from a peer, need to
-			 * get it from one of the package servers
-			 */
-			for (i = 0 ; i < num_pkg_servers ; ++i) {
-				if (getremote(filename, &pkg_servers[i], range)
-						== 0) {
-					success = 1;
-					break;
-				}
+	if (!success) {
+		/*
+		 * unable to download the file from a peer, need to
+		 * get it from one of the package servers
+		 */
+		for (i = 0 ; i < num_pkg_servers ; ++i) {
+			if (getremote(filename, &pkg_servers[i], range) == 0) {
+				success = 1;
+				break;
 			}
 		}
+	}
 
-		if (success) {
-			tracker_info_t	info[1];
+	if (success) {
+		tracker_info_t	info[1];
 
-			bzero(info, sizeof(info));
+		bzero(info, sizeof(info));
 
-			info[0].hash = infoptr->hash;
-			info[0].numpeers = 0;
+		info[0].hash = hash;
+		info[0].numpeers = 0;
 
-			for (i = 0 ; i < num_trackers; ++i) {
-				register_hash(sockfd, &trackers[i], 1, info);
-			}
+		for (i = 0 ; i < num_trackers; ++i) {
+			register_hash(sockfd, &trackers[i], 1, info);
 		}
 	}
 

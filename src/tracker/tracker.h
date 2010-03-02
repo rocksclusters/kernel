@@ -102,7 +102,8 @@ typedef struct {
 /*
  * hash table to hold the order in which files are requested
  */
-#define	HASH_TABLE_ENTRIES	256
+/* #define	HASH_TABLE_ENTRIES	256 */
+#define	HASH_TABLE_ENTRIES	3
 
 typedef struct {
 	int		head;
@@ -118,6 +119,6 @@ typedef struct {
 extern uint64_t hashit(char *);
 extern int tracker_send(int, void *, size_t, struct sockaddr *, socklen_t);
 extern ssize_t tracker_recv(int, void *, size_t, struct sockaddr *,
-	socklen_t *);
+	socklen_t *, struct timeval *);
 extern int init_tracker_comm(int);
 extern void dumpbuf(char *, int);

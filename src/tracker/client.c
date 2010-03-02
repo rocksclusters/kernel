@@ -17,6 +17,7 @@ int
 lookup(int sockfd, in_addr_t *tracker, char *file, tracker_info_t **info)
 {
 	struct sockaddr_in	send_addr, recv_addr;
+	struct timeval		timeout;
 	socklen_t		recv_addr_len;
 	tracker_lookup_req_t	req;
 	ssize_t			recvbytes;
@@ -42,8 +43,14 @@ lookup(int sockfd, in_addr_t *tracker, char *file, tracker_info_t **info)
 		(struct sockaddr *)&send_addr, sizeof(send_addr));
 
 	recv_addr_len = sizeof(recv_addr);
+	timeout.tv_sec = 1;
+	timeout.tv_usec = 0;
 	recvbytes = tracker_recv(sockfd, (void *)buf, sizeof(buf),
-		(struct sockaddr *)&recv_addr, &recv_addr_len);
+		(struct sockaddr *)&recv_addr, &recv_addr_len, &timeout);
+
+#ifdef	DEBUG
+fprintf(stderr, "lookup:recvbytes (%ld)\n", recvbytes);
+#endif
 
 	if (recvbytes > 0) {
 		tracker_lookup_resp_t	*resp;
@@ -79,12 +86,13 @@ lookup(int sockfd, in_addr_t *tracker, char *file, tracker_info_t **info)
 
 		memcpy(*info, resp->info, infosize);
 		retval = resp->numhashes;
-#ifdef	DEBUG
-fprintf(stderr, "lookup:retval (%d)\n", retval);
-#endif
 	} else {
 		retval = 0;
 	}
+
+#ifdef	DEBUG
+fprintf(stderr, "lookup:retval (%d)\n", retval);
+#endif
 
 	return(retval);
 }

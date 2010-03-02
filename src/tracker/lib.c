@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <strings.h>
+#include <errno.h>
 #include <unistd.h>
 #include <netinet/in.h>
 #include "tracker.h"
@@ -11,6 +12,23 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
+void
+logmsg(const char *fmt, ...)
+{
+	FILE	*file;
+	va_list argptr;
+
+	if ((file = fopen("/tmp/tracker-client.debug", "a+")) != NULL) {
+		va_start(argptr, fmt);
+		vfprintf(file, fmt, argptr);
+		va_end(argptr);
+
+		fclose(file);
+	}
+
+	return;
+}
 
 uint64_t
 hashit(char *ptr)
@@ -51,20 +69,38 @@ tracker_send(int sockfd, void *buf, size_t len, struct sockaddr *to,
 	dumpbuf(buf, len);
 #endif
 
-	sendto(sockfd, buf, len, flags, (struct sockaddr *)to, tolen);
+	if (sendto(sockfd, buf, len, flags, (struct sockaddr *)to, tolen) < 0){
+		logmsg("tracker_send:sendto failed:errno (%d)\n", errno);
+	}
 
 	return(0);
 }
 
 ssize_t
 tracker_recv(int sockfd, void *buf, size_t len, struct sockaddr *from,
-	socklen_t *fromlen)
+	socklen_t *fromlen, struct timeval *timeout)
 {
-	ssize_t	size;
-	int	flags = 0;
+	ssize_t		size = 0;
+	fd_set		sockfds;
+	int		flags = 0;
+	int		readit = 0;
 
-	size = recvfrom(sockfd, buf, len, flags, from, fromlen);
+	if (timeout) {
+		FD_ZERO(&sockfds);
+		FD_SET(sockfd, &sockfds);
 
+		if ((select(sockfd+1, &sockfds, NULL, NULL, timeout) > 0) &&
+				(FD_ISSET(sockfd, &sockfds))) {
+			readit = 1;
+		}
+	} else {
+		readit = 1;
+	}
+
+	if (readit) {
+		size = recvfrom(sockfd, buf, len, flags, from, fromlen);
+	}
+	
 #ifdef	DEBUG
 	if (size > 0) {
 		fprintf(stderr, "recv buf: ");
@@ -102,21 +138,4 @@ init_tracker_comm(int port)
 	}
 
 	return(sockfd);
-}
-
-void
-logmsg(const char *fmt, ...)
-{
-	FILE	*file;
-	va_list argptr;
-
-	if ((file = fopen("/tmp/tracker-client.debug", "a+")) != NULL) {
-		va_start(argptr, fmt);
-		vfprintf(file, fmt, argptr);
-		va_end(argptr);
-
-		fclose(file);
-	}
-
-	return;
 }

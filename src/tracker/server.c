@@ -25,7 +25,7 @@ init_hash_table(int size)
 	bzero(hash_table, len);
 	hash_table->size = size;
 	hash_table->head = 0;
-	hash_table->tail = -1;
+	hash_table->tail = size - 1;
 
 	return(0);
 }
@@ -60,7 +60,7 @@ fprintf(stderr, "tail: (%d)\n", hash_table->tail);
 			print_peers(&hash_table->entry[i]);
 		}
 	} else {
-		for (i = hash_table->head ; i >= 0 ; --i) {
+		for (i = hash_table->head - 1; i >= 0 ; --i) {
 			fprintf(stderr, "entry[%d] : hash (0x%lx)\n", i,
 				hash_table->entry[i].hash);
 
@@ -68,7 +68,7 @@ fprintf(stderr, "tail: (%d)\n", hash_table->tail);
 		}
 
 		for (i = (hash_table->size - 1) ;
-				(i >= hash_table->tail) && (i >= 0) ; --i) {
+				(i > hash_table->tail) && (i >= 0) ; --i) {
 
 			fprintf(stderr, "entry[%d] : hash (0x%lx)\n", i,
 				hash_table->entry[i].hash);
@@ -78,6 +78,92 @@ fprintf(stderr, "tail: (%d)\n", hash_table->tail);
 	}
 
 	return;
+}
+
+/*
+ * remove all free entries in between the head and the tail
+ */
+void
+compact_hash_table()
+{
+}
+
+void
+reclaim_free_entries()
+{
+	int	i;
+	int	current_tail, current_head;
+
+#ifdef	DEBUG
+fprintf(stderr, "reclaim_free_entries:head (%d), tail (%d), size (%d)\n",
+	hash_table->head, hash_table->tail, hash_table->size);
+#endif
+
+	/*
+	 * first, try to move the tail
+	 */
+	if (hash_table->tail > hash_table->head) {
+		current_tail = hash_table->tail;
+
+		for (i = current_tail + 1 ; i < hash_table->size &&
+				hash_table->entry[i].hash == 0 ; ++i) {
+			++hash_table->tail;
+		}
+
+		/*
+	 	 * special case when the tail hits the end of the list
+		 */
+		if (hash_table->tail == hash_table->size - 1) {
+			if ((hash_table->entry[0].hash == 0) && 
+					(hash_table->head != 0)) {
+				hash_table->tail = 0;
+			}
+		}
+	}
+
+	if (hash_table->tail < hash_table->head) {
+		current_tail = hash_table->tail;
+
+		for (i = current_tail + 1 ; i < hash_table->head &&
+				hash_table->entry[i].hash == 0 ; ++i) {
+			++hash_table->tail;
+		}
+	}
+
+	/*
+	 * now try to move the head
+	 */
+	if (hash_table->head < hash_table->tail) {
+		current_head = hash_table->head;
+
+		for (i = current_head - 1 ; i >= 0 &&
+				hash_table->entry[i].hash == 0 ; --i) {
+			--hash_table->head;
+		}
+
+		/*
+		 * special case for when head hits the top of the list
+		 */
+		if ((hash_table->head == 0) &&
+			(hash_table->entry[hash_table->size - 1].hash == 0)) {
+
+			hash_table->head = hash_table->size - 1;
+		}
+	}
+
+	if (hash_table->head > hash_table->tail) {
+		current_head = hash_table->head;
+
+		for (i = current_head - 1 ; i < hash_table->tail &&
+				hash_table->entry[i].hash == 0 ; --i) {
+			--hash_table->head;
+		}
+	}
+
+#ifdef	DEBUG
+fprintf(stderr, "reclaim_free_entries:head (%d), tail (%d)\n",
+	hash_table->head, hash_table->tail);
+#endif
 }
 
 /*
@@ -141,12 +227,11 @@ print_hash_table();
 hash_info_t *
 newentry()
 {
-	if (hash_table->tail != -1) {
-		++hash_table->head;
-		if (hash_table->head == hash_table->size) {
-			hash_table->head = 0;
-		}
-	}
+	int	index;
+	
+	index = hash_table->head;
+
+	++hash_table->head;
 
 	if (hash_table->head == hash_table->tail) {
 		if (grow_hash_table(HASH_TABLE_ENTRIES) != 0) {
@@ -155,15 +240,11 @@ newentry()
 		}
 	}
 
-	/*
-	 * when the first entry is allocated on a newly initialized table,
-	 * tail will be -1. in this case, set tail to 0.
-	 */
-	if (hash_table->tail == -1) {
-		hash_table->tail = 0;
+	if (hash_table->head == hash_table->size) {
+		hash_table->head = 0;
 	}
 
-	return(&hash_table->entry[hash_table->head]);
+	return(&hash_table->entry[index]);
 }
 
 int
@@ -453,11 +534,8 @@ register_hash(char *buf, struct sockaddr_in *from_addr)
 		reqinfo = &req->info[i];
 #ifdef	DEBUG
 fprintf(stderr, "register_hash:enter:hash (0x%lx)\n", reqinfo->hash);
-
-if (hash_table->tail != -1) {
-	fprintf(stderr, "register_hash:hash_table:before\n\n");
-	print_hash_table();
-}
+fprintf(stderr, "register_hash:hash_table:before\n\n");
+print_hash_table();
 #endif
 
 		if (reqinfo->numpeers == 0) {
@@ -525,6 +603,89 @@ fprintf(stderr, "register_hash:exit:hash (0x%lx)\n", reqinfo->hash);
 	}
 }
 
+void
+removepeer(int index, in_addr_t *peer)
+{
+	hash_info_t	*hashinfo = &hash_table->entry[index];
+	int		i, j;
+
+#ifdef	DEBUG
+{
+	struct in_addr	in;
+
+	in.s_addr = *peer;
+	fprintf(stderr, "removepeer:removing peer (%s) for hash (0x%016lx)\n",
+		inet_ntoa(in), hashinfo->hash);
+}
+#endif
+
+	for (i = 0; i < hashinfo->numpeers; ++i) {
+		if (hashinfo->peers[i] == *peer) {
+			if (hashinfo->numpeers == 1) {
+				/*
+				 * do the easy case first
+				 */
+				free(hashinfo->peers);
+
+				hashinfo->peers = NULL;
+				hashinfo->hash = 0;
+				hashinfo->numpeers = 0;
+				
+				reclaim_free_entries();
+			} else {
+				/*
+				 * remove the peer by compacting all subsequent
+				 * peers
+				 */
+				for (j = i; j < hashinfo->numpeers - 1; ++j) {
+					memcpy(&hashinfo->peers[j],
+						&hashinfo->peers[j+1],
+						sizeof(*peer));
+				}
+
+				/*
+				 * zero out the last entry
+				 */
+				bzero(&hashinfo->peers[hashinfo->numpeers-1],
+					sizeof(*peer));
+
+				--hashinfo->numpeers;
+			}
+
+			break;
+		}
+	}
+
+	return;
+}
+
+void
+unregister_all(char *buf, struct sockaddr_in *from_addr)
+{
+	in_addr_t	peer;
+	int		i;
+
+#ifdef	DEBUG
+fprintf(stderr, "unregister_all:enter\n");
+fprintf(stderr, "unregister_all:hash_table:before\n\n");
+print_hash_table();
+#endif
+
+	peer = from_addr->sin_addr.s_addr;
+
+	for (i = 0 ; i < hash_table->size; ++i) {
+		if (hash_table->entry[i].hash != 0) {
+			removepeer(i, &peer);
+		}
+	}
+
+#ifdef	DEBUG
+fprintf(stderr, "unregister_all:hash_table:after\n\n");
+print_hash_table();
+#endif
+
+}
+
 int
 main()
 {
@@ -553,7 +714,7 @@ fprintf(stderr, "main:starting\n");
 	while (!done) {
 		from_addr_len = sizeof(from_addr);
 		recvbytes = tracker_recv(sockfd, buf, sizeof(buf),
-			(struct sockaddr *)&from_addr, &from_addr_len);
+			(struct sockaddr *)&from_addr, &from_addr_len, NULL);
 
 		if (recvbytes > 0) {
 			tracker_header_t	*p;
@@ -575,10 +736,13 @@ fprintf(stderr, "main:starting\n");
 				break;
 
 			case UNREGISTER:
+#ifdef	LATER
+				unregister_hash(buf, &from_addr);
+#endif
 				break;
 
 			case END:
-				done = 1;
+				unregister_all(buf, &from_addr);
 				break;
 
 			default:
