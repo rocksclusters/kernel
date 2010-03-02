@@ -1,10 +1,13 @@
 /*
- * $Id: stop-server.c,v 1.1 2010/02/24 20:27:32 bruno Exp $
+ * $Id: peer-done.c,v 1.1 2010/03/02 22:28:06 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
- * $Log: stop-server.c,v $
+ * $Log: peer-done.c,v $
+ * Revision 1.1  2010/03/02 22:28:06  bruno
+ * renamed stop-server to peer-done
+ *
  * Revision 1.1  2010/02/24 20:27:32  bruno
  * moved new tracker from base roll to kernel roll
  *
