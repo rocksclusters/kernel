@@ -1,10 +1,14 @@
 #
-# $Id: Makefile,v 1.2 2010/02/25 05:45:48 bruno Exp $
+# $Id: Makefile,v 1.3 2010/03/03 19:21:03 bruno Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.3  2010/03/03 19:21:03  bruno
+# add code to 'unregister' a file and clean up the hash table when there are
+# no more peers for a hash.
+#
 # Revision 1.2  2010/02/25 05:45:48  bruno
 # makin' progress
 #
@@ -40,10 +44,14 @@ LIBS	= -lcurl
 #EXTRA	= -Wall
 EXTRA	= -Wall -DDEBUG -pg -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
-build:	tracker-client.cgi server stop-server
+build:	tracker-client.cgi unregister-file server peer-done
 
 tracker-client.cgi:	tracker-client.c client.c lib.c
 	cc $(INCLUDE) $(EXTRA) -o tracker-client.cgi tracker-client.c \
+		client.c lib.c $(LIBS)
+
+unregister-file:	unregister-file.c client.c lib.c
+	cc $(INCLUDE) $(EXTRA) -o unregister-file unregister-file.c \
 		client.c lib.c $(LIBS)
 
 server:		server.o lib.o
@@ -58,18 +66,18 @@ server.o:	server.c
 hashit:		hashit.c
 	cc $(INCLUDE) $(EXTRA) -o hashit hashit.c lib.c $(LIBS)
 
-stop-server:	stop-server.c
-	cc $(INCLUDE) $(EXTRA) -o stop-server stop-server.c client.c lib.c \
+peer-done:	peer-done.c
+	cc $(INCLUDE) $(EXTRA) -o peer-done peer-done.c client.c lib.c \
 		$(LIBS)
 
 install::
 	mkdir -p $(ROOT)/$(PKGROOT)/bin
 	cp tracker-client.cgi $(ROOT)/$(PKGROOT)/bin
-	cp stop-server $(ROOT)/$(PKGROOT)/bin
+	cp peer-done $(ROOT)/$(PKGROOT)/bin
 	cp server $(ROOT)/$(PKGROOT)/bin
 
 clean::
 	rm -f $(NAME).spec.in
-	rm -f tracker-client.cgi server hashit stop-server
+	rm -f tracker-client.cgi server hashit peer-done
 	rm -f *.o
 

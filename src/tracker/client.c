@@ -176,6 +176,66 @@ fprintf(stderr, "infolen (%d)\n", infolen);
 }
 
 int
+unregister_hash(int sockfd, in_addr_t *ip, uint32_t numhashes,
+	tracker_info_t *info)
+{
+	struct sockaddr_in	send_addr;
+	tracker_unregister_t	*req;
+	int			len, infolen;
+	int			i;
+
+	bzero(&send_addr, sizeof(send_addr));
+	send_addr.sin_family = AF_INET;
+
+	/*
+	 * the ip address is already in network byte order
+	 */
+	send_addr.sin_addr.s_addr = *ip;
+	send_addr.sin_port = htons(TRACKER_PORT);
+
+	infolen = 0;
+	for (i = 0 ; i < numhashes ; ++i) {
+		infolen += sizeof(tracker_info_t) +
+			(info[i].numpeers * sizeof(*(info[i].peers)));
+	}
+
+	len = sizeof(tracker_unregister_t) + infolen;
+
+	if ((req = (tracker_unregister_t *)malloc(len)) == NULL) {
+		fprintf(stderr, "register_hash:malloc failed\n");
+		return(-1);
+	}
+
+	bzero(req, len);
+	req->header.op = UNREGISTER;
+	req->header.length = len;
+
+	req->numhashes = numhashes;
+
+#ifdef	DEBUG
+fprintf(stderr, "infolen (%d)\n", infolen);
+#endif
+
+	memcpy(req->info, info, infolen);
+
+	tracker_send(sockfd, (void *)req, len, 
+		(struct sockaddr *)&send_addr, sizeof(send_addr));
+
+#ifdef	DEBUG
+{
+	struct in_addr		in;
+
+	in.s_addr = *ip;
+	logmsg("unregister_hash: unregistered hash (0x%016lx) with tracker (%s)\n",
+		info->hash, inet_ntoa(in));
+}
+#endif
+
+	free(req);
+	return(0);
+}
+
+int
 init(uint16_t *num_trackers, in_addr_t **trackers, uint16_t *maxpeers,
 	uint16_t *num_pkg_servers, in_addr_t **pkg_servers)
 {

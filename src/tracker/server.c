@@ -86,6 +86,107 @@ fprintf(stderr, "tail: (%d)\n", hash_table->tail);
 void
 compact_hash_table()
 {
+	int	free_index = hash_table->head - 1;
+	int	allocated_index;
+	char	found, done;
+
+#ifdef	DEBUG
+fprintf(stderr, "compact_hash_table:before\n\n");
+print_hash_table();
+#endif
+
+
+	while (1) {
+		/*
+		 * find a free slot
+		 */
+		found = 0;
+		done = 0;
+		while (!done) {
+			if (free_index == hash_table->tail) {
+				done = 1;
+				continue;
+			}
+
+			if (free_index < 0) {
+				free_index = hash_table->size - 1;
+				continue;
+			}
+
+			if (hash_table->entry[free_index].hash == 0) {
+				done = 1;
+				found = 1;
+				continue;
+			}
+
+			--free_index;
+		}
+
+		if (found == 0) {
+			/*
+			 * there are no free slots between head and tail
+			 */
+			return;
+		}
+
+		/*
+		 * find the next allocated slot
+		 */
+		allocated_index = free_index - 1;
+		found = 0;
+		done = 0;
+
+		while (!done) {
+			if (allocated_index == hash_table->tail) {
+				done = 1;
+				continue;
+			}
+
+			if (allocated_index < 0) {
+				allocated_index = hash_table->size - 1;
+				continue;
+			}
+
+			if (hash_table->entry[allocated_index].hash != 0) {
+				done = 1;
+				found = 1;
+				continue;
+			}
+
+			--allocated_index;
+		}
+
+		if (found == 0) {
+			/*
+			 * there are no allocated slots between free_index and
+			 * tail
+			 */
+			return;
+		}
+
+		/*
+		 * move the allocated slot to the free slot, then free the
+		 * previous allocated slot
+		 */
+		hash_table->entry[free_index].hash =
+			hash_table->entry[allocated_index].hash;
+		hash_table->entry[free_index].numpeers =
+			hash_table->entry[allocated_index].numpeers;
+		hash_table->entry[free_index].peers =
+			hash_table->entry[allocated_index].peers;
+
+		hash_table->entry[allocated_index].hash = 0;
+		hash_table->entry[allocated_index].numpeers = 0;
+		hash_table->entry[allocated_index].peers = NULL;
+
+		--free_index;
+	}
+
+#ifdef	DEBUG
+fprintf(stderr, "compact_hash_table:after\n\n");
+print_hash_table();
+#endif
+
 }
 
 void
@@ -631,6 +732,7 @@ removepeer(int index, in_addr_t *peer)
 				hashinfo->hash = 0;
 				hashinfo->numpeers = 0;
 				
+				compact_hash_table();
 				reclaim_free_entries();
 			} else {
 				/*
@@ -657,6 +759,35 @@ removepeer(int index, in_addr_t *peer)
 	}
 
 	return;
+}
+
+void
+unregister_hash(char *buf, struct sockaddr_in *from_addr)
+{
+	tracker_unregister_t	*req = (tracker_unregister_t *)buf;
+	in_addr_t		peer;
+	int			index;
+	int			i;
+
+#ifdef	DEBUG
+fprintf(stderr, "unregister_hash:enter\n");
+fprintf(stderr, "unregister_hash:hash_table:before\n\n");
+print_hash_table();
+#endif
+
+	peer = from_addr->sin_addr.s_addr;
+
+	for (i = 0 ; i < req->numhashes ; ++i) {
+		if (getpeers(req->info[i].hash, &index) != NULL) {
+			removepeer(index, &peer);
+		}
+	}
+
+#ifdef	DEBUG
+fprintf(stderr, "unregister_hash:hash_table:after\n\n");
+print_hash_table();
+#endif
+
 }
 
 void
@@ -736,9 +867,7 @@ fprintf(stderr, "main:starting\n");
 				break;
 
 			case UNREGISTER:
-#ifdef	LATER
 				unregister_hash(buf, &from_addr);
-#endif
 				break;
 
 			case END:
