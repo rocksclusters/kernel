@@ -1,10 +1,13 @@
 #
-# $Id: Makefile,v 1.3 2010/03/03 19:21:03 bruno Exp $
+# $Id: Makefile,v 1.4 2010/03/03 21:58:30 bruno Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.4  2010/03/03 21:58:30  bruno
+# tweak
+#
 # Revision 1.3  2010/03/03 19:21:03  bruno
 # add code to 'unregister' a file and clean up the hash table when there are
 # no more peers for a hash.
@@ -43,8 +46,9 @@ INCLUDE	= -I/usr/include/apr-1
 LIBS	= -lcurl
 #EXTRA	= -Wall
 EXTRA	= -Wall -DDEBUG -pg -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+EXECS	= tracker-client.cgi unregister-file server peer-done
 
-build:	tracker-client.cgi unregister-file server peer-done
+build:	$(EXECS)
 
 tracker-client.cgi:	tracker-client.c client.c lib.c
 	cc $(INCLUDE) $(EXTRA) -o tracker-client.cgi tracker-client.c \
@@ -72,12 +76,10 @@ peer-done:	peer-done.c
 
 install::
 	mkdir -p $(ROOT)/$(PKGROOT)/bin
-	cp tracker-client.cgi $(ROOT)/$(PKGROOT)/bin
-	cp peer-done $(ROOT)/$(PKGROOT)/bin
-	cp server $(ROOT)/$(PKGROOT)/bin
+	cp $(EXECS) $(ROOT)/$(PKGROOT)/bin
 
 clean::
 	rm -f $(NAME).spec.in
-	rm -f tracker-client.cgi server hashit peer-done
+	rm -f $(EXECS)
 	rm -f *.o
 
