@@ -49,7 +49,7 @@ lookup(int sockfd, in_addr_t *tracker, char *file, tracker_info_t **info)
 		(struct sockaddr *)&recv_addr, &recv_addr_len, &timeout);
 
 #ifdef	DEBUG
-fprintf(stderr, "lookup:recvbytes (%ld)\n", recvbytes);
+logmsg("lookup:recvbytes (%ld)\n", recvbytes);
 #endif
 
 	if (recvbytes > 0) {
@@ -61,7 +61,7 @@ fprintf(stderr, "lookup:recvbytes (%ld)\n", recvbytes);
 		 * validate the packet
 		 */
 		if (resp->header.op != LOOKUP) {
-			fprintf(stderr, "lookup:header op (%d) != (%d)\n",
+			logmsg("lookup:header op (%d) != (%d)\n",
 				resp->header.op, LOOKUP);
 			abort();
 		}
@@ -70,7 +70,7 @@ fprintf(stderr, "lookup:recvbytes (%ld)\n", recvbytes);
 		 * make sure numhashes is reasonable
 		 */
 		if ((resp->numhashes < 0) || (resp->numhashes > 64)) {
-			fprintf(stderr, "lookup:numhashes (%d) is not between 0 and 64\n", resp->numhashes);
+			logmsg("lookup:numhashes (%d) is not between 0 and 64\n", resp->numhashes);
 			abort();
 		}
 
@@ -80,7 +80,7 @@ fprintf(stderr, "lookup:recvbytes (%ld)\n", recvbytes);
 		infosize = resp->header.length - sizeof(tracker_lookup_resp_t);
 
 		if ((*info = (tracker_info_t *)malloc(infosize)) == NULL) {
-			fprintf(stderr, "lookup:malloc failed\n");
+			logmsg("lookup:malloc failed\n");
 			abort();
 		}
 
@@ -91,7 +91,7 @@ fprintf(stderr, "lookup:recvbytes (%ld)\n", recvbytes);
 	}
 
 #ifdef	DEBUG
-fprintf(stderr, "lookup:retval (%d)\n", retval);
+logmsg("lookup:retval (%d)\n", retval);
 #endif
 
 	return(retval);
@@ -108,7 +108,7 @@ get(in_addr_t *ip, char *filename)
 
 	in.s_addr = *ip;
 
-	fprintf(stderr, "get: get file (%s) from (%s)\n", filename,
+	logmsg("get: get file (%s) from (%s)\n", filename,
 		inet_ntoa(in));
 
 	return(0);
@@ -142,7 +142,7 @@ register_hash(int sockfd, in_addr_t *ip, uint32_t numhashes,
 	len = sizeof(tracker_register_t) + infolen;
 
 	if ((req = (tracker_register_t *)malloc(len)) == NULL) {
-		fprintf(stderr, "register_hash:malloc failed\n");
+		logmsg("register_hash:malloc failed\n");
 		return(-1);
 	}
 
@@ -153,7 +153,7 @@ register_hash(int sockfd, in_addr_t *ip, uint32_t numhashes,
 	req->numhashes = numhashes;
 
 #ifdef	DEBUG
-fprintf(stderr, "infolen (%d)\n", infolen);
+logmsg("infolen (%d)\n", infolen);
 #endif
 
 	memcpy(req->info, info, infolen);
@@ -202,7 +202,7 @@ unregister_hash(int sockfd, in_addr_t *ip, uint32_t numhashes,
 	len = sizeof(tracker_unregister_t) + infolen;
 
 	if ((req = (tracker_unregister_t *)malloc(len)) == NULL) {
-		fprintf(stderr, "register_hash:malloc failed\n");
+		logmsg("register_hash:malloc failed\n");
 		return(-1);
 	}
 
@@ -213,7 +213,7 @@ unregister_hash(int sockfd, in_addr_t *ip, uint32_t numhashes,
 	req->numhashes = numhashes;
 
 #ifdef	DEBUG
-fprintf(stderr, "infolen (%d)\n", infolen);
+logmsg("infolen (%d)\n", infolen);
 #endif
 
 	memcpy(req->info, info, infolen);
@@ -236,24 +236,34 @@ fprintf(stderr, "infolen (%d)\n", infolen);
 }
 
 int
-init(uint16_t *num_trackers, in_addr_t **trackers, uint16_t *maxpeers,
-	uint16_t *num_pkg_servers, in_addr_t **pkg_servers)
+init(uint16_t *num_trackers, char *trackers_url, in_addr_t *trackers,
+	uint16_t *maxpeers, char *pkg_servers_url, uint16_t *num_pkg_servers,
+	in_addr_t *pkg_servers)
 {
-	size_t	size;
+	char	*p, *q;
+	char	done;
 
 	/*
 	 * the list of tracker(s)
 	 */
-	*num_trackers = 1;
-	size = *num_trackers * sizeof(**trackers);
+	*num_trackers = 0;
+	q = trackers_url;
+	done = 0;
+	while (!done) {
+		if ((p = strchr(q, ',')) == NULL) {
+			done = 1;
+		} else {
+			*p = '\0';
+		}
 
-	if ((*trackers = malloc(size)) == NULL) {
-		perror("init:malloc failed:");
-		return(-1);
+		trackers[(*num_trackers)] = inet_addr(q);
+		q = p + 1;
+
+		++(*num_trackers);
+		if (*num_trackers == MAX_TRACKERS) {
+			break;
+		}
 	}
-
-	bzero(*trackers, size);
-	(*trackers)[0] = inet_addr("10.1.1.1");
 
 	/*
 	 * set the maximum number of peers that should be registered with
@@ -265,16 +275,24 @@ init(uint16_t *num_trackers, in_addr_t **trackers, uint16_t *maxpeers,
 	 * the list of package servers. if i can't get a package from a
 	 * peer, then these are the servers that *always* have the package
 	 */
-	*num_pkg_servers = 1;
-	size = *num_pkg_servers * sizeof(**pkg_servers);
+	*num_pkg_servers = 0;
+	q = pkg_servers_url;
+	done = 0;
+	while (!done) {
+		if ((p = strchr(q, ',')) == NULL) {
+			done = 1;
+		} else {
+			*p = '\0';
+		}
 
-	if ((*pkg_servers = malloc(size)) == NULL) {
-		perror("init:malloc failed:");
-		return(-1);
+		pkg_servers[(*num_pkg_servers)] = inet_addr(q);
+		q = p + 1;
+
+		++(*num_pkg_servers);
+		if (*num_pkg_servers == MAX_PKG_SERVERS) {
+			break;
+		}
 	}
-
-	bzero(*pkg_servers, size);
-	(*pkg_servers)[0] = inet_addr("10.1.1.1");
 
 	return(0);
 }

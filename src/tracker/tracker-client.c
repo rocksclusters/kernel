@@ -1,10 +1,14 @@
 /*
- * $Id: tracker-client.c,v 1.3 2010/03/02 22:27:24 bruno Exp $
+ * $Id: tracker-client.c,v 1.4 2010/03/07 23:20:18 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.4  2010/03/07 23:20:18  bruno
+ * progress. can now run this as a non-root user -- should be able to run tests
+ * on triton.
+ *
  * Revision 1.3  2010/03/02 22:27:24  bruno
  * rudimentary code to remove hashes (files) that are no longer being tracked
  *
@@ -55,7 +59,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-extern int init(uint16_t *, in_addr_t **, uint16_t *, uint16_t *, in_addr_t **);
+extern int init(uint16_t *, char *, in_addr_t *, uint16_t *, char *, uint16_t *,
+	in_addr_t *);
 extern int lookup(int, in_addr_t *, char *, tracker_info_t **);
 extern int register_hash(int, in_addr_t *, uint32_t, tracker_info_t *);
 extern int shuffle(in_addr_t *, uint16_t);
@@ -65,24 +70,24 @@ extern void logmsg(const char *, ...);
 int	status = HTTP_OK;
 
 int
-getargs(char *forminfo, char *filename, char *serverip)
+getargs(char *forminfo, char *filename, char *trackers_url,
+	char *pkg_servers_url)
 {
 	char	*ptr;
 
 	/*
 	 * help out sscanf by putting in a blank for '&'
 	 */
-	if ((ptr = strchr(forminfo, '&')) == NULL) {
-		/*
-		 * XXX - log an error
-		 */
-		return(-1);
+	while (1) {
+		if ((ptr = strchr(forminfo, '&')) == NULL) {
+			break;
+		}
+
+		*ptr = ' ';
 	}
 
-	*ptr = ' ';
-
-	if (sscanf(forminfo, "filename=%4095s serverip=%15s", filename,
-			serverip) != 2) {
+	if (sscanf(forminfo, "filename=%4095s trackers=%256s pkgservers=%256s",
+			filename, trackers_url, pkg_servers_url) != 3) {
 		/*
 		 * XXX - log an error
 		 */
@@ -358,6 +363,13 @@ downloadfile(CURL *curlhandle, char *url, char *range)
 #endif
 	}
 
+	if ((curlcode = curl_easy_setopt(curlhandle, CURLOPT_PORT,
+			DOWNLOAD_PORT)) != CURLE_OK) {
+		logmsg("downloadfile:curl_easy_setopt(PORT):failed:(%d)\n",
+			curlcode);
+		return(-1);
+	}
+
 	if ((curlcode = curl_easy_perform(curlhandle)) != CURLE_OK) {
 		logmsg("downloadfile:curl_easy_perform():failed:(%d)\n",
 			curlcode);
@@ -600,7 +612,7 @@ write_prediction_info(tracker_info_t *infoptr, int info_count)
 		return;
 	}
 
-	if ((file = fopen("/tracker.predictions", "w")) == NULL) {
+	if ((file = fopen("/tmp/tracker.predictions", "w")) == NULL) {
 		/*
 		 * don't worry if this fails. it is just prediction data, it
 		 * is not critical
@@ -613,6 +625,10 @@ write_prediction_info(tracker_info_t *infoptr, int info_count)
 	 */
 	infoptr = (tracker_info_t *)((char *)infoptr + sizeof(tracker_info_t) +
 		(sizeof(infoptr->peers[0]) * infoptr->numpeers));
+
+#ifdef	DEBUG
+	logmsg("write_prediction_info:info_count (%d)\n", info_count);
+#endif
 
 	for (i = 1 ; i < info_count ; ++i) {
 
@@ -631,14 +647,18 @@ write_prediction_info(tracker_info_t *infoptr, int info_count)
 		}
 
 #ifdef	DEBUG
+{
+		int	j;
+
 		logmsg("info:peers:\n");
 
-		for (i = 0 ; i < infoptr->numpeers; ++i) {
+		for (j = 0 ; j < infoptr->numpeers; ++j) {
 			struct in_addr	in;
 
-			in.s_addr = infoptr->peers[i];
+			in.s_addr = infoptr->peers[j];
 			logmsg("\t%s\n", inet_ntoa(in));
 		}
+}
 #endif
 
 		/*
@@ -665,11 +685,11 @@ getprediction(uint64_t hash, tracker_info_t **info)
 	logmsg("getprediction:hash (0x%016lx)\n", hash);
 #endif
 
-	if (stat("/tracker.predictions", &statbuf) != 0) {
+	if (stat("/tmp/tracker.predictions", &statbuf) != 0) {
 		return(0);
 	}	
 
-	if ((file = fopen("/tracker.predictions", "r")) == NULL) {
+	if ((file = fopen("/tmp/tracker.predictions", "r")) == NULL) {
 		return(0);
 	}
 
@@ -715,14 +735,15 @@ getprediction(uint64_t hash, tracker_info_t **info)
 }
 
 int
-trackfile(char *filename, char *range)
+trackfile(char *filename, char *range, char *trackers_url,
+	char *pkg_servers_url)
 {
 	uint64_t	hash;
 	uint16_t	num_trackers;
-	in_addr_t	*trackers;
+	in_addr_t	trackers[MAX_TRACKERS];
 	uint16_t	maxpeers;
 	uint16_t	num_pkg_servers;
-	in_addr_t	*pkg_servers;
+	in_addr_t	pkg_servers[MAX_PKG_SERVERS];
 	uint16_t	i;
 	tracker_info_t	*tracker_info, *infoptr;
 	int		sockfd;
@@ -731,11 +752,28 @@ trackfile(char *filename, char *range)
 
 	hash = hashit(filename);
 
-	if (init(&num_trackers, &trackers, &maxpeers, &num_pkg_servers,
-			&pkg_servers) != 0) {
+	if (init(&num_trackers, trackers_url, trackers, &maxpeers,
+			pkg_servers_url, &num_pkg_servers, pkg_servers) != 0) {
 		logmsg("trackfile:init failed\n");
 		return(-1);
 	}
+
+#ifdef	DEBUG
+{
+	int		j;
+	struct in_addr	in;
+
+	for (j = 0 ; j < num_trackers ; ++j) {
+		in.s_addr = trackers[j];
+		logmsg("trackfile:trackers[%d] = (%s)\n", j, inet_ntoa(in));
+	}
+
+	for (j = 0 ; j < num_pkg_servers ; ++j) {
+		in.s_addr = pkg_servers[j];
+		logmsg("trackfile:pkg_servers[%d] = (%s)\n", j, inet_ntoa(in));
+	}
+}
+#endif
 
 	if ((sockfd = init_tracker_comm(0)) < 0) {
 		logmsg("trackfile:init_tracker_comm failed\n");
@@ -787,6 +825,12 @@ trackfile(char *filename, char *range)
 			}
 		}
 	}
+
+#ifdef	DEBUG
+	logmsg("trackfile:info_count (%d)\n", info_count);
+#endif
+
+	logmsg("trackfile:numpeers (%d)\n", infoptr->numpeers);
 
 	success = 0;
 	infoptr = tracker_info;
@@ -874,11 +918,6 @@ trackfile(char *filename, char *range)
 		free(tracker_info);
 	}	
 
-	/*
-	 * init() mallocs trackers
-	 */
-	free(trackers);
-
 	if (success) {
 		return(0);
 	}
@@ -892,10 +931,12 @@ main()
 	char	*forminfo;
 	char	*range;
 	char	filename[PATH_MAX];
-	char	serverip[16];
+	char	trackers_url[256];
+	char	pkg_servers_url[256];
 
 	bzero(filename, sizeof(filename));
-	bzero(serverip, sizeof(serverip));
+	bzero(trackers_url, sizeof(trackers_url));
+	bzero(pkg_servers_url, sizeof(pkg_servers_url));
 
 	if ((forminfo = getenv("QUERY_STRING")) == NULL) {
 		senderror(500, "No QUERY_STRING", errno);
@@ -910,7 +951,7 @@ main()
 		}
 	}
 
-	if (getargs(forminfo, filename, serverip) != 0) {
+	if (getargs(forminfo, filename, trackers_url, pkg_servers_url) != 0) {
 		senderror(500, "getargs():failed", errno);
 		return(0);
 	}
@@ -924,7 +965,8 @@ main()
 	 * the tracker where the file is
 	 */
 	if (getlocal(filename, range) != 0) {
-		if (trackfile(filename, range) != 0) {
+		if (trackfile(filename, range, trackers_url, pkg_servers_url)
+				!= 0) {
 			senderror(404, "File not found", 0);
 		}
 	}

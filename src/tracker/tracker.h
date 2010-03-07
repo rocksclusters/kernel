@@ -7,6 +7,10 @@
 
 #define	TRACKER_PORT	9632
 #define	PREDICTIONS	10
+/* #define DOWNLOAD_PORT	80 */
+#define DOWNLOAD_PORT	8079
+#define MAX_TRACKERS	32
+#define MAX_PKG_SERVERS	32
 
 /*
  * message structures
@@ -102,8 +106,7 @@ typedef struct {
 /*
  * hash table to hold the order in which files are requested
  */
-/* #define	HASH_TABLE_ENTRIES	256 */
-#define	HASH_TABLE_ENTRIES	3
+#define	HASH_TABLE_ENTRIES	256
 
 typedef struct {
 	int		head;

@@ -541,7 +541,6 @@ fprintf(stderr, "resp info numpeers (%d)\n", respinfo->numpeers);
 				/*
 				 * copy the hash info into the response buffer
 				 */
-
 				if (index == next_index) {
 					/*
 					 * there are less than 'PREDICTIONS'
@@ -597,11 +596,6 @@ fprintf(stderr, "len (%d)\n", (int)len);
 		respinfo->numpeers = 0;
 	}
 
-
-#ifdef	DEBUG
-fprintf(stderr, "resp info numpeers (%d)\n", respinfo->numpeers);
-#endif
-		
 	resp->header.length = len;
 
 #ifdef	DEBUG
