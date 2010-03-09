@@ -1,10 +1,13 @@
 /*
- * $Id: tracker-client.c,v 1.4 2010/03/07 23:20:18 bruno Exp $
+ * $Id: tracker-client.c,v 1.5 2010/03/09 17:40:54 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.5  2010/03/09 17:40:54  bruno
+ * tune the debugging
+ *
  * Revision 1.4  2010/03/07 23:20:18  bruno
  * progress. can now run this as a non-root user -- should be able to run tests
  * on triton.
@@ -199,8 +202,10 @@ outputfile(char *filename, char *range)
 		return(-1);
 	}
 
-logmsg("outputfile:range(0x%x)\n", range);
-logmsg("outputfile:filesize (%d)\n", statbuf.st_size);
+#ifdef	DEBUG
+	logmsg("outputfile:range(0x%x)\n", range);
+	logmsg("outputfile:filesize (%d)\n", statbuf.st_size);
+#endif
 
 	/*
 	 * if a range is supplied, then we need to calculate the offset
@@ -245,31 +250,31 @@ logmsg("outputfile:filesize (%d)\n", statbuf.st_size);
 		totalbytes = statbuf.st_size;
 	}
 
-logmsg("outputfile:totalbytes (%d)\n", totalbytes);
-logmsg("outputfile:offset (%d)\n", offset);
+#ifdef	DEBUG
+	logmsg("outputfile:totalbytes (%d)\n", totalbytes);
+	logmsg("outputfile:offset (%d)\n", offset);
+#endif
 
 	if ((fd = open(filename, O_RDONLY)) < 0) {
 		logmsg("outputfile:open failed:errno (%d)\n", errno);
 		return(-1);
 	}
 
-if (stat(filename, &statbuf) != 0) {
-	logmsg("outputfile:stat failed (%d)\n", errno);
-} else {
-	logmsg("outputfile:filesize (%d)\n", statbuf.st_size);
-}
+#ifdef	DEBUG
+	if (stat(filename, &statbuf) != 0) {
+		logmsg("outputfile:stat failed (%d)\n", errno);
+	} else {
+		logmsg("outputfile:filesize (%d)\n", statbuf.st_size);
+	}
+#endif
 
 	if (offset > 0) {
 		int	s;
 
-logmsg("outputfile:fd (%d)\n", fd);
 		if ((s = lseek(fd, offset, SEEK_SET)) < 0) {
 			logmsg("outputfile:lseek failed:errno (%d)\n", errno);
 			logmsg("outputfile:lseek failed:s (%d)\n", s);
 			close(fd);
-
-logmsg("outputfile:sleeping for 30\n");
-sleep(30);
 			return(-1);
 		}
 	}
@@ -829,8 +834,6 @@ trackfile(char *filename, char *range, char *trackers_url,
 #ifdef	DEBUG
 	logmsg("trackfile:info_count (%d)\n", info_count);
 #endif
-
-	logmsg("trackfile:numpeers (%d)\n", infoptr->numpeers);
 
 	success = 0;
 	infoptr = tracker_info;
