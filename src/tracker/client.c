@@ -43,8 +43,19 @@ lookup(int sockfd, in_addr_t *tracker, char *file, tracker_info_t **info)
 		(struct sockaddr *)&send_addr, sizeof(send_addr));
 
 	recv_addr_len = sizeof(recv_addr);
+
 	timeout.tv_sec = 1;
 	timeout.tv_usec = 0;
+#ifdef	DEBUG
+	/*
+	 * if we are in debug mode, increase the timeout because the tracker
+	 * will be writing lots of debug output to disk, and the tracker could
+	 * take longer than a second to respond
+	 */
+	timeout.tv_sec = 3;
+	timeout.tv_usec = 0;
+#endif
+
 	recvbytes = tracker_recv(sockfd, (void *)buf, sizeof(buf),
 		(struct sockaddr *)&recv_addr, &recv_addr_len, &timeout);
 

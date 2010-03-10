@@ -391,31 +391,52 @@ hash_info_t *
 getpeers(uint64_t hash, int *index)
 {
 	int	i;
+	int	h = hash_table->head;
+	int	found = -1;
 
-	for (i = 0 ; i < hash_table->size; ++i) {
-
-#ifdef	DEBUG
-fprintf(stderr, "getpeers:entry [%i] hash (0x%016lx)\n", i,
-	hash_table->entry[i].hash);
-#endif
-
-		if (hash_table->entry[i].hash == hash) {
-#ifdef	DEBUG
-			fprintf(stderr, "getpeers:hash (0x%016lx) found\n",
-				hash);
-#endif
-			if (index != NULL) {
-				*index = i;
+	if (h < hash_table->tail) {
+		/*
+		 * work down to entry 0, then reset the head (h) to the
+		 * last entry of the table
+		 */
+		for (i = h - 1; i >= 0 ; --i) {
+			if (hash_table->entry[i].hash == hash) {
+				found = i;
+				break;
 			}
-			return(&hash_table->entry[i]);
+		}
+
+		h = hash_table->size - 1;
+	}
+
+	if (found == -1) {
+		/*
+		 * we know head (h) is greater than tail
+		 */
+		for (i = h ; i >= hash_table->tail ; --i) {
+			if (hash_table->entry[i].hash == hash) {
+				found = i;
+				break;
+			}
 		}
 	}
 
+	if (found != -1) {
+#ifdef	DEBUG
+		fprintf(stderr, "getpeers:hash (0x%016lx) found\n", hash);
+#endif
+		if (index != NULL) {
+			*index = i;
+		}
+
+		return(&hash_table->entry[i]);
+	}
+
 	/*
-	 * the hash is not in the table
+	 * if we made it here, then the hash is not in the table
 	 */
 #ifdef	DEBUG
-fprintf(stderr, "getpeers:hash (0x%016lx) not found\n", hash);
+	fprintf(stderr, "getpeers:hash (0x%016lx) not found\n", hash);
 #endif
 	return(NULL);
 }
@@ -470,7 +491,8 @@ dolookup(int sockfd, uint64_t hash, struct sockaddr_in *from_addr)
 	char			buf[64*1024];
 
 #ifdef	DEBUG
-fprintf(stderr, "dolookup:enter:hash (0x%lx)\n", hash);
+	fprintf(stderr, "dolookup:enter:hash (0x%lx) from (%s)\n", hash,
+		inet_ntoa(from_addr->sin_addr));
 #endif
 
 	resp = (tracker_lookup_resp_t *)buf;
@@ -481,7 +503,7 @@ fprintf(stderr, "dolookup:enter:hash (0x%lx)\n", hash);
 	 */
 	len = sizeof(tracker_lookup_resp_t);
 
-#ifdef	DEBUG
+#ifdef	LATER
 fprintf(stderr, "len (%d)\n", (int)len);
 #endif
 
@@ -493,7 +515,7 @@ fprintf(stderr, "len (%d)\n", (int)len);
 
 	len += sizeof(tracker_info_t);
 
-#ifdef	DEBUG
+#ifdef	LATER
 fprintf(stderr, "len (%d)\n", (int)len);
 #endif
 

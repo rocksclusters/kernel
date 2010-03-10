@@ -1,10 +1,13 @@
 /*
- * $Id: tracker-client.c,v 1.5 2010/03/09 17:40:54 bruno Exp $
+ * $Id: tracker-client.c,v 1.6 2010/03/10 19:45:43 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.6  2010/03/10 19:45:43  bruno
+ * more debug
+ *
  * Revision 1.5  2010/03/09 17:40:54  bruno
  * tune the debugging
  *
@@ -121,7 +124,7 @@ doheaders(void *ptr, size_t size, size_t nmemb, void *stream)
 	}
 #endif
 
-#ifdef	DEBUG
+#ifdef	LATER
 	logmsg("doheaders : ");
 	logmsg(ptr);
 #endif
@@ -202,7 +205,7 @@ outputfile(char *filename, char *range)
 		return(-1);
 	}
 
-#ifdef	DEBUG
+#ifdef	LATER
 	logmsg("outputfile:range(0x%x)\n", range);
 	logmsg("outputfile:filesize (%d)\n", statbuf.st_size);
 #endif
@@ -250,7 +253,7 @@ outputfile(char *filename, char *range)
 		totalbytes = statbuf.st_size;
 	}
 
-#ifdef	DEBUG
+#ifdef	LATER
 	logmsg("outputfile:totalbytes (%d)\n", totalbytes);
 	logmsg("outputfile:offset (%d)\n", offset);
 #endif
@@ -260,7 +263,7 @@ outputfile(char *filename, char *range)
 		return(-1);
 	}
 
-#ifdef	DEBUG
+#ifdef	LATER
 	if (stat(filename, &statbuf) != 0) {
 		logmsg("outputfile:stat failed (%d)\n", errno);
 	} else {
@@ -321,7 +324,7 @@ outputfile(char *filename, char *range)
 
 		bytesread += i;
 
-#ifdef	DEBUG
+#ifdef	LATER
 		logmsg("outputfile:bytesread (%d), totalbytes (%d)\n",
 			bytesread, totalbytes);
 #endif

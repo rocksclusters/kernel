@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <netinet/in.h>
+#include <sys/time.h>
 #include "tracker.h"
 
 #include <sys/socket.h>
@@ -80,18 +81,34 @@ ssize_t
 tracker_recv(int sockfd, void *buf, size_t len, struct sockaddr *from,
 	socklen_t *fromlen, struct timeval *timeout)
 {
-	ssize_t		size = 0;
-	fd_set		sockfds;
-	int		flags = 0;
-	int		readit = 0;
+	ssize_t	size = 0;
+	int	flags = 0;
+	int	readit = 0;
 
 	if (timeout) {
+		struct timeval		start_time, end_time;
+		unsigned long long	s, e;
+		fd_set			sockfds;
+
+		gettimeofday(&start_time, NULL);
+
 		FD_ZERO(&sockfds);
 		FD_SET(sockfd, &sockfds);
 
 		if ((select(sockfd+1, &sockfds, NULL, NULL, timeout) > 0) &&
 				(FD_ISSET(sockfd, &sockfds))) {
+
+			gettimeofday(&end_time, NULL);
+
+			s = (start_time.tv_sec * 1000000) +
+				start_time.tv_usec;
+			e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+
+			logmsg("tracker_recv:svc time: (%lld) usec\n", (e - s));
+
 			readit = 1;
+		} else {
+			logmsg("tracker_recv:timeout:error\n");
 		}
 	} else {
 		readit = 1;
