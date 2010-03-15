@@ -28,7 +28,8 @@ typedef struct {
 #define	LOOKUP		1
 #define	REGISTER	2
 #define	UNREGISTER	3
-#define	END		4
+#define	PEER_DONE	4
+#define	STOP_SERVER	5
 
 
 /*

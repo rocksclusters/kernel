@@ -1,10 +1,13 @@
 /*
- * $Id: tracker-client.c,v 1.6 2010/03/10 19:45:43 bruno Exp $
+ * $Id: tracker-client.c,v 1.7 2010/03/15 23:05:56 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.7  2010/03/15 23:05:56  bruno
+ * tweaks
+ *
  * Revision 1.6  2010/03/10 19:45:43  bruno
  * more debug
  *
@@ -67,11 +70,13 @@
 
 extern int init(uint16_t *, char *, in_addr_t *, uint16_t *, char *, uint16_t *,
 	in_addr_t *);
-extern int lookup(int, in_addr_t *, char *, tracker_info_t **);
+extern int lookup(int, in_addr_t *, uint64_t, tracker_info_t **);
 extern int register_hash(int, in_addr_t *, uint32_t, tracker_info_t *);
+#ifdef	LATER
 extern int shuffle(in_addr_t *, uint16_t);
-extern int send_done(int, in_addr_t *);
+#endif
 extern void logmsg(const char *, ...);
+extern int send_msg(int, in_addr_t *, uint16_t);
 
 int	status = HTTP_OK;
 
@@ -815,7 +820,7 @@ trackfile(char *filename, char *range, char *trackers_url,
 			logmsg("trackfile:sending lookup to tracker (%s)\n",
 				inet_ntoa(in));
 #endif
-			info_count = lookup(sockfd, &trackers[i], filename,
+			info_count = lookup(sockfd, &trackers[i], hash,
 				&tracker_info);
 
 			if (info_count > 0) {
@@ -859,6 +864,7 @@ trackfile(char *filename, char *range, char *trackers_url,
 			logmsg("\t%s\n", inet_ntoa(in));
 		}
 #endif
+#ifdef	LATER
 		/*
 		 * randomly shuffle the peers
 		 */
@@ -879,7 +885,25 @@ trackfile(char *filename, char *range, char *trackers_url,
 			logmsg("%s\n", inet_ntoa(in));
 		}
 #endif
+#endif
 		for (i = 0 ; i < infoptr->numpeers; ++i) {
+#ifdef	DEBUG
+{
+	struct in_addr	in;
+	int		k;
+
+	in.s_addr = infoptr->peers[i];
+
+	if (strncmp(inet_ntoa(in), "10.", 3)) {
+		for (k = 0 ; i < num_trackers; ++k) {
+			send_msg(sockfd, &trackers[k], STOP_SERVER);
+		}
+
+		logmsg("trackfile:bogus IP (%s)\n", inet_ntoa(in));
+	}
+}
+#endif
+
 			if (getremote(filename, &infoptr->peers[i], range)
 					== 0) {
 				/*

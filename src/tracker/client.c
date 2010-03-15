@@ -5,6 +5,7 @@
 #include <string.h>
 #include <strings.h>
 #include <time.h>
+#include <sys/time.h>
 #include "tracker.h"
 
 #include <sys/socket.h>
@@ -14,7 +15,7 @@
 extern void logmsg(const char *, ...);
 
 int
-lookup(int sockfd, in_addr_t *tracker, char *file, tracker_info_t **info)
+lookup(int sockfd, in_addr_t *tracker, uint64_t hash, tracker_info_t **info)
 {
 	struct sockaddr_in	send_addr, recv_addr;
 	struct timeval		timeout;
@@ -37,15 +38,13 @@ lookup(int sockfd, in_addr_t *tracker, char *file, tracker_info_t **info)
 	bzero(&req, sizeof(req));
 	req.header.op = LOOKUP;
 	req.header.length = sizeof(tracker_lookup_req_t);
-	req.hash = hashit(file);
+	req.hash = hash;
 
 	tracker_send(sockfd, (void *)&req, sizeof(req),
 		(struct sockaddr *)&send_addr, sizeof(send_addr));
 
 	recv_addr_len = sizeof(recv_addr);
 
-	timeout.tv_sec = 1;
-	timeout.tv_usec = 0;
 #ifdef	DEBUG
 	/*
 	 * if we are in debug mode, increase the timeout because the tracker
@@ -54,10 +53,16 @@ lookup(int sockfd, in_addr_t *tracker, char *file, tracker_info_t **info)
 	 */
 	timeout.tv_sec = 3;
 	timeout.tv_usec = 0;
-#endif
+
+	recvbytes = tracker_recv(sockfd, (void *)buf, sizeof(buf),
+		(struct sockaddr *)&recv_addr, &recv_addr_len, NULL);
+#else
+	timeout.tv_sec = 1;
+	timeout.tv_usec = 0;
 
 	recvbytes = tracker_recv(sockfd, (void *)buf, sizeof(buf),
 		(struct sockaddr *)&recv_addr, &recv_addr_len, &timeout);
+#endif
 
 #ifdef	DEBUG
 logmsg("lookup:recvbytes (%ld)\n", recvbytes);
@@ -309,33 +314,7 @@ init(uint16_t *num_trackers, char *trackers_url, in_addr_t *trackers,
 }
 
 int
-shuffle(in_addr_t *peers, uint16_t numpeers)
-{
-	in_addr_t	temp;
-	int		i, j;
-	
-	if (numpeers < 2) {
-		/*
-		 * nothing to shuffle
-		 */
-		return(0);
-	}
-
-	srand(time(NULL));
-
-	for (i = 0 ; i < numpeers - 1 ; ++i) {
-		j = i + rand() / (RAND_MAX / (numpeers - i) + 1);
-
-		temp = peers[j];
-		peers[j] = peers[i];
-		peers[i] = temp;
-	}
-
-	return(0);
-}
-
-int
-send_done(int sockfd, in_addr_t *ip)
+send_msg(int sockfd, in_addr_t *ip, uint16_t op)
 {
 	struct sockaddr_in	send_addr;
 	tracker_header_t	req;
@@ -353,7 +332,7 @@ send_done(int sockfd, in_addr_t *ip)
 	len = sizeof(req);
 
 	bzero(&req, len);
-	req.op = END;
+	req.op = op;
 	req.length = len;
 
 	tracker_send(sockfd, (void *)&req, len, 

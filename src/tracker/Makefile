@@ -1,10 +1,13 @@
 #
-# $Id: Makefile,v 1.6 2010/03/10 19:45:43 bruno Exp $
+# $Id: Makefile,v 1.7 2010/03/15 23:05:56 bruno Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.7  2010/03/15 23:05:56  bruno
+# tweaks
+#
 # Revision 1.6  2010/03/10 19:45:43  bruno
 # more debug
 #
@@ -50,9 +53,9 @@ INCLUDE	= -I/usr/include/apr-1
 #LIBS	= -L/opt/rocks/lib -lcurl
 #LIBS	= -lcurl -lssl -lidn -lgssapi_krb5 -lkrb5 -lk5crypto -lkrb5support -lpthread -lcrypto -lz -ldl -lcom_err -lkeyutils -lresolv -lselinux -lsepol
 LIBS	= -lcurl
-# EXTRA	= -Wall -DDEBUG -pg -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+#EXTRA	= -Wall -DDEBUG -pg -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 EXTRA	= -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
-EXECS	= tracker-client.cgi unregister-file server peer-done
+EXECS	= tracker-client.cgi unregister-file server peer-done stop-server
 
 build:	$(EXECS)
 
@@ -78,6 +81,10 @@ hashit:		hashit.c
 
 peer-done:	peer-done.c
 	cc $(INCLUDE) $(EXTRA) -o peer-done peer-done.c client.c lib.c \
+		$(LIBS)
+
+stop-server:	stop-server.c
+	cc $(INCLUDE) $(EXTRA) -o stop-server stop-server.c client.c lib.c \
 		$(LIBS)
 
 install::

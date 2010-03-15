@@ -104,7 +104,7 @@ tracker_recv(int sockfd, void *buf, size_t len, struct sockaddr *from,
 				start_time.tv_usec;
 			e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
 
-			logmsg("tracker_recv:svc time: (%lld) usec\n", (e - s));
+			logmsg("tracker_recv:svc time: %lld usec\n", (e - s));
 
 			readit = 1;
 		} else {
@@ -155,4 +155,28 @@ init_tracker_comm(int port)
 	}
 
 	return(sockfd);
+}
+
+int
+shuffle(in_addr_t *peers, uint16_t numpeers)
+{
+	in_addr_t	temp;
+	int		i, j;
+	
+	if (numpeers < 2) {
+		/*
+		 * nothing to shuffle
+		 */
+		return(0);
+	}
+
+	for (i = 0 ; i < numpeers - 1 ; ++i) {
+		j = i + rand() / (RAND_MAX / (numpeers - i) + 1);
+
+		temp = peers[j];
+		peers[j] = peers[i];
+		peers[i] = temp;
+	}
+
+	return(0);
 }

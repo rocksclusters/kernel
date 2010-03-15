@@ -1,25 +1,12 @@
 /*
- * $Id: peer-done.c,v 1.3 2010/03/15 23:05:56 bruno Exp $
+ * $Id: stop-server.c,v 1.3 2010/03/15 23:05:56 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
- * $Log: peer-done.c,v $
+ * $Log: stop-server.c,v $
  * Revision 1.3  2010/03/15 23:05:56  bruno
  * tweaks
- *
- * Revision 1.2  2010/03/07 23:20:18  bruno
- * progress. can now run this as a non-root user -- should be able to run tests
- * on triton.
- *
- * Revision 1.1  2010/03/02 22:28:06  bruno
- * renamed stop-server to peer-done
- *
- * Revision 1.1  2010/02/24 20:27:32  bruno
- * moved new tracker from base roll to kernel roll
- *
- * Revision 1.1  2009/09/25 21:02:04  bruno
- * got prediction code in
  *
  */
 
@@ -89,7 +76,7 @@ main()
 	}
 
 	for (i = 0 ; i < num_trackers; ++i) {
-		send_msg(sockfd, &trackers[i], PEER_DONE);
+		send_msg(sockfd, &trackers[i], STOP_SERVER);
 	}
 
 	return(0);

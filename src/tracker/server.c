@@ -2,11 +2,14 @@
 #include <string.h>
 #include <strings.h>
 #include <stdlib.h>
+#include <time.h>
 #include "tracker.h"
 
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
+extern int shuffle(in_addr_t *, uint16_t);
 
 hash_table_t	*hash_table = NULL;
 
@@ -445,15 +448,16 @@ hash_info_t *
 getnextpeers(uint64_t hash, int *index)
 {
 	int	i;
-	int	newindex = *index;
 
-	++newindex;
+	/*
+	 * look from the current index to the end of the table (or stop
+	 * when hit the head of the table).
+	 */
+	for (i = (*index) + 1 ; i < hash_table->size ; ++i) {
+		if (i == hash_table->head) {
+			return(NULL);
+		}
 
-	if (newindex >= hash_table->size) {
-		newindex = 0;
-	}
-
-	for (i = newindex ; i < hash_table->size ; ++i) {
 		if (hash_table->entry[i].hash != 0) {
 			*index = i;
 			return(&hash_table->entry[i]);
@@ -461,14 +465,9 @@ getnextpeers(uint64_t hash, int *index)
 	}
 
 	/*
-	 * edge case where *index points to the last entry in the table, which
-	 * means that the above loop already scanned all the entries
+	 * now look from the bottom of the table to the head
 	 */
-	if (*index == (hash_table->size - 1)) {
-		return(NULL);
-	}
-
-	for (i = 0 ; i < *index ; ++i) {
+	for (i = 0 ; i < hash_table->head ; ++i) {
 		if (hash_table->entry[i].hash != 0) {
 			*index = i;
 			return(&hash_table->entry[i]);
@@ -540,9 +539,15 @@ fprintf(stderr, "len (%d)\n", (int)len);
 				continue;
 			}
 
-			respinfo->peers[i] = hashinfo->peers[i];
+			respinfo->peers[respinfo->numpeers] =
+				hashinfo->peers[i];
 			++respinfo->numpeers;
 		}
+
+		/*
+		 * shuffle the peers
+		 */
+		shuffle(respinfo->peers, respinfo->numpeers);
 
 #ifdef	DEBUG
 fprintf(stderr, "resp info numpeers (%d)\n", respinfo->numpeers);
@@ -590,9 +595,13 @@ fprintf(stderr, "prediction:adding hash (0%016lx)\n", hashinfo->hash);
 						continue;
 					}
 
-					respinfo->peers[i] = hashinfo->peers[i];
+					respinfo->peers[respinfo->numpeers] =
+						hashinfo->peers[i];
 					++respinfo->numpeers;
 				}
+
+				shuffle(respinfo->peers, respinfo->numpeers);
+
 			} else {
 				/*
 				 * no more valid hashes
@@ -857,6 +866,11 @@ main()
 fprintf(stderr, "main:starting\n");
 #endif
 
+	/*
+	 * needed for shuffle()
+	 */
+	srand(time(NULL));
+
 	done = 0;
 	while (!done) {
 		from_addr_len = sizeof(from_addr);
@@ -886,9 +900,12 @@ fprintf(stderr, "main:starting\n");
 				unregister_hash(buf, &from_addr);
 				break;
 
-			case END:
+			case PEER_DONE:
 				unregister_all(buf, &from_addr);
 				break;
+
+			case STOP_SERVER:
+				exit(0);
 
 			default:
 				fprintf(stderr, "Unknown op (%d)\n", p->op);
