@@ -449,17 +449,28 @@ getnextpeers(uint64_t hash, int *index)
 {
 	int	i;
 
+#ifdef	DEBUG
+	fprintf(stderr, "getnextpeers:hash (0x%lx), index (%d), head (%d), tail (%d)", hash, *index, hash_table->head, hash_table->tail);
+#endif
+
 	/*
 	 * look from the current index to the end of the table (or stop
 	 * when hit the head of the table).
 	 */
 	for (i = (*index) + 1 ; i < hash_table->size ; ++i) {
 		if (i == hash_table->head) {
+#ifdef	DEBUG
+			fprintf(stderr, " return(NULL)\n");
+#endif
 			return(NULL);
 		}
 
 		if (hash_table->entry[i].hash != 0) {
 			*index = i;
+#ifdef	DEBUG
+			fprintf(stderr, " return: index (%d), hash (0x%lx)\n",
+				i, hash_table->entry[i].hash);
+#endif
 			return(&hash_table->entry[i]);
 		}
 	}
@@ -470,10 +481,17 @@ getnextpeers(uint64_t hash, int *index)
 	for (i = 0 ; i < hash_table->head ; ++i) {
 		if (hash_table->entry[i].hash != 0) {
 			*index = i;
+#ifdef	DEBUG
+			fprintf(stderr, " return: index (%d), hash (0x%lx)\n",
+				i, hash_table->entry[i].hash);
+#endif
 			return(&hash_table->entry[i]);
 		}
 	}
 
+#ifdef	DEBUG
+	fprintf(stderr, " return(NULL)\n");
+#endif
 	return(NULL);
 }
 
@@ -620,12 +638,16 @@ fprintf(stderr, "prediction:adding hash (0%016lx)\n", hashinfo->hash);
 		}
 
 #ifdef	DEBUG
-fprintf(stderr, "len (%d)\n", (int)len);
+	fprintf(stderr, "len (%d)\n", (int)len);
 #endif
 
 	} else {
 		respinfo->numpeers = 0;
 	}
+
+#ifdef	DEBUG
+	fprintf(stderr, "dolookup:numhashes (%d)\n", resp->numhashes);
+#endif
 
 	resp->header.length = len;
 
@@ -639,7 +661,7 @@ fprintf(stderr, "len (%d)\n", (int)len);
 		sizeof(*from_addr));
 
 #ifdef	DEBUG
-fprintf(stderr, "dolookup:exit:hash (0x%lx)\n", hash);
+	fprintf(stderr, "dolookup:exit:hash (0x%lx)\n", hash);
 #endif
 
 	return;

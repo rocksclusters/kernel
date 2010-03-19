@@ -57,7 +57,7 @@ lookup(int sockfd, in_addr_t *tracker, uint64_t hash, tracker_info_t **info)
 	recvbytes = tracker_recv(sockfd, (void *)buf, sizeof(buf),
 		(struct sockaddr *)&recv_addr, &recv_addr_len, NULL);
 #else
-	timeout.tv_sec = 1;
+	timeout.tv_sec = 2;
 	timeout.tv_usec = 0;
 
 	recvbytes = tracker_recv(sockfd, (void *)buf, sizeof(buf),

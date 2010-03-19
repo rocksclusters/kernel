@@ -1,10 +1,13 @@
 /*
- * $Id: tracker-client.c,v 1.7 2010/03/15 23:05:56 bruno Exp $
+ * $Id: tracker-client.c,v 1.8 2010/03/19 16:45:08 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.8  2010/03/19 16:45:08  bruno
+ * converted the client to a 'fast cgi' script.
+ *
  * Revision 1.7  2010/03/15 23:05:56  bruno
  * tweaks
  *
@@ -65,6 +68,7 @@
 #include <httpd/httpd.h>
 #include <netinet/in.h>
 #include "tracker.h"
+#include "fcgi_stdio.h"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
@@ -347,7 +351,9 @@ outputfile(char *filename, char *range)
 int
 downloadfile(CURL *curlhandle, char *url, char *range)
 {
-	CURLcode	curlcode;
+	CURLcode		curlcode;
+	struct timeval		start_time, end_time;
+	unsigned long long	s, e;
 
 	if ((curlcode = curl_easy_setopt(curlhandle, CURLOPT_URL, url)) !=
 			CURLE_OK) {
@@ -383,11 +389,20 @@ downloadfile(CURL *curlhandle, char *url, char *range)
 		return(-1);
 	}
 
+	gettimeofday(&start_time, NULL);
+
 	if ((curlcode = curl_easy_perform(curlhandle)) != CURLE_OK) {
 		logmsg("downloadfile:curl_easy_perform():failed:(%d)\n",
 			curlcode);
 		return(-1);
 	}
+
+	gettimeofday(&end_time, NULL);
+
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+
+	logmsg("downloadfile:svc time: %lld usec:url (%s)\n", (e - s), url);
 
 	return(0);
 }
@@ -469,6 +484,8 @@ getlocal(char *filename, char *range)
 int
 getremote(char *filename, in_addr_t *ip, char *range)
 {
+	struct timeval		start_time, end_time;
+	unsigned long long	s, e;
 	CURL		*curlhandle;
 	CURLcode	curlcode;
 	struct in_addr	in;
@@ -477,6 +494,8 @@ getremote(char *filename, in_addr_t *ip, char *range)
 	char		url[PATH_MAX];
 	char		*dir;
 	char		*ptr;
+
+	gettimeofday(&start_time, NULL);
 
 	in.s_addr = *ip;
 
@@ -507,6 +526,11 @@ getremote(char *filename, in_addr_t *ip, char *range)
 		}
 	}
 
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	logmsg("getremote:svc time1: %lld usec\n", (e - s));
+
 	/*
 	 * make sure the destination directory exists
 	 */
@@ -520,6 +544,11 @@ getremote(char *filename, in_addr_t *ip, char *range)
 
 		free(dir);
 	}
+
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	logmsg("getremote:svc time2: %lld usec\n", (e - s));
 
 	/*
 	 * make a 'http://' url and get the file.
@@ -535,6 +564,11 @@ getremote(char *filename, in_addr_t *ip, char *range)
 	if ((curlhandle = curl_easy_init()) == NULL) {
 		return(-1);
 	}
+
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	logmsg("getremote:svc time3: %lld usec\n", (e - s));
 
 #ifdef	DEBUG
 	curl_easy_setopt(curlhandle, CURLOPT_VERBOSE, 1);
@@ -567,6 +601,11 @@ getremote(char *filename, in_addr_t *ip, char *range)
 		return(-1);
 	}
 
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	logmsg("getremote:svc time4: %lld usec\n", (e - s));
+
 	if (downloadfile(curlhandle, url, NULL) != 0) {
 		logmsg("getremote:downloadfile():failed\n");
 
@@ -588,6 +627,11 @@ getremote(char *filename, in_addr_t *ip, char *range)
 	logmsg("getremote:status (%d)\n", status);
 #endif
 
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	logmsg("getremote:svc time5: %lld usec\n", (e - s));
+
 	/*
 	 * we downloaded the file from a peer, so read it and output it
 	 * to stdout
@@ -606,6 +650,11 @@ getremote(char *filename, in_addr_t *ip, char *range)
 		unlink(filename);
 		return(-1);	
 	}
+
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	logmsg("getremote:svc time6: %lld usec\n", (e - s));
 
 	return(0);
 }
@@ -690,7 +739,7 @@ getprediction(uint64_t hash, tracker_info_t **info)
 	struct stat	statbuf;
 	tracker_info_t	*p;
 	size_t		readbytes;
-	int		offset, size, len;
+	int		offset, size;
 	int		retval;
 	char		*buf;
 
@@ -699,19 +748,25 @@ getprediction(uint64_t hash, tracker_info_t **info)
 #endif
 
 	if (stat("/tmp/tracker.predictions", &statbuf) != 0) {
+		logmsg("getprediction:stat failed:errno (%d)\n", errno);
 		return(0);
 	}	
 
 	if ((file = fopen("/tmp/tracker.predictions", "r")) == NULL) {
+		logmsg("getprediction:fopen failed:errno (%d)\n", errno);
 		return(0);
 	}
 
 	if ((buf = malloc(statbuf.st_size)) == NULL) {
+		logmsg("getprediction:malloc failed:errno (%d)\n", errno);
 		fclose(file);
 		return(0);
 	}
 
-	if ((readbytes = fread(buf, 1, statbuf.st_size, file)) < len) {
+	if ((readbytes = fread(buf, 1, statbuf.st_size, file)) !=
+			statbuf.st_size) {
+		logmsg("getprediction:fread failed:readbytes (%d) errno (%d)\n",
+			readbytes, errno);
 		free(buf);
 		fclose(file);
 		return(0);
@@ -748,9 +803,11 @@ getprediction(uint64_t hash, tracker_info_t **info)
 }
 
 int
-trackfile(char *filename, char *range, char *trackers_url,
+trackfile(int sockfd, char *filename, char *range, char *trackers_url,
 	char *pkg_servers_url)
 {
+	struct timeval		start_time, end_time;
+	unsigned long long	s, e;
 	uint64_t	hash;
 	uint16_t	num_trackers;
 	in_addr_t	trackers[MAX_TRACKERS];
@@ -759,9 +816,10 @@ trackfile(char *filename, char *range, char *trackers_url,
 	in_addr_t	pkg_servers[MAX_PKG_SERVERS];
 	uint16_t	i;
 	tracker_info_t	*tracker_info, *infoptr;
-	int		sockfd;
 	int		info_count;
 	char		success;
+
+	gettimeofday(&start_time, NULL);
 
 	hash = hashit(filename);
 
@@ -770,6 +828,11 @@ trackfile(char *filename, char *range, char *trackers_url,
 		logmsg("trackfile:init failed\n");
 		return(-1);
 	}
+
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	logmsg("trackfile:svc time1: %lld usec file (%s)\n", (e - s), filename);
 
 #ifdef	DEBUG
 {
@@ -788,10 +851,10 @@ trackfile(char *filename, char *range, char *trackers_url,
 }
 #endif
 
-	if ((sockfd = init_tracker_comm(0)) < 0) {
-		logmsg("trackfile:init_tracker_comm failed\n");
-		return(-1);
-	}
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	logmsg("trackfile:svc time2: %lld usec file (%s)\n", (e - s), filename);
 
 	/*
 	 * see if there is a prediction for this file
@@ -799,12 +862,17 @@ trackfile(char *filename, char *range, char *trackers_url,
 	tracker_info = NULL;
 	info_count = getprediction(hash, &tracker_info);
 
-#ifdef	DEBUG
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	logmsg("trackfile:svc time3: %lld usec file (%s)\n", (e - s), filename);
+
 	if (info_count == 0) {
 		logmsg("trackfile:pred miss (0x%016lx)\n", hash);
 	} else {
 		logmsg("trackfile:pred hit (0x%016lx)\n", hash);
 	}
+#ifdef	DEBUG
 #endif
 
 	if (info_count == 0) {
@@ -839,8 +907,13 @@ trackfile(char *filename, char *range, char *trackers_url,
 		}
 	}
 
-#ifdef	DEBUG
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	logmsg("trackfile:svc time4: %lld usec file (%s)\n", (e - s), filename);
+
 	logmsg("trackfile:info_count (%d)\n", info_count);
+#ifdef	DEBUG
 #endif
 
 	success = 0;
@@ -915,6 +988,11 @@ trackfile(char *filename, char *range, char *trackers_url,
 		}
 	}
 
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	logmsg("trackfile:svc time5: %lld usec file (%s)\n", (e - s), filename);
+
 	if (!success) {
 		/*
 		 * unable to download the file from a peer, need to
@@ -927,6 +1005,11 @@ trackfile(char *filename, char *range, char *trackers_url,
 			}
 		}
 	}
+
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	logmsg("trackfile:svc time6: %lld usec file (%s)\n", (e - s), filename);
 
 	if (success) {
 		tracker_info_t	info[1];
@@ -948,6 +1031,11 @@ trackfile(char *filename, char *range, char *trackers_url,
 		free(tracker_info);
 	}	
 
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	logmsg("trackfile:svc time: %lld usec file (%s)\n", (e - s), filename);
+
 	if (success) {
 		return(0);
 	}
@@ -956,13 +1044,17 @@ trackfile(char *filename, char *range, char *trackers_url,
 }
 
 int
-main()
+doit(int sockfd)
 {
-	char	*forminfo;
-	char	*range;
-	char	filename[PATH_MAX];
-	char	trackers_url[256];
-	char	pkg_servers_url[256];
+	struct timeval		start_time, end_time;
+	unsigned long long	s, e;
+	char			*forminfo;
+	char			*range;
+	char			filename[PATH_MAX];
+	char			trackers_url[256];
+	char			pkg_servers_url[256];
+
+	gettimeofday(&start_time, NULL);
 
 	bzero(filename, sizeof(filename));
 	bzero(trackers_url, sizeof(trackers_url));
@@ -987,7 +1079,7 @@ main()
 	}
 
 #ifdef	DEBUG
-	logmsg("main:getting file (%s)\n", filename);
+	logmsg("doit:getting file (%s)\n", filename);
 #endif
 
 	/*
@@ -995,14 +1087,39 @@ main()
 	 * the tracker where the file is
 	 */
 	if (getlocal(filename, range) != 0) {
-		if (trackfile(filename, range, trackers_url, pkg_servers_url)
-				!= 0) {
+		if (trackfile(sockfd, filename, range, trackers_url,
+				pkg_servers_url) != 0) {
 			senderror(404, "File not found", 0);
 		}
 	}
 
 #ifdef	DEBUG
-	logmsg("main:done:file (%s)\n\n", filename);
+	logmsg("doit:done:file (%s)\n\n", filename);
+#endif
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	logmsg("doit:svc time: %lld usec file (%s)\n", (e - s), filename);
+
+	return(0);
+}
+
+int
+main()
+{
+	int		sockfd;
+
+	if ((sockfd = init_tracker_comm(0)) < 0) {
+		logmsg("trackfile:init_tracker_comm failed\n");
+		return(-1);
+	}
+
+#ifdef	FASTCGI
+	while(FCGI_Accept() >= 0) {
+#endif
+		doit(sockfd);
+#ifdef	FASTCGI
+	}
 #endif
 
 	return(0);

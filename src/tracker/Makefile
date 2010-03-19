@@ -1,10 +1,13 @@
 #
-# $Id: Makefile,v 1.7 2010/03/15 23:05:56 bruno Exp $
+# $Id: Makefile,v 1.8 2010/03/19 16:45:08 bruno Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.8  2010/03/19 16:45:08  bruno
+# converted the client to a 'fast cgi' script.
+#
 # Revision 1.7  2010/03/15 23:05:56  bruno
 # tweaks
 #
@@ -49,26 +52,26 @@ REDHAT.ROOT     = $(CURDIR)/../../
 -include $(ROCKSROOT)/etc/Rules.mk
 include Rules.mk
 
-INCLUDE	= -I/usr/include/apr-1
+INCLUDE	= -I/usr/include/apr-1 -I/opt/rocks/fcgi/include
 #LIBS	= -L/opt/rocks/lib -lcurl
 #LIBS	= -lcurl -lssl -lidn -lgssapi_krb5 -lkrb5 -lk5crypto -lkrb5support -lpthread -lcrypto -lz -ldl -lcom_err -lkeyutils -lresolv -lselinux -lsepol
 LIBS	= -lcurl
 #EXTRA	= -Wall -DDEBUG -pg -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 EXTRA	= -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
-EXECS	= tracker-client.cgi unregister-file server peer-done stop-server
+EXECS	= tracker-client unregister-file server peer-done stop-server
 
 build:	$(EXECS)
 
-tracker-client.cgi:	tracker-client.c client.c lib.c
-	cc $(INCLUDE) $(EXTRA) -o tracker-client.cgi tracker-client.c \
-		client.c lib.c $(LIBS)
+tracker-client:	tracker-client.c client.c lib.c
+	cc $(INCLUDE) $(EXTRA) -DFASTCGI -o tracker-client tracker-client.c \
+		client.c lib.c $(LIBS) /opt/rocks/fcgi/lib/libfcgi.a
 
 unregister-file:	unregister-file.c client.c lib.c
 	cc $(INCLUDE) $(EXTRA) -o unregister-file unregister-file.c \
 		client.c lib.c $(LIBS)
 
 server:		server.o lib.o
-	cc $(INCLUDE) $(EXTRA) -o server server.o lib.o $(LIBS)
+	cc $(INCLUDE) $(EXTRA) -pg -o server server.o lib.o $(LIBS)
 
 lib.o:	lib.c
 	cc $(INCLUDE) $(EXTRA) -c lib.c
