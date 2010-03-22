@@ -116,6 +116,24 @@ typedef struct {
 	hash_info_t	entry[0];
 } hash_table_t;
 
+/*
+ * downloads timestamp table.
+ *
+ * this table keeps track of the last time this server 'assigned' another
+ * host as a download source for a specific hash.
+ */
+
+#define	DT_TABLE_ENTRIES	128
+
+typedef struct {
+	in_addr_t		host;
+	unsigned long long	timestamp;	/* gettimeofday in usecs */
+} download_timestamp_t;
+
+typedef	struct {
+	uint32_t		size;
+	download_timestamp_t	entry[0];
+} dt_table_t;
 
 /*
  * prototypes

@@ -157,17 +157,14 @@ init_tracker_comm(int port)
 	return(sockfd);
 }
 
-int
-shuffle(in_addr_t *peers, uint16_t numpeers)
+static void
+random_shuffle(in_addr_t *peers, uint16_t numpeers)
 {
 	in_addr_t	temp;
 	int		i, j;
-	
+
 	if (numpeers < 2) {
-		/*
-		 * nothing to shuffle
-		 */
-		return(0);
+		return;
 	}
 
 	for (i = 0 ; i < numpeers - 1 ; ++i) {
@@ -177,6 +174,240 @@ shuffle(in_addr_t *peers, uint16_t numpeers)
 		peers[j] = peers[i];
 		peers[i] = temp;
 	}
+}
+
+unsigned long long
+stampit()
+{
+	struct timeval		now;
+	unsigned long long	n;
+
+	gettimeofday(&now, NULL);
+	n = (now.tv_sec * 1000000) + now.tv_usec;
+	return(n);
+}
+
+dt_table_t	*dt_table = NULL;
+
+int
+grow_dt_table(int size)
+{
+	uint32_t	oldsize;
+	uint32_t	newsize;
+	int		len;
+
+	if (dt_table == NULL) {
+		oldsize = 0;
+		newsize = size;
+	} else {
+		oldsize = dt_table->size;
+		newsize = size + dt_table->size;
+	}
+
+	len = sizeof(dt_table_t) + sizeof(download_timestamp_t) * newsize;
+
+	if ((dt_table = realloc(dt_table, len)) == NULL) {
+		perror("grow_dt_table:malloc failed:");
+		return(-1);
+	}
+
+	bzero(&dt_table[oldsize], (size * sizeof(download_timestamp_t)));
+	dt_table->size = newsize;
 
 	return(0);
 }
+
+unsigned long long
+add_to_dt_table(in_addr_t host)
+{
+	int	i;
+
+#ifdef	DEBUG
+{
+	struct in_addr	in;
+
+	in.s_addr = host;
+	fprintf(stderr, "add_to_dt_table:host (%s)\n", inet_ntoa(in));
+}
+#endif
+
+	/*
+	 * first check if the table is not created yet or if it is full
+	 */
+	if ((dt_table == NULL) ||
+			(dt_table->entry[dt_table->size - 1].host != 0)) {
+		grow_dt_table(DT_TABLE_ENTRIES);
+	}
+
+	for (i = 0 ; i < dt_table->size ; ++i) {
+		if (dt_table->entry[i].host == 0) {
+			/*
+			 * this entry is free
+			 */
+			dt_table->entry[i].host = host;
+			dt_table->entry[i].timestamp = 0;
+			break;
+		}
+	}
+
+	return(dt_table->entry[i].timestamp);
+}
+
+static unsigned long long
+lookup_timestamp(in_addr_t host)
+{
+	unsigned long long	timestamp = 0;
+	int			i;
+
+	if (dt_table == NULL) {
+		if (grow_dt_table(DT_TABLE_ENTRIES) < 0) {
+			return(0);
+		}
+	}
+
+	for (i = 0 ; i < dt_table->size ; ++i) {
+		if (dt_table->entry[i].host == 0) {
+			/*
+			 * at the last entry. this host was not found.
+			 */
+			break;
+		}
+
+		if (dt_table->entry[i].host == host) {
+			timestamp = dt_table->entry[i].timestamp;
+			break;
+		}
+	}
+
+	if (timestamp == 0) {
+		/*
+		 * didn't find the host in the table. let's add it.
+		 */
+		timestamp = add_to_dt_table(host);
+	}
+
+	return(timestamp);
+}
+
+static void
+update_timestamp(in_addr_t host)
+{
+	int	i;
+
+	if (dt_table == NULL) {
+		return;
+	}
+
+	for (i = 0 ; i < dt_table->size ; ++i) {
+		if (dt_table->entry[i].host == 0) {
+			/*
+			 * at the last entry. this host was not found.
+			 */
+			break;
+		}
+
+		if (dt_table->entry[i].host == host) {
+			dt_table->entry[i].timestamp = stampit();
+			break;
+		}
+	}
+
+	return;
+}
+
+
+static int
+timestamp_compare(const void *a, const void *b)
+{
+	download_timestamp_t	*key1 = (download_timestamp_t *)a;
+	download_timestamp_t	*key2 = (download_timestamp_t *)b;
+
+	if (key1->timestamp < key2->timestamp) {
+		return(-1);
+	} else if (key1->timestamp > key2->timestamp) {
+		return(1);
+	}
+
+	/*
+	 * the keys must be equal
+	 */
+	return(0);
+}
+
+void
+shuffle(in_addr_t *peers, uint16_t numpeers)
+{
+	download_timestamp_t	*list;
+	int			i;
+
+	if ((list = (download_timestamp_t *)malloc(
+			numpeers * sizeof(download_timestamp_t))) == NULL) {
+		/*
+		 * if this fails, just do a random shuffle
+		 */
+		random_shuffle(peers, numpeers);
+
+		/*
+		 * need to touch all the timestamps in the download timestamps
+		 * table
+		 */
+
+		return;
+	}
+
+	for (i = 0 ; i < numpeers ; ++i) {
+		list[i].host = peers[i];
+		list[i].timestamp = lookup_timestamp(list[i].host);
+	}
+
+	if (numpeers > 1) {
+
+#ifdef	DEBUG
+fprintf(stderr, "shuffle:before sort\n");
+
+for (i = 0 ; i < numpeers ; ++i) {
+	struct in_addr	in;
+
+	in.s_addr = list[i].host;
+	
+	fprintf(stderr, "\thost %s : timestamp (%lld)\n", inet_ntoa(in),
+		list[i].timestamp);
+}
+#endif
+
+		/*
+		 * sort the list by timestamps
+		 */
+		qsort(list, numpeers, sizeof(download_timestamp_t),
+			timestamp_compare);
+
+#ifdef	DEBUG
+fprintf(stderr, "shuffle:after sort\n");
+
+for (i = 0 ; i < numpeers ; ++i) {
+	struct in_addr	in;
+
+	in.s_addr = list[i].host;
+	
+	fprintf(stderr, "\thost %s : timestamp (%lld)\n", inet_ntoa(in),
+		list[i].timestamp);
+}
+#endif
+
+		/*
+		 * now copy the sorted list back into peers
+		 */
+		for (i = 0 ; i < numpeers ; ++i) {
+			peers[i] = list[i].host;
+		}
+
+		/*
+		 * update the timestamp on only the first entry in the new list
+		 */ 
+		update_timestamp(peers[i]);
+	}
+
+	free(list);
+	return;
+}
+
