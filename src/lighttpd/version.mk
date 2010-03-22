@@ -1,4 +1,4 @@
 NAME		= lighttpd
-VERSION		= 1.4.23
+VERSION		= 1.4.26
 RELEASE		= 0
 
