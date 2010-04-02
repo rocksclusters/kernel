@@ -86,11 +86,13 @@ tracker_recv(int sockfd, void *buf, size_t len, struct sockaddr *from,
 	int	readit = 0;
 
 	if (timeout) {
+		fd_set			sockfds;
+#ifdef	TIMEIT
 		struct timeval		start_time, end_time;
 		unsigned long long	s, e;
-		fd_set			sockfds;
 
 		gettimeofday(&start_time, NULL);
+#endif
 
 		FD_ZERO(&sockfds);
 		FD_SET(sockfd, &sockfds);
@@ -98,13 +100,13 @@ tracker_recv(int sockfd, void *buf, size_t len, struct sockaddr *from,
 		if ((select(sockfd+1, &sockfds, NULL, NULL, timeout) > 0) &&
 				(FD_ISSET(sockfd, &sockfds))) {
 
+#ifdef	TIMEIT
 			gettimeofday(&end_time, NULL);
-
 			s = (start_time.tv_sec * 1000000) +
 				start_time.tv_usec;
 			e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
-
 			logmsg("tracker_recv:svc time: %lld usec\n", (e - s));
+#endif
 
 			readit = 1;
 		} else {
@@ -158,10 +160,10 @@ init_tracker_comm(int port)
 }
 
 static void
-random_shuffle(in_addr_t *peers, uint16_t numpeers)
+random_shuffle(peer_t *peers, uint16_t numpeers)
 {
-	in_addr_t	temp;
-	int		i, j;
+	peer_t	temp;
+	int	i, j;
 
 	if (numpeers < 2) {
 		return;
@@ -170,9 +172,9 @@ random_shuffle(in_addr_t *peers, uint16_t numpeers)
 	for (i = 0 ; i < numpeers - 1 ; ++i) {
 		j = i + rand() / (RAND_MAX / (numpeers - i) + 1);
 
-		temp = peers[j];
-		peers[j] = peers[i];
-		peers[i] = temp;
+		memcpy(&temp, &peers[j], sizeof(temp));
+		memcpy(&peers[j], &peers[i], sizeof(peers[j]));
+		memcpy(&peers[i], &temp, sizeof(peers[i]));
 	}
 }
 
@@ -319,13 +321,21 @@ update_timestamp(in_addr_t host)
 static int
 timestamp_compare(const void *a, const void *b)
 {
-	download_timestamp_t	*key1 = (download_timestamp_t *)a;
-	download_timestamp_t	*key2 = (download_timestamp_t *)b;
+	peer_timestamp_t	*key1 = (peer_timestamp_t *)a;
+	peer_timestamp_t	*key2 = (peer_timestamp_t *)b;
 
-	if (key1->timestamp < key2->timestamp) {
-		return(-1);
-	} else if (key1->timestamp > key2->timestamp) {
-		return(1);
+	if (key1->peer.state == key2->peer.state) {
+		if (key1->timestamp < key2->timestamp) {
+			return(-1);
+		} else if (key1->timestamp > key2->timestamp) {
+			return(1);
+		}
+	} else {
+		if (key1->peer.state == DOWNLOADING) {
+			return(1);
+		} else if (key2->peer.state == DOWNLOADING) {
+			return(-1);
+		}
 	}
 
 	/*
@@ -335,13 +345,13 @@ timestamp_compare(const void *a, const void *b)
 }
 
 void
-shuffle(in_addr_t *peers, uint16_t numpeers)
+shuffle(peer_t *peers, uint16_t numpeers)
 {
-	download_timestamp_t	*list;
+	peer_timestamp_t	*list;
 	int			i;
 
-	if ((list = (download_timestamp_t *)malloc(
-			numpeers * sizeof(download_timestamp_t))) == NULL) {
+	if ((list = (peer_timestamp_t *)malloc(
+			numpeers * sizeof(peer_timestamp_t))) == NULL) {
 		/*
 		 * if this fails, just do a random shuffle
 		 */
@@ -356,8 +366,8 @@ shuffle(in_addr_t *peers, uint16_t numpeers)
 	}
 
 	for (i = 0 ; i < numpeers ; ++i) {
-		list[i].host = peers[i];
-		list[i].timestamp = lookup_timestamp(list[i].host);
+		memcpy(&list[i].peer, &peers[i], sizeof(list[i].peer));
+		list[i].timestamp = lookup_timestamp(list[i].peer.ip);
 	}
 
 	if (numpeers > 1) {
@@ -368,9 +378,11 @@ fprintf(stderr, "shuffle:before sort\n");
 for (i = 0 ; i < numpeers ; ++i) {
 	struct in_addr	in;
 
-	in.s_addr = list[i].host;
+	in.s_addr = list[i].peer.ip;
 	
-	fprintf(stderr, "\thost %s : timestamp (%lld)\n", inet_ntoa(in),
+	fprintf(stderr, "\thost %s : state %c : timestamp %lld\n",
+		inet_ntoa(in),
+		(list[i].peer.state == DOWNLOADING ? 'd' : 'r'),
 		list[i].timestamp);
 }
 #endif
@@ -378,7 +390,7 @@ for (i = 0 ; i < numpeers ; ++i) {
 		/*
 		 * sort the list by timestamps
 		 */
-		qsort(list, numpeers, sizeof(download_timestamp_t),
+		qsort(list, numpeers, sizeof(peer_timestamp_t),
 			timestamp_compare);
 
 #ifdef	DEBUG
@@ -387,9 +399,11 @@ fprintf(stderr, "shuffle:after sort\n");
 for (i = 0 ; i < numpeers ; ++i) {
 	struct in_addr	in;
 
-	in.s_addr = list[i].host;
+	in.s_addr = list[i].peer.ip;
 	
-	fprintf(stderr, "\thost %s : timestamp (%lld)\n", inet_ntoa(in),
+	fprintf(stderr, "\thost %s : state %c : timestamp %lld\n",
+		inet_ntoa(in),
+		(list[i].peer.state == DOWNLOADING ? 'd' : 'r'),
 		list[i].timestamp);
 }
 #endif
@@ -398,13 +412,13 @@ for (i = 0 ; i < numpeers ; ++i) {
 		 * now copy the sorted list back into peers
 		 */
 		for (i = 0 ; i < numpeers ; ++i) {
-			peers[i] = list[i].host;
+			memcpy(&peers[i], &list[i].peer, sizeof(peers[i]));
 		}
 
 		/*
 		 * update the timestamp on only the first entry in the new list
 		 */ 
-		update_timestamp(peers[i]);
+		update_timestamp(peers[0].ip);
 	}
 
 	free(list);

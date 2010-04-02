@@ -5,12 +5,18 @@
  * hard-coded stuff
  */
 
-#define	TRACKER_PORT	9632
-#define	PREDICTIONS	10
+#define	TRACKER_PORT		9632
+#define	PREDICTIONS		10
+#define	PEERS_PER_PREDICTION	3
 /* #define DOWNLOAD_PORT	80 */
-#define DOWNLOAD_PORT	8079
-#define MAX_TRACKERS	32
-#define MAX_PKG_SERVERS	32
+#define DOWNLOAD_PORT		8079
+#define MAX_TRACKERS		32
+#define MAX_PKG_SERVERS		32
+
+/*
+ * don't know why this isn't in a standard include file
+ */
+#define	min(a, b)	((a) < (b) ? (a) : (b))
 
 /*
  * message structures
@@ -22,6 +28,11 @@ typedef struct {
 	char		reserved[4];
 } tracker_header_t;
 
+typedef struct {
+	in_addr_t	ip;
+	char		state;
+} peer_t;
+
 /*
  * tracker message types
  */
@@ -31,11 +42,15 @@ typedef struct {
 #define	PEER_DONE	4
 #define	STOP_SERVER	5
 
+/*
+ * tracker 'states'
+ */
+#define	DOWNLOADING	1
+#define	READY		2
 
 /*
  * LOOKUP messages
  */
-
 typedef struct {
 	tracker_header_t	header;
 	uint64_t		hash;
@@ -43,9 +58,10 @@ typedef struct {
 
 typedef struct {
 	uint64_t	hash;
+	size_t		filesize;
 	uint16_t	numpeers;
 	char		pad[6];		/* align on 64-bit boundary */
-	in_addr_t	peers[0];
+	peer_t		peers[0];
 } tracker_info_t;
 
 /*
@@ -57,7 +73,8 @@ typedef struct {
 typedef struct {
 	uint64_t	hash;
 	uint16_t	numpeers;
-	in_addr_t	*peers;
+	size_t		filesize;
+	peer_t		*peers;
 } hash_info_t;
 
 typedef struct {
@@ -134,6 +151,11 @@ typedef	struct {
 	uint32_t		size;
 	download_timestamp_t	entry[0];
 } dt_table_t;
+
+typedef struct {
+	peer_t			peer;
+	unsigned long long	timestamp;
+} peer_timestamp_t;
 
 /*
  * prototypes

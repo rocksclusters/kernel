@@ -1,10 +1,13 @@
 #
-# $Id: Makefile,v 1.8 2010/03/19 16:45:08 bruno Exp $
+# $Id: Makefile,v 1.9 2010/04/02 18:27:22 bruno Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.9  2010/04/02 18:27:22  bruno
+# lots of hacks to get more performance
+#
 # Revision 1.8  2010/03/19 16:45:08  bruno
 # converted the client to a 'fast cgi' script.
 #
@@ -55,9 +58,11 @@ include Rules.mk
 INCLUDE	= -I/usr/include/apr-1 -I/opt/rocks/fcgi/include
 #LIBS	= -L/opt/rocks/lib -lcurl
 #LIBS	= -lcurl -lssl -lidn -lgssapi_krb5 -lkrb5 -lk5crypto -lkrb5support -lpthread -lcrypto -lz -ldl -lcom_err -lkeyutils -lresolv -lselinux -lsepol
+#LIBS	= -L /opt/rocks/curl/lib/ -lcurl
 LIBS	= -lcurl
-#EXTRA	= -Wall -DDEBUG -pg -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 EXTRA	= -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+#EXTRA	+= -DTIMEIT 
+#EXTRA	+= -DDEBUG
 EXECS	= tracker-client unregister-file server peer-done stop-server
 
 build:	$(EXECS)
