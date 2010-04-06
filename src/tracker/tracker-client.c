@@ -1,10 +1,13 @@
 /*
- * $Id: tracker-client.c,v 1.10 2010/04/06 17:47:19 bruno Exp $
+ * $Id: tracker-client.c,v 1.11 2010/04/06 18:59:01 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.11  2010/04/06 18:59:01  bruno
+ * moved init() to main
+ *
  * Revision 1.10  2010/04/06 17:47:19  bruno
  * added seqno and did some cleanup
  *
@@ -805,8 +808,9 @@ getprediction(uint64_t hash, tracker_info_t **info)
 }
 
 int
-trackfile(int sockfd, char *filename, char *range, char *trackers_url,
-	char *pkg_servers_url, CURL *curlhandle)
+trackfile(int sockfd, char *filename, char *range, uint16_t num_trackers,
+	in_addr_t *trackers, uint16_t maxpeers, uint16_t num_pkg_servers,
+	in_addr_t *pkg_servers, CURL *curlhandle)
 {
 #ifdef	TIMEIT
 	struct timeval		start_time, end_time;
@@ -814,11 +818,6 @@ trackfile(int sockfd, char *filename, char *range, char *trackers_url,
 #endif
 	CURLcode	curlcode;
 	uint64_t	hash;
-	uint16_t	num_trackers;
-	in_addr_t	trackers[MAX_TRACKERS];
-	uint16_t	maxpeers;
-	uint16_t	num_pkg_servers;
-	in_addr_t	pkg_servers[MAX_PKG_SERVERS];
 	uint16_t	i;
 	tracker_info_t	*tracker_info, *infoptr;
 	int		info_count;
@@ -829,12 +828,6 @@ trackfile(int sockfd, char *filename, char *range, char *trackers_url,
 #endif
 
 	hash = hashit(filename);
-
-	if (init(&num_trackers, trackers_url, trackers, &maxpeers,
-			pkg_servers_url, &num_pkg_servers, pkg_servers) != 0) {
-		logmsg("trackfile:init failed\n");
-		return(-1);
-	}
 
 #ifdef	TIMEIT
 	gettimeofday(&end_time, NULL);
@@ -1100,7 +1093,8 @@ trackfile(int sockfd, char *filename, char *range, char *trackers_url,
 }
 
 int
-doit(int sockfd, CURL *curlhandle)
+doit(int sockfd, uint16_t num_trackers, in_addr_t *trackers, uint16_t maxpeers,
+	uint16_t num_pkg_servers, in_addr_t *pkg_servers, CURL *curlhandle)
 {
 	struct timeval		start_time;
 #ifdef	TIMEIT
@@ -1150,8 +1144,9 @@ doit(int sockfd, CURL *curlhandle)
 	 * the tracker where the file is
 	 */
 	if (getlocal(filename, range) != 0) {
-		if (trackfile(sockfd, filename, range, trackers_url,
-				pkg_servers_url, curlhandle) != 0) {
+		if (trackfile(sockfd, filename, range, num_trackers, trackers,
+				maxpeers, num_pkg_servers, pkg_servers,
+				curlhandle) != 0) {
 			senderror(404, "File not found", 0);
 		}
 	}
@@ -1175,10 +1170,44 @@ main()
 {
 	CURL		*curlhandle;
 	CURLcode	curlcode;
+	uint16_t	num_trackers;
+	in_addr_t	trackers[MAX_TRACKERS];
+	uint16_t	maxpeers;
+	uint16_t	num_pkg_servers;
+	in_addr_t	pkg_servers[MAX_PKG_SERVERS];
+	FILE		*file;
 	int		sockfd;
+	char		trackers_url[PATH_MAX];
+	char		pkg_servers_url[PATH_MAX];
+	char		buf[PATH_MAX];
 
 	if ((sockfd = init_tracker_comm(0)) < 0) {
 		logmsg("main:init_tracker_comm failed\n");
+		return(-1);
+	}
+
+	/*
+	 * get the IP addresses of the tracker(s) and package server(s)
+	 */
+	if ((file = fopen("/tmp/rocks.conf", "r")) == NULL) {
+		fprintf(stderr, "main:fopen\n");
+		return(-1);
+	}
+
+	fgets(buf, sizeof(buf), file);
+	sscanf(buf, "var.trackers = \"%[^\"]", trackers_url);
+
+	fgets(buf, sizeof(buf), file);
+	sscanf(buf, "var.pkgservers = \"%[^\"]", pkg_servers_url);
+
+	fclose(file);
+
+	fprintf(stderr, "main:trackers_url (%s)\n", trackers_url);
+	fprintf(stderr, "main:pkg_servers_url (%s)\n", pkg_servers_url);
+	
+	if (init(&num_trackers, trackers_url, trackers, &maxpeers,
+			pkg_servers_url, &num_pkg_servers, pkg_servers) != 0) {
+		fprintf(stderr, "main:init failed\n");
 		return(-1);
 	}
 
@@ -1225,7 +1254,8 @@ main()
 #ifdef	FASTCGI
 	while(FCGI_Accept() >= 0) {
 #endif
-		doit(sockfd, curlhandle);
+		doit(sockfd, num_trackers, trackers, maxpeers, num_pkg_servers,
+			pkg_servers, curlhandle);
 #ifdef	FASTCGI
 	}
 #endif
