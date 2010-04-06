@@ -1,10 +1,13 @@
 /*
- * $Id: tracker-client.c,v 1.11 2010/04/06 18:59:01 bruno Exp $
+ * $Id: tracker-client.c,v 1.12 2010/04/06 20:52:05 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.12  2010/04/06 20:52:05  bruno
+ * get the trackers and package servers from rocks.conf
+ *
  * Revision 1.11  2010/04/06 18:59:01  bruno
  * moved init() to main
  *
@@ -92,8 +95,7 @@ extern int send_msg(int, in_addr_t *, uint16_t);
 int	status = HTTP_OK;
 
 int
-getargs(char *forminfo, char *filename, char *trackers_url,
-	char *pkg_servers_url)
+getargs(char *forminfo, char *filename)
 {
 	char	*ptr;
 
@@ -108,8 +110,7 @@ getargs(char *forminfo, char *filename, char *trackers_url,
 		*ptr = ' ';
 	}
 
-	if (sscanf(forminfo, "filename=%4095s trackers=%256s pkgservers=%256s",
-			filename, trackers_url, pkg_servers_url) != 3) {
+	if (sscanf(forminfo, "filename=%4095s", filename) != 1) {
 		/*
 		 * XXX - log an error
 		 */
@@ -1104,14 +1105,10 @@ doit(int sockfd, uint16_t num_trackers, in_addr_t *trackers, uint16_t maxpeers,
 	char			*forminfo;
 	char			*range;
 	char			filename[PATH_MAX];
-	char			trackers_url[256];
-	char			pkg_servers_url[256];
 
 	gettimeofday(&start_time, NULL);
 
 	bzero(filename, sizeof(filename));
-	bzero(trackers_url, sizeof(trackers_url));
-	bzero(pkg_servers_url, sizeof(pkg_servers_url));
 
 	if ((forminfo = getenv("QUERY_STRING")) == NULL) {
 		senderror(500, "No QUERY_STRING", errno);
@@ -1126,7 +1123,7 @@ doit(int sockfd, uint16_t num_trackers, in_addr_t *trackers, uint16_t maxpeers,
 		}
 	}
 
-	if (getargs(forminfo, filename, trackers_url, pkg_servers_url) != 0) {
+	if (getargs(forminfo, filename) != 0) {
 		senderror(500, "getargs():failed", errno);
 		return(0);
 	}
