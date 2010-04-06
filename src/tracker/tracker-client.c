@@ -1,10 +1,13 @@
 /*
- * $Id: tracker-client.c,v 1.9 2010/04/02 18:27:22 bruno Exp $
+ * $Id: tracker-client.c,v 1.10 2010/04/06 17:47:19 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.10  2010/04/06 17:47:19  bruno
+ * added seqno and did some cleanup
+ *
  * Revision 1.9  2010/04/02 18:27:22  bruno
  * lots of hacks to get more performance
  *
@@ -80,9 +83,6 @@ extern int init(uint16_t *, char *, in_addr_t *, uint16_t *, char *, uint16_t *,
 	in_addr_t *);
 extern int lookup(int, in_addr_t *, uint64_t, tracker_info_t **);
 extern int register_hash(int, in_addr_t *, uint32_t, tracker_info_t *);
-#ifdef	LATER
-extern int shuffle(in_addr_t *, uint16_t);
-#endif
 extern void logmsg(const char *, ...);
 extern int send_msg(int, in_addr_t *, uint16_t);
 
@@ -131,33 +131,14 @@ doheaders(void *ptr, size_t size, size_t nmemb, void *stream)
 		}
 	}
 
-#ifdef	LATER
-	if ((status >= HTTP_OK) && (status <= HTTP_MULTI_STATUS)) {
-		fwrite(ptr, size, nmemb, stdout);
-	}
-#endif
-
-#ifdef	LATER
-	logmsg("doheaders : ");
-	logmsg(ptr);
-#endif
-	
 	return(size * nmemb);
 }
 
 size_t
 dobody(void *ptr, size_t size, size_t nmemb, void *stream)
 {
-
-#ifdef	LATER
-logmsg("dobody:size %d\n", size * nmemb);
-#endif
-
 	if ((status >= HTTP_OK) && (status <= HTTP_MULTI_STATUS)) {
 		fwrite(ptr, size, nmemb, stream);
-#ifdef	LATER
-		fwrite(ptr, size, nmemb, stdout);
-#endif
 	}
 
 	return(size * nmemb);
@@ -235,11 +216,6 @@ outputfile(char *filename, char *range)
 		return(-1);
 	}
 
-#ifdef	LATER
-	logmsg("outputfile:range(0x%x)\n", range);
-	logmsg("outputfile:filesize (%d)\n", statbuf.st_size);
-#endif
-
 	/*
 	 * if a range is supplied, then we need to calculate the offset
 	 * and total number of bytes to read
@@ -283,23 +259,10 @@ outputfile(char *filename, char *range)
 		totalbytes = statbuf.st_size;
 	}
 
-#ifdef	LATER
-	logmsg("outputfile:totalbytes (%d)\n", totalbytes);
-	logmsg("outputfile:offset (%d)\n", offset);
-#endif
-
 	if ((fd = open(filename, O_RDONLY)) < 0) {
 		logmsg("outputfile:open failed:errno (%d)\n", errno);
 		return(-1);
 	}
-
-#ifdef	LATER
-	if (stat(filename, &statbuf) != 0) {
-		logmsg("outputfile:stat failed (%d)\n", errno);
-	} else {
-		logmsg("outputfile:filesize (%d)\n", statbuf.st_size);
-	}
-#endif
 
 	if (offset > 0) {
 		int	s;
@@ -353,11 +316,6 @@ outputfile(char *filename, char *range)
 		fwrite(buf, i, 1, stdout);
 
 		bytesread += i;
-
-#ifdef	LATER
-		logmsg("outputfile:bytesread (%d), totalbytes (%d)\n",
-			bytesread, totalbytes);
-#endif
 
 		if (bytesread >= totalbytes) {
 			done = 1;
@@ -650,7 +608,7 @@ getremote(char *filename, peer_t *peer, char *range, CURL *curlhandle)
 			 */
 			break;
 		} else {
-			logmsg("getremote:downloadfile():failed\n");
+			logmsg("getremote:downloadfile:failed:url %s\n", url);
 
 			if (peer->state == DOWNLOADING) {
 				stall *= 10;
@@ -689,9 +647,6 @@ getremote(char *filename, peer_t *peer, char *range, CURL *curlhandle)
 			return(-1);
 		}
 		
-#ifdef	LATER
-		do_sendfile(filename, range);
-#endif
 		if (outputfile(filename, range) != 0) {
 			logmsg("getremote:outputfile():failed:(%d)\n", errno);
 			free(tempfilename);
@@ -988,7 +943,8 @@ trackfile(int sockfd, char *filename, char *range, char *trackers_url,
 		gettimeofday(&end_time, NULL);
 		s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
 		e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
-		logmsg("trackfile:svc time5: %lld usec file (%s)\n", (e - s), filename);
+		logmsg("trackfile:svc time5: %lld usec file (%s)\n", (e - s),
+			filename);
 #endif
 
 #ifdef	DEBUG
@@ -1011,7 +967,8 @@ trackfile(int sockfd, char *filename, char *range, char *trackers_url,
 		gettimeofday(&end_time, NULL);
 		s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
 		e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
-		logmsg("trackfile:svc time6: %lld usec file (%s)\n", (e - s), filename);
+		logmsg("trackfile:svc time6: %lld usec file (%s)\n", (e - s),
+			filename);
 #endif
 
 		for (i = 0 ; i < infoptr->numpeers; ++i) {
@@ -1206,9 +1163,6 @@ doit(int sockfd, CURL *curlhandle)
 	gettimeofday(&end_time, NULL);
 	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
 	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
-#ifdef	LATER
-	logmsg("doit:svc time: %lld usec file (%s)\n\n", (e - s), filename);
-#endif
 	logmsg("doit:svc time: %lld usec file %s\n\n", (e - s) - curltime,
 		basename(filename));
 #endif

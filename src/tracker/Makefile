@@ -1,10 +1,13 @@
 #
-# $Id: Makefile,v 1.9 2010/04/02 18:27:22 bruno Exp $
+# $Id: Makefile,v 1.10 2010/04/06 17:47:19 bruno Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.10  2010/04/06 17:47:19  bruno
+# added seqno and did some cleanup
+#
 # Revision 1.9  2010/04/02 18:27:22  bruno
 # lots of hacks to get more performance
 #
@@ -63,6 +66,7 @@ LIBS	= -lcurl
 EXTRA	= -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 #EXTRA	+= -DTIMEIT 
 #EXTRA	+= -DDEBUG
+#EXTRA	+= -pg
 EXECS	= tracker-client unregister-file server peer-done stop-server
 
 build:	$(EXECS)

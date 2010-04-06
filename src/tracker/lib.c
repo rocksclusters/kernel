@@ -373,18 +373,19 @@ shuffle(peer_t *peers, uint16_t numpeers)
 	if (numpeers > 1) {
 
 #ifdef	DEBUG
-fprintf(stderr, "shuffle:before sort\n");
+		fprintf(stderr, "shuffle:before sort\n");
 
-for (i = 0 ; i < numpeers ; ++i) {
-	struct in_addr	in;
+		for (i = 0 ; i < numpeers ; ++i) {
+			struct in_addr	in;
 
-	in.s_addr = list[i].peer.ip;
+			in.s_addr = list[i].peer.ip;
 	
-	fprintf(stderr, "\thost %s : state %c : timestamp %lld\n",
-		inet_ntoa(in),
-		(list[i].peer.state == DOWNLOADING ? 'd' : 'r'),
-		list[i].timestamp);
-}
+			fprintf(stderr,
+				"\thost %s : state %c : timestamp %lld\n",
+				inet_ntoa(in),
+				(list[i].peer.state == DOWNLOADING ? 'd' : 'r'),
+				list[i].timestamp);
+		}
 #endif
 
 		/*
@@ -394,18 +395,19 @@ for (i = 0 ; i < numpeers ; ++i) {
 			timestamp_compare);
 
 #ifdef	DEBUG
-fprintf(stderr, "shuffle:after sort\n");
+		fprintf(stderr, "shuffle:after sort\n");
 
-for (i = 0 ; i < numpeers ; ++i) {
-	struct in_addr	in;
+		for (i = 0 ; i < numpeers ; ++i) {
+			struct in_addr	in;
 
-	in.s_addr = list[i].peer.ip;
+			in.s_addr = list[i].peer.ip;
 	
-	fprintf(stderr, "\thost %s : state %c : timestamp %lld\n",
-		inet_ntoa(in),
-		(list[i].peer.state == DOWNLOADING ? 'd' : 'r'),
-		list[i].timestamp);
-}
+			fprintf(stderr,
+				"\thost %s : state %c : timestamp %lld\n",
+				inet_ntoa(in),
+				(list[i].peer.state == DOWNLOADING ? 'd' : 'r'),
+				list[i].timestamp);
+		}
 #endif
 
 		/*

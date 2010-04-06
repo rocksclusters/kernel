@@ -51,8 +51,8 @@ print_hash_table()
 {
 	int	i;
 
-fprintf(stderr, "head: (%d)\n", hash_table->head);
-fprintf(stderr, "tail: (%d)\n", hash_table->tail);
+	fprintf(stderr, "head: (%d)\n", hash_table->head);
+	fprintf(stderr, "tail: (%d)\n", hash_table->tail);
 
 	if (hash_table->head >= hash_table->tail) {
 		for (i = hash_table->head ;
@@ -95,8 +95,8 @@ compact_hash_table()
 	char	found, done;
 
 #ifdef	DEBUG
-fprintf(stderr, "compact_hash_table:before\n\n");
-print_hash_table();
+	fprintf(stderr, "compact_hash_table:before\n\n");
+	print_hash_table();
 #endif
 
 	while (1) {
@@ -186,8 +186,8 @@ print_hash_table();
 	}
 
 #ifdef	DEBUG
-fprintf(stderr, "compact_hash_table:after\n\n");
-print_hash_table();
+	fprintf(stderr, "compact_hash_table:after\n\n");
+	print_hash_table();
 #endif
 
 }
@@ -199,8 +199,9 @@ reclaim_free_entries()
 	int	current_tail, current_head;
 
 #ifdef	DEBUG
-fprintf(stderr, "reclaim_free_entries:head (%d), tail (%d), size (%d)\n",
-	hash_table->head, hash_table->tail, hash_table->size);
+	fprintf(stderr,
+		"reclaim_free_entries:head (%d), tail (%d), size (%d)\n",
+		hash_table->head, hash_table->tail, hash_table->size);
 #endif
 
 	/*
@@ -265,8 +266,8 @@ fprintf(stderr, "reclaim_free_entries:head (%d), tail (%d), size (%d)\n",
 	}
 
 #ifdef	DEBUG
-fprintf(stderr, "reclaim_free_entries:head (%d), tail (%d)\n",
-	hash_table->head, hash_table->tail);
+	fprintf(stderr, "reclaim_free_entries:head (%d), tail (%d)\n",
+		hash_table->head, hash_table->tail);
 #endif
 }
 
@@ -283,12 +284,12 @@ grow_hash_table(int size)
 	len = sizeof(hash_table_t) + (newsize * sizeof(hash_info_t));
 
 #ifdef	DEBUG
-fprintf(stderr, "grow_hash_table:enter:size (%d)\n", hash_table->size);
-fprintf(stderr, "grow_hash_table:enter:head (%d)\n", hash_table->head);
-fprintf(stderr, "grow_hash_table:enter:tail (%d)\n", hash_table->tail);
+	fprintf(stderr, "grow_hash_table:enter:size (%d)\n", hash_table->size);
+	fprintf(stderr, "grow_hash_table:enter:head (%d)\n", hash_table->head);
+	fprintf(stderr, "grow_hash_table:enter:tail (%d)\n", hash_table->tail);
 
-fprintf(stderr, "grow_hash_table:before\n\n");
-print_hash_table();
+	fprintf(stderr, "grow_hash_table:before\n\n");
+	print_hash_table();
 #endif
 
 	if ((hash_table = realloc(hash_table, len)) == NULL) {
@@ -317,12 +318,12 @@ print_hash_table();
 	hash_table->tail = hash_table->tail + size;
 
 #ifdef	DEBUG
-fprintf(stderr, "grow_hash_table:exit:size (%d)\n", hash_table->size);
-fprintf(stderr, "grow_hash_table:exit:head (%d)\n", hash_table->head);
-fprintf(stderr, "grow_hash_table:exit:tail (%d)\n", hash_table->tail);
+	fprintf(stderr, "grow_hash_table:exit:size (%d)\n", hash_table->size);
+	fprintf(stderr, "grow_hash_table:exit:head (%d)\n", hash_table->head);
+	fprintf(stderr, "grow_hash_table:exit:tail (%d)\n", hash_table->tail);
 
-fprintf(stderr, "grow_hash_table:after\n\n");
-print_hash_table();
+	fprintf(stderr, "grow_hash_table:after\n\n");
+	print_hash_table();
 #endif
 
 	return(0);
@@ -543,7 +544,8 @@ prep_peers(hash_info_t *hashinfo, tracker_info_t *respinfo,
 }
 
 void
-dolookup(int sockfd, uint64_t hash, struct sockaddr_in *from_addr)
+dolookup(int sockfd, uint64_t hash, uint32_t seqno,
+	struct sockaddr_in *from_addr)
 {
 	tracker_lookup_resp_t	*resp;
 	tracker_info_t		*respinfo;
@@ -563,15 +565,12 @@ dolookup(int sockfd, uint64_t hash, struct sockaddr_in *from_addr)
 
 	resp = (tracker_lookup_resp_t *)buf;
 	resp->header.op = LOOKUP;
+	resp->header.seqno = seqno;
 
 	/*
 	 * keep a running count for the length of the data
 	 */
 	len = sizeof(tracker_lookup_resp_t);
-
-#ifdef	LATER
-fprintf(stderr, "len (%d)\n", (int)len);
-#endif
 
 	/*
 	 * look up info for this hash
@@ -580,10 +579,6 @@ fprintf(stderr, "len (%d)\n", (int)len);
 	respinfo->hash = hash;
 
 	len += sizeof(tracker_info_t);
-
-#ifdef	LATER
-fprintf(stderr, "len (%d)\n", (int)len);
-#endif
 
 	/*
 	 * always send back at least one hash, even if it is empty (i.e.,
@@ -600,7 +595,8 @@ fprintf(stderr, "len (%d)\n", (int)len);
 		prep_peers(hashinfo, respinfo, from_addr, &found);
 
 #ifdef	DEBUG
-fprintf(stderr, "resp info numpeers (%d)\n", respinfo->numpeers);
+		fprintf(stderr,
+			"resp info numpeers (%d)\n", respinfo->numpeers);
 #endif
 
 		len += (sizeof(respinfo->peers[0]) * respinfo->numpeers);
@@ -717,9 +713,10 @@ register_hash(char *buf, struct sockaddr_in *from_addr)
 	for (i = 0; i < req->numhashes; ++i) {
 		reqinfo = &req->info[i];
 #ifdef	DEBUG
-fprintf(stderr, "register_hash:enter:hash (0x%lx)\n", reqinfo->hash);
-fprintf(stderr, "register_hash:hash_table:before\n\n");
-print_hash_table();
+		fprintf(stderr,
+			"register_hash:enter:hash (0x%lx)\n", reqinfo->hash);
+		fprintf(stderr, "register_hash:hash_table:before\n\n");
+		print_hash_table();
 #endif
 
 		if (reqinfo->numpeers == 0) {
@@ -737,7 +734,7 @@ print_hash_table();
 		}
 
 #ifdef	DEBUG
-fprintf(stderr, "register_hash:numpeers:1 (0x%d)\n", numpeers);
+		fprintf(stderr, "register_hash:numpeers:1 (0x%d)\n", numpeers);
 #endif
 
 		/*
@@ -792,9 +789,9 @@ fprintf(stderr, "register_hash:numpeers:1 (0x%d)\n", numpeers);
 			}
 		}
 #ifdef	DEBUG
-fprintf(stderr, "register_hash:hash_table:after\n\n");
-print_hash_table();
-fprintf(stderr, "register_hash:exit:hash (0x%lx)\n", reqinfo->hash);
+	fprintf(stderr, "register_hash:hash_table:after\n\n");
+	print_hash_table();
+	fprintf(stderr, "register_hash:exit:hash (0x%lx)\n", reqinfo->hash);
 #endif
 	}
 }
@@ -826,8 +823,8 @@ removepeer(int index, peer_t *peer)
 				hashinfo->peers = NULL;
 				hashinfo->hash = 0;
 				hashinfo->numpeers = 0;
-				
-				compact_hash_table();
+					
+					compact_hash_table();
 				reclaim_free_entries();
 			} else {
 				/*
@@ -865,9 +862,9 @@ unregister_hash(char *buf, struct sockaddr_in *from_addr)
 	int			i;
 
 #ifdef	DEBUG
-fprintf(stderr, "unregister_hash:enter\n");
-fprintf(stderr, "unregister_hash:hash_table:before\n\n");
-print_hash_table();
+	fprintf(stderr, "unregister_hash:enter\n");
+	fprintf(stderr, "unregister_hash:hash_table:before\n\n");
+	print_hash_table();
 #endif
 
 	peer.ip = from_addr->sin_addr.s_addr;
@@ -879,8 +876,8 @@ print_hash_table();
 	}
 
 #ifdef	DEBUG
-fprintf(stderr, "unregister_hash:hash_table:after\n\n");
-print_hash_table();
+	fprintf(stderr, "unregister_hash:hash_table:after\n\n");
+	print_hash_table();
 #endif
 
 }
@@ -892,9 +889,9 @@ unregister_all(char *buf, struct sockaddr_in *from_addr)
 	int		i;
 
 #ifdef	DEBUG
-fprintf(stderr, "unregister_all:enter\n");
-fprintf(stderr, "unregister_all:hash_table:before\n\n");
-print_hash_table();
+	fprintf(stderr, "unregister_all:enter\n");
+	fprintf(stderr, "unregister_all:hash_table:before\n\n");
+	print_hash_table();
 #endif
 
 	peer.ip = from_addr->sin_addr.s_addr;
@@ -906,8 +903,8 @@ print_hash_table();
 	}
 
 #ifdef	DEBUG
-fprintf(stderr, "unregister_all:hash_table:after\n\n");
-print_hash_table();
+	fprintf(stderr, "unregister_all:hash_table:after\n\n");
+	print_hash_table();
 #endif
 
 }
@@ -933,7 +930,7 @@ main()
 	}
 
 #ifdef	DEBUG
-fprintf(stderr, "main:starting\n");
+	fprintf(stderr, "main:starting\n");
 #endif
 
 	/*
@@ -958,7 +955,8 @@ fprintf(stderr, "main:starting\n");
 					tracker_lookup_req_t	*req;
 
 					req = (tracker_lookup_req_t *)buf;
-					dolookup(sockfd, req->hash, &from_addr);
+					dolookup(sockfd, req->hash,
+						req->header.seqno, &from_addr);
 				}
 				break;
 

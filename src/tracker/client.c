@@ -14,6 +14,8 @@
 
 extern void logmsg(const char *, ...);
 
+static uint32_t	seqno = 0;
+
 int
 lookup(int sockfd, in_addr_t *tracker, uint64_t hash, tracker_info_t **info)
 {
@@ -25,6 +27,7 @@ lookup(int sockfd, in_addr_t *tracker, uint64_t hash, tracker_info_t **info)
 	int			retval;
 	int			infosize;
 	char			buf[64*1024];
+	char			done;
 
 	bzero(&send_addr, sizeof(send_addr));
 	send_addr.sin_family = AF_INET;
@@ -38,6 +41,7 @@ lookup(int sockfd, in_addr_t *tracker, uint64_t hash, tracker_info_t **info)
 	bzero(&req, sizeof(req));
 	req.header.op = LOOKUP;
 	req.header.length = sizeof(tracker_lookup_req_t);
+	req.header.seqno = seqno++;
 	req.hash = hash;
 
 	tracker_send(sockfd, (void *)&req, sizeof(req),
@@ -53,83 +57,76 @@ lookup(int sockfd, in_addr_t *tracker, uint64_t hash, tracker_info_t **info)
 	 */
 	timeout.tv_sec = 3;
 	timeout.tv_usec = 0;
-
-	recvbytes = tracker_recv(sockfd, (void *)buf, sizeof(buf),
-		(struct sockaddr *)&recv_addr, &recv_addr_len, NULL);
 #else
 	timeout.tv_sec = 2;
 	timeout.tv_usec = 0;
-
-	recvbytes = tracker_recv(sockfd, (void *)buf, sizeof(buf),
-		(struct sockaddr *)&recv_addr, &recv_addr_len, &timeout);
 #endif
+	done = 0;
+	while (!done) {
+		recvbytes = tracker_recv(sockfd, (void *)buf, sizeof(buf),
+			(struct sockaddr *)&recv_addr, &recv_addr_len,
+			&timeout);
+
 
 #ifdef	DEBUG
-logmsg("lookup:recvbytes (%ld)\n", recvbytes);
+		logmsg("lookup:recvbytes (%ld)\n", recvbytes);
 #endif
 
-	if (recvbytes > 0) {
-		tracker_lookup_resp_t	*resp;
+		if (recvbytes > 0) {
+			tracker_lookup_resp_t	*resp;
 
-		resp = (tracker_lookup_resp_t *)buf;
+			resp = (tracker_lookup_resp_t *)buf;
 
-		/*
-		 * validate the packet
-		 */
-		if (resp->header.op != LOOKUP) {
-			logmsg("lookup:header op (%d) != (%d)\n",
-				resp->header.op, LOOKUP);
-			abort();
+			/*
+			 * validate the packet
+			 */
+			if (resp->header.op != LOOKUP) {
+				logmsg("lookup:header op (%d) != (%d)\n",
+					resp->header.op, LOOKUP);
+				abort();
+			}
+
+			if (resp->header.seqno == req.header.seqno) {
+				done = 1;
+			} else{
+				logmsg("lookup:seqno mismatch: got %d, exepcted %d\n", resp->header.seqno, req.header.seqno);
+				continue;
+			}
+
+			/*
+			 * make sure numhashes is reasonable
+			 */
+			if ((resp->numhashes < 0) || (resp->numhashes > 64)) {
+				logmsg("lookup:numhashes (%d) is not between 0 and 64\n", resp->numhashes);
+				abort();
+			}
+
+			/*
+			 * get the size of the info structure
+			 */
+			infosize = resp->header.length -
+				sizeof(tracker_lookup_resp_t);
+
+			if ((*info = (tracker_info_t *)malloc(infosize)) ==
+					NULL) {
+				logmsg("lookup:malloc failed\n");
+				abort();
+			}
+
+			memcpy(*info, resp->info, infosize);
+			retval = resp->numhashes;
+		} else {
+			retval = 0;
+			done = 1;
 		}
-
-		/*
-		 * make sure numhashes is reasonable
-		 */
-		if ((resp->numhashes < 0) || (resp->numhashes > 64)) {
-			logmsg("lookup:numhashes (%d) is not between 0 and 64\n", resp->numhashes);
-			abort();
-		}
-
-		/*
-		 * get the size of the info structure
-		 */
-		infosize = resp->header.length - sizeof(tracker_lookup_resp_t);
-
-		if ((*info = (tracker_info_t *)malloc(infosize)) == NULL) {
-			logmsg("lookup:malloc failed\n");
-			abort();
-		}
-
-		memcpy(*info, resp->info, infosize);
-		retval = resp->numhashes;
-	} else {
-		retval = 0;
 	}
 
 #ifdef	DEBUG
-logmsg("lookup:retval (%d)\n", retval);
+	logmsg("lookup:retval (%d)\n", retval);
 #endif
 
 	return(retval);
 }
-
-#ifdef	LATER
-
-	/* XXX - nuke this? */
-
-int
-get(in_addr_t *ip, char *filename)
-{
-	struct in_addr	in;
-
-	in.s_addr = *ip;
-
-	logmsg("get: get file (%s) from (%s)\n", filename,
-		inet_ntoa(in));
-
-	return(0);
-}
-#endif
 
 int
 register_hash(int sockfd, in_addr_t *ip, uint32_t numhashes,
@@ -165,11 +162,12 @@ register_hash(int sockfd, in_addr_t *ip, uint32_t numhashes,
 	bzero(req, len);
 	req->header.op = REGISTER;
 	req->header.length = len;
+	req->header.seqno = seqno++;
 
 	req->numhashes = numhashes;
 
 #ifdef	DEBUG
-logmsg("infolen (%d)\n", infolen);
+	logmsg("infolen (%d)\n", infolen);
 #endif
 
 	memcpy(req->info, info, infolen);
@@ -225,11 +223,12 @@ unregister_hash(int sockfd, in_addr_t *ip, uint32_t numhashes,
 	bzero(req, len);
 	req->header.op = UNREGISTER;
 	req->header.length = len;
+	req->header.seqno = seqno++;
 
 	req->numhashes = numhashes;
 
 #ifdef	DEBUG
-logmsg("infolen (%d)\n", infolen);
+	logmsg("infolen (%d)\n", infolen);
 #endif
 
 	memcpy(req->info, info, infolen);
@@ -334,6 +333,7 @@ send_msg(int sockfd, in_addr_t *ip, uint16_t op)
 	bzero(&req, len);
 	req.op = op;
 	req.length = len;
+	req.seqno = seqno++;
 
 	tracker_send(sockfd, (void *)&req, len, 
 		(struct sockaddr *)&send_addr, sizeof(send_addr));

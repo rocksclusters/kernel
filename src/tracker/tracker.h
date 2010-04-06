@@ -25,7 +25,7 @@
 typedef struct {
 	uint16_t	op;
 	uint16_t	length;
-	char		reserved[4];
+	uint32_t	seqno;
 } tracker_header_t;
 
 typedef struct {
