@@ -1,10 +1,13 @@
 /*
- * $Id: tracker-client.c,v 1.12 2010/04/06 20:52:05 bruno Exp $
+ * $Id: tracker-client.c,v 1.13 2010/04/07 17:54:25 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.13  2010/04/07 17:54:25  bruno
+ * tweaks
+ *
  * Revision 1.12  2010/04/06 20:52:05  bruno
  * get the trackers and package servers from rocks.conf
  *
@@ -600,7 +603,9 @@ getremote(char *filename, peer_t *peer, char *range, CURL *curlhandle)
 	stall = 10000;
 
 	while (stall < 1000000) {
-		downloadfile(curlhandle, url, NULL);
+		if (downloadfile(curlhandle, url, NULL) < 0) {
+			status = HTTP_NOT_FOUND;
+		}
 #ifdef	DEBUG
 		logmsg("getremote:download status %d : stall %d\n",
 			status, stall);

@@ -198,6 +198,10 @@ grow_dt_table(int size)
 	uint32_t	newsize;
 	int		len;
 
+#ifdef	DEBUG
+	fprintf(stderr, "grow_dt_table:size %d\n", size);
+#endif
+
 	if (dt_table == NULL) {
 		oldsize = 0;
 		newsize = size;
@@ -252,6 +256,11 @@ add_to_dt_table(in_addr_t host)
 		}
 	}
 
+#ifdef	DEBUG
+	fprintf(stderr, "add_to_dt_table:i (%d), size (%d)\n", i,
+		dt_table->size);
+#endif
+
 	return(dt_table->entry[i].timestamp);
 }
 
@@ -260,6 +269,15 @@ lookup_timestamp(in_addr_t host)
 {
 	unsigned long long	timestamp = 0;
 	int			i;
+
+#ifdef	DEBUG
+{
+	struct in_addr	in;
+
+	in.s_addr = host;
+	fprintf(stderr, "lookup_timestamp:host (%s)\n", inet_ntoa(in));
+}
+#endif
 
 	if (dt_table == NULL) {
 		if (grow_dt_table(DT_TABLE_ENTRIES) < 0) {

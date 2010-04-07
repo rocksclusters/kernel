@@ -4,12 +4,10 @@
 /*
  * hard-coded stuff
  */
-
 #define	TRACKER_PORT		9632
 #define	PREDICTIONS		10
 #define	PEERS_PER_PREDICTION	3
-/* #define DOWNLOAD_PORT	80 */
-#define DOWNLOAD_PORT		8079
+#define DOWNLOAD_PORT		80
 #define MAX_TRACKERS		32
 #define MAX_PKG_SERVERS		32
 

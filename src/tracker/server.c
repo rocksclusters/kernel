@@ -39,6 +39,7 @@ print_peers(hash_info_t *hashinfo)
 	struct in_addr	in;
 	int		i;
 
+fprintf(stderr, "print_peers:numpeers %d\n",  hashinfo->numpeers);
 	for (i = 0 ; i < hashinfo->numpeers ; ++i) {
 		in.s_addr = hashinfo->peers[i].ip;
 		fprintf(stderr, "\t%s : %c\n", inet_ntoa(in), 
@@ -367,10 +368,10 @@ addpeer(hash_info_t *hashinfo, peer_t *peer)
 	in.s_addr = peer->ip;
 	fprintf(stderr, "addpeer:adding peer (%s) for hash (0x%016lx)\n",
 		inet_ntoa(in), hashinfo->hash);
-}
 
 	fprintf(stderr, "addpeer:before\n");
 	print_peers(hashinfo);
+}
 #endif
 
 	if (hashinfo->peers) {
@@ -531,6 +532,7 @@ prep_peers(hash_info_t *hashinfo, tracker_info_t *respinfo,
 				*found = 1;
 				hashinfo->peers[i].state = DOWNLOADING;
 			}
+			--numpeers;
 			continue;
 		}
 
@@ -777,7 +779,7 @@ register_hash(char *buf, struct sockaddr_in *from_addr)
 			}
 
 			hashinfo->hash = reqinfo->hash;
-			hashinfo->numpeers = numpeers;
+			hashinfo->numpeers = 0;
 
 			for (j = 0 ; j < numpeers ; ++j) {
 				peers[j].state = READY;
