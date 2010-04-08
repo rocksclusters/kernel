@@ -250,7 +250,7 @@ grow_dt_table(int size)
 }
 
 unsigned long long
-add_to_dt_table(in_addr_t host, char *coop)
+add_to_dt_table(in_addr_t host, char **coop)
 {
 	struct in_addr	in;
 	int		i;
@@ -258,8 +258,7 @@ add_to_dt_table(in_addr_t host, char *coop)
 	in.s_addr = host;
 
 #ifdef	DEBUG
-	fprintf(stderr, "add_to_dt_table:host %s : coop %s\n", inet_ntoa(in),
-		coop);
+	fprintf(stderr, "add_to_dt_table:host %s\n", inet_ntoa(in));
 #endif
 
 	/*
@@ -279,7 +278,7 @@ add_to_dt_table(in_addr_t host, char *coop)
 			dt_table->entry[i].timestamp = 0;
 			dt_table->entry[i].coop = gethostattr(inet_ntoa(in),
 				"coop");
-			coop = dt_table->entry[i].coop;
+			*coop = dt_table->entry[i].coop;
 			break;
 		}
 	}
@@ -287,13 +286,15 @@ add_to_dt_table(in_addr_t host, char *coop)
 #ifdef	DEBUG
 	fprintf(stderr, "add_to_dt_table:i (%d), size (%d)\n", i,
 		dt_table->size);
+	fprintf(stderr, "add_to_dt_table:host %s : coop %s addr 0x%x\n",
+		inet_ntoa(in), *coop, (unsigned int)*coop);
 #endif
 
 	return(dt_table->entry[i].timestamp);
 }
 
 static unsigned long long
-lookup_timestamp(in_addr_t host, char *coop)
+lookup_timestamp(in_addr_t host, char **coop)
 {
 	unsigned long long	timestamp = 0;
 	int			i;
@@ -303,11 +304,7 @@ lookup_timestamp(in_addr_t host, char *coop)
 	struct in_addr	in;
 
 	in.s_addr = host;
-	fprintf(stderr, "lookup_timestamp:host (%s)", inet_ntoa(in));
-	if (coop != NULL) {
-		fprintf(stderr, " : coop %s", coop);
-	}
-	fprintf(stderr, "\n");
+	fprintf(stderr, "lookup_timestamp:host (%s)\n", inet_ntoa(in));
 }
 #endif
 
@@ -327,7 +324,7 @@ lookup_timestamp(in_addr_t host, char *coop)
 
 		if (dt_table->entry[i].host == host) {
 			timestamp = dt_table->entry[i].timestamp;
-			coop = dt_table->entry[i].coop;
+			*coop = dt_table->entry[i].coop;
 			break;
 		}
 	}
@@ -338,8 +335,6 @@ lookup_timestamp(in_addr_t host, char *coop)
 		 */
 		timestamp = add_to_dt_table(host, coop);
 	}
-
-	return(timestamp);
 }
 
 static void
@@ -382,10 +377,10 @@ timestamp_compare(const void *a, const void *b)
 			 * they're not in the same coop group. let's see
 			 * if one of them is in my coop group.
 			 */
-			if (strcmp(key1->coop, mycoop) != 0) {
+			if (strcmp(key1->coop, mycoop) == 0) {
 				return(-1);
 			}
-			if (strcmp(key2->coop, mycoop) != 0) {
+			if (strcmp(key2->coop, mycoop) == 0) {
 				return(1);
 			}
 		}
@@ -422,6 +417,10 @@ shuffle(peer_t *peers, uint16_t numpeers, char *coop)
 	peer_timestamp_t	*list;
 	int			i;
 
+#ifdef	DEBUG
+	fprintf(stderr, "shuffle:coop %s\n", coop);
+#endif
+
 	if ((list = (peer_timestamp_t *)malloc(
 			numpeers * sizeof(peer_timestamp_t))) == NULL) {
 		/*
@@ -440,7 +439,7 @@ shuffle(peer_t *peers, uint16_t numpeers, char *coop)
 	for (i = 0 ; i < numpeers ; ++i) {
 		memcpy(&list[i].peer, &peers[i], sizeof(list[i].peer));
 		list[i].timestamp = lookup_timestamp(list[i].peer.ip,
-			list[i].coop);
+			&list[i].coop);
 	}
 
 	if (numpeers > 1) {
@@ -454,10 +453,10 @@ shuffle(peer_t *peers, uint16_t numpeers, char *coop)
 			in.s_addr = list[i].peer.ip;
 	
 			fprintf(stderr,
-				"\thost %s : state %c : timestamp %lld\n",
+				"\thost %s : state %c : timestamp %lld : coop %s\n",
 				inet_ntoa(in),
 				(list[i].peer.state == DOWNLOADING ? 'd' : 'r'),
-				list[i].timestamp);
+				list[i].timestamp, list[i].coop);
 		}
 #endif
 
@@ -478,10 +477,10 @@ shuffle(peer_t *peers, uint16_t numpeers, char *coop)
 			in.s_addr = list[i].peer.ip;
 	
 			fprintf(stderr,
-				"\thost %s : state %c : timestamp %lld\n",
+				"\thost %s : state %c : timestamp %lld : coop %s\n",
 				inet_ntoa(in),
 				(list[i].peer.state == DOWNLOADING ? 'd' : 'r'),
-				list[i].timestamp);
+				list[i].timestamp, list[i].coop);
 		}
 #endif
 
