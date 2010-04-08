@@ -1,10 +1,13 @@
 #
-# $Id: Makefile,v 1.10 2010/04/06 17:47:19 bruno Exp $
+# $Id: Makefile,v 1.11 2010/04/08 19:41:46 bruno Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.11  2010/04/08 19:41:46  bruno
+# added coop groups
+#
 # Revision 1.10  2010/04/06 17:47:19  bruno
 # added seqno and did some cleanup
 #
@@ -79,11 +82,15 @@ unregister-file:	unregister-file.c client.c lib.c
 	cc $(INCLUDE) $(EXTRA) -o unregister-file unregister-file.c \
 		client.c lib.c $(LIBS)
 
-server:		server.o lib.o
-	cc $(INCLUDE) $(EXTRA) -pg -o server server.o lib.o $(LIBS)
+server:		server.o lib.o shuffle.o
+	cc $(INCLUDE) $(EXTRA) -pg -o server server.o lib.o shuffle.o $(LIBS) \
+		-L/usr/lib64/mysql -lmysqlclient
 
 lib.o:	lib.c
 	cc $(INCLUDE) $(EXTRA) -c lib.c
+
+shuffle.o:	shuffle.c
+	cc $(INCLUDE) $(EXTRA) -c shuffle.c
 
 server.o:	server.c
 	cc $(INCLUDE) $(EXTRA) -c server.c

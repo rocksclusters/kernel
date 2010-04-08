@@ -143,6 +143,7 @@ typedef struct {
 typedef struct {
 	in_addr_t		host;
 	unsigned long long	timestamp;	/* gettimeofday in usecs */
+	char			*coop;		/* coop group */
 } download_timestamp_t;
 
 typedef	struct {
@@ -153,6 +154,7 @@ typedef	struct {
 typedef struct {
 	peer_t			peer;
 	unsigned long long	timestamp;
+	char			*coop;
 } peer_timestamp_t;
 
 /*

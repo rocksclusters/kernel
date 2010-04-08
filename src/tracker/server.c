@@ -9,7 +9,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-extern int shuffle(peer_t *, uint16_t);
+extern int shuffle(peer_t *, uint16_t, char *);
+extern char *gethostattr(char *, char *);
 
 hash_table_t	*hash_table = NULL;
 
@@ -511,8 +512,11 @@ prep_peers(hash_info_t *hashinfo, tracker_info_t *respinfo,
 {
 	int	numpeers;
 	int	i;
+	char	*coop;
 
-	shuffle(hashinfo->peers, hashinfo->numpeers);
+	coop = gethostattr(inet_ntoa(from_addr->sin_addr), "coop");
+	shuffle(hashinfo->peers, hashinfo->numpeers, coop);
+	free(coop);
 
 	/*
 	 * copy the hash info into the response buffer
