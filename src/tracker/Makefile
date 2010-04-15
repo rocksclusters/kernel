@@ -1,10 +1,13 @@
 #
-# $Id: Makefile,v 1.11 2010/04/08 19:41:46 bruno Exp $
+# $Id: Makefile,v 1.12 2010/04/15 15:30:54 bruno Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.12  2010/04/15 15:30:54  bruno
+# better coop processing. the simulation is now performing 20% better.
+#
 # Revision 1.11  2010/04/08 19:41:46  bruno
 # added coop groups
 #
@@ -69,8 +72,15 @@ LIBS	= -lcurl
 EXTRA	= -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 #EXTRA	+= -DTIMEIT 
 #EXTRA	+= -DDEBUG
-#EXTRA	+= -pg
+EXTRA	+= -pg
 EXECS	= tracker-client unregister-file server peer-done stop-server
+
+MYSQL	= 0
+
+ifeq ($(MYSQL),1)
+SERVERLIBS	= -L/usr/lib64/mysql -lmysqlclient
+EXTRA		+= -DWITH_MYSQL 
+endif
 
 build:	$(EXECS)
 
@@ -84,7 +94,7 @@ unregister-file:	unregister-file.c client.c lib.c
 
 server:		server.o lib.o shuffle.o
 	cc $(INCLUDE) $(EXTRA) -pg -o server server.o lib.o shuffle.o $(LIBS) \
-		-L/usr/lib64/mysql -lmysqlclient
+		$(SERVERLIBS)
 
 lib.o:	lib.c
 	cc $(INCLUDE) $(EXTRA) -c lib.c

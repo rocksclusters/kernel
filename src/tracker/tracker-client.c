@@ -1,10 +1,13 @@
 /*
- * $Id: tracker-client.c,v 1.13 2010/04/07 17:54:25 bruno Exp $
+ * $Id: tracker-client.c,v 1.14 2010/04/15 15:30:54 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.14  2010/04/15 15:30:54  bruno
+ * better coop processing. the simulation is now performing 20% better.
+ *
  * Revision 1.13  2010/04/07 17:54:25  bruno
  * tweaks
  *
@@ -460,6 +463,8 @@ getlocal(char *filename, char *range)
 	return(0);
 }
 
+char *fromip;
+
 int
 getremote(char *filename, peer_t *peer, char *range, CURL *curlhandle)
 {
@@ -592,6 +597,11 @@ getremote(char *filename, peer_t *peer, char *range, CURL *curlhandle)
 		free(tempfilename);
 		return(-1);
 	}
+
+	if (fromip != NULL) {
+		free(fromip);
+	}
+	fromip = strdup(inet_ntoa(in));
 
 #ifdef	TIMEIT
 	gettimeofday(&end_time, NULL);
@@ -1104,9 +1114,9 @@ doit(int sockfd, uint16_t num_trackers, in_addr_t *trackers, uint16_t maxpeers,
 {
 	struct timeval		start_time;
 #ifdef	TIMEIT
+#endif
 	struct timeval		end_time;
 	unsigned long long	s, e;
-#endif
 	char			*forminfo;
 	char			*range;
 	char			filename[PATH_MAX];
@@ -1136,8 +1146,8 @@ doit(int sockfd, uint16_t num_trackers, in_addr_t *trackers, uint16_t maxpeers,
 	/*
 	 * the time is 'epoch' time
 	 */
+	logmsg("%d : doit:file %s\n", start_time.tv_sec, basename(filename));
 #ifdef	DEBUG
-	logmsg("%d : doit:file %s\n", start_time.tv_sec, filename);
 	logmsg("doit:getting file (%s)\n", filename);
 #endif
 
@@ -1156,13 +1166,14 @@ doit(int sockfd, uint16_t num_trackers, in_addr_t *trackers, uint16_t maxpeers,
 #ifdef	DEBUG
 	logmsg("doit:done:file (%s)\n\n", filename);
 #endif
+
 #ifdef	TIMEIT
+#endif
 	gettimeofday(&end_time, NULL);
 	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
 	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
-	logmsg("doit:svc time: %lld usec file %s\n\n", (e - s) - curltime,
-		basename(filename));
-#endif
+	logmsg("doit:svc time: %lld usec file %s from %s\n\n",
+		(e - s) - curltime, basename(filename), fromip);
 
 	return(0);
 }

@@ -3,6 +3,7 @@
 #include <strings.h>
 #include <stdlib.h>
 #include <time.h>
+#include <sys/time.h>
 #include "tracker.h"
 
 #include <sys/socket.h>
@@ -10,7 +11,8 @@
 #include <arpa/inet.h>
 
 extern int shuffle(peer_t *, uint16_t, char *);
-extern char *gethostattr(char *, char *);
+extern char *getcoop(in_addr_t, char *);
+extern void clear_dt_table_entry(in_addr_t);
 
 hash_table_t	*hash_table = NULL;
 
@@ -285,7 +287,7 @@ grow_hash_table(int size)
 
 	len = sizeof(hash_table_t) + (newsize * sizeof(hash_info_t));
 
-#ifdef	DEBUG
+#ifdef	LATER
 	fprintf(stderr, "grow_hash_table:enter:size (%d)\n", hash_table->size);
 	fprintf(stderr, "grow_hash_table:enter:head (%d)\n", hash_table->head);
 	fprintf(stderr, "grow_hash_table:enter:tail (%d)\n", hash_table->tail);
@@ -319,7 +321,7 @@ grow_hash_table(int size)
 	hash_table->size = newsize;
 	hash_table->tail = hash_table->tail + size;
 
-#ifdef	DEBUG
+#ifdef	LATER
 	fprintf(stderr, "grow_hash_table:exit:size (%d)\n", hash_table->size);
 	fprintf(stderr, "grow_hash_table:exit:head (%d)\n", hash_table->head);
 	fprintf(stderr, "grow_hash_table:exit:tail (%d)\n", hash_table->tail);
@@ -407,6 +409,14 @@ getpeers(uint64_t hash, int *index)
 	int	i;
 	int	h = hash_table->head;
 	int	found = -1;
+#ifdef	TIMEIT
+	struct timeval		start_time, end_time;
+	unsigned long long	s, e;
+#endif
+
+#ifdef	TIMEIT
+	gettimeofday(&start_time, NULL);
+#endif
 
 	if (h < hash_table->tail) {
 		/*
@@ -423,6 +433,13 @@ getpeers(uint64_t hash, int *index)
 		h = hash_table->size - 1;
 	}
 
+#ifdef	TIMEIT
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	fprintf(stderr, "getpeers:svc time1: %lld\n", (e - s));
+#endif
+
 	if (found == -1) {
 		/*
 		 * we know head (h) is greater than tail
@@ -434,6 +451,13 @@ getpeers(uint64_t hash, int *index)
 			}
 		}
 	}
+
+#ifdef	TIMEIT
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	fprintf(stderr, "getpeers:svc time2: %lld\n", (e - s));
+#endif
 
 	if (found != -1) {
 #ifdef	DEBUG
@@ -451,6 +475,13 @@ getpeers(uint64_t hash, int *index)
 	 */
 #ifdef	DEBUG
 	fprintf(stderr, "getpeers:hash (0x%016lx) not found\n", hash);
+#endif
+
+#ifdef	TIMEIT
+	gettimeofday(&end_time, NULL);
+	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+	e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+	fprintf(stderr, "getpeers:svc time3: %lld\n", (e - s));
 #endif
 	return(NULL);
 }
@@ -514,7 +545,7 @@ prep_peers(hash_info_t *hashinfo, tracker_info_t *respinfo,
 	int	i;
 	char	*coop;
 
-	coop = gethostattr(inet_ntoa(from_addr->sin_addr), "coop");
+	coop = getcoop(from_addr->sin_addr.s_addr, "coop");
 	shuffle(hashinfo->peers, hashinfo->numpeers, coop);
 	free(coop);
 
@@ -563,11 +594,6 @@ dolookup(int sockfd, uint64_t hash, uint32_t seqno,
 	int			index, next_index;
 	char			found;
 	char			buf[64*1024];
-
-#ifdef	DEBUG
-	fprintf(stderr, "dolookup:enter:hash (0x%lx) from (%s)\n", hash,
-		inet_ntoa(from_addr->sin_addr));
-#endif
 
 	resp = (tracker_lookup_resp_t *)buf;
 	resp->header.op = LOOKUP;
@@ -718,7 +744,7 @@ register_hash(char *buf, struct sockaddr_in *from_addr)
 
 	for (i = 0; i < req->numhashes; ++i) {
 		reqinfo = &req->info[i];
-#ifdef	DEBUG
+#ifdef	LATER
 		fprintf(stderr,
 			"register_hash:enter:hash (0x%lx)\n", reqinfo->hash);
 		fprintf(stderr, "register_hash:hash_table:before\n\n");
@@ -794,9 +820,12 @@ register_hash(char *buf, struct sockaddr_in *from_addr)
 				addpeer(hashinfo, &peers[j]);
 			}
 		}
-#ifdef	DEBUG
+#ifdef	LATER
 	fprintf(stderr, "register_hash:hash_table:after\n\n");
 	print_hash_table();
+#endif
+
+#ifdef	DEBUG
 	fprintf(stderr, "register_hash:exit:hash (0x%lx)\n", reqinfo->hash);
 #endif
 	}
@@ -908,6 +937,8 @@ unregister_all(char *buf, struct sockaddr_in *from_addr)
 		}
 	}
 
+	clear_dt_table_entry(peer.ip);
+
 #ifdef	DEBUG
 	fprintf(stderr, "unregister_all:hash_table:after\n\n");
 	print_hash_table();
@@ -924,6 +955,11 @@ main()
 	int			sockfd;
 	char			buf[64*1024];
 	char			done;
+#ifdef	TIMEIT
+#endif
+	struct timeval		start_time, end_time;
+	unsigned long long	s, e;
+
 
 	if ((sockfd = init_tracker_comm(TRACKER_PORT)) < 0) {
 		fprintf(stderr, "main:init_tracker_comm:failed\n");
@@ -954,6 +990,16 @@ main()
 			tracker_header_t	*p;
 
 			p = (tracker_header_t *)buf;
+
+			gettimeofday(&start_time, NULL);
+#ifdef	TIMEIT
+#endif
+
+			fprintf(stderr, "%lld : main:op %d from %s seqno %d\n",
+				(long long int)start_time.tv_sec, p->op,
+				inet_ntoa(from_addr.sin_addr), p->seqno);
+#ifdef	DEBUG
+#endif
 
 			switch(p->op) {
 			case LOOKUP:
@@ -989,6 +1035,13 @@ main()
 				abort();
 				break;
 			}
+
+			gettimeofday(&end_time, NULL);
+			s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+			e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+			fprintf(stderr, "main:svc time: %lld\n", (e - s));
+#ifdef	TIMEIT
+#endif
 		}
 	}
 

@@ -32,6 +32,10 @@ lookup(int sockfd, in_addr_t *tracker, uint64_t hash, tracker_info_t **info)
 	bzero(&send_addr, sizeof(send_addr));
 	send_addr.sin_family = AF_INET;
 
+#ifdef	DEBUG
+#endif
+	logmsg("lookup:hash 0x%llx seqno %d\n", hash, seqno);
+
 	/*
 	 * all 'tracker' ip addresses are already in network byte order
 	 */
@@ -118,6 +122,9 @@ lookup(int sockfd, in_addr_t *tracker, uint64_t hash, tracker_info_t **info)
 		} else {
 			retval = 0;
 			done = 1;
+			fprintf(stderr,
+				"lookup:tracker_recv:0 bytes seqno %d\n",
+				req.header.seqno);
 		}
 	}
 

@@ -84,34 +84,55 @@ tracker_recv(int sockfd, void *buf, size_t len, struct sockaddr *from,
 	ssize_t	size = 0;
 	int	flags = 0;
 	int	readit = 0;
+	int	retval;
 
 	if (timeout) {
-		fd_set			sockfds;
 #ifdef	TIMEIT
-		struct timeval		start_time, end_time;
-		unsigned long long	s, e;
-
-		gettimeofday(&start_time, NULL);
 #endif
+		struct timeval	start_time, end_time;
+		long long	s, e, timeleft;
+		fd_set		sockfds;
 
 		FD_ZERO(&sockfds);
 		FD_SET(sockfd, &sockfds);
 
-		if ((select(sockfd+1, &sockfds, NULL, NULL, timeout) > 0) &&
-				(FD_ISSET(sockfd, &sockfds))) {
+		gettimeofday(&start_time, NULL);
 
-#ifdef	TIMEIT
+		timeleft = (timeout->tv_sec * 1000000) + timeout->tv_usec;
+		while (timeleft) {
+			if ((timeout->tv_sec) == 0 && (timeout->tv_usec == 0)) {
+				break;
+			}
+
+			retval = select(sockfd+1, &sockfds, NULL, NULL,
+				timeout);
+
+			if ((retval > 0) && (FD_ISSET(sockfd, &sockfds))) {
+				readit = 1;
+				break;
+			} else if (retval < 0) {
+				/*
+				 * an error occurred
+				 */
+				logmsg("tracker_recv:select:error:errno %d\n",
+					errno);
+			} else {
+				logmsg("tracker_recv:timeout\n");
+				break;
+			}
+
 			gettimeofday(&end_time, NULL);
-			s = (start_time.tv_sec * 1000000) +
-				start_time.tv_usec;
+			s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
 			e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
-			logmsg("tracker_recv:svc time: %lld usec\n", (e - s));
-#endif
 
-			readit = 1;
-		} else {
-			logmsg("tracker_recv:timeout:error\n");
+			timeleft -= (e - s);
 		}
+#ifdef	TIMEIT
+#endif
+		gettimeofday(&end_time, NULL);
+		s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
+		e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
+		logmsg("tracker_recv:svc time: %lld usec\n", (e - s));
 	} else {
 		readit = 1;
 	}

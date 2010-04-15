@@ -6,6 +6,7 @@
 #include <strings.h>
 #include <errno.h>
 #include <unistd.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <sys/time.h>
 #include "tracker.h"
@@ -15,6 +16,9 @@
 #include <arpa/inet.h>
 #include <mysql/mysql.h>
 
+dt_table_t	*dt_table = NULL;
+
+#ifdef	WITH_MYSQL
 char *
 gethostattr(char *ip, char *attr)
 {
@@ -27,6 +31,7 @@ gethostattr(char *ip, char *attr)
 	if (mysql_init(&mysql) == NULL) {
 		fprintf(stderr, "gethostattr:mysql_init:failed: errno %d\n",
 			errno);
+		return(NULL);
 	}
 
 	if (mysql_options(&mysql, MYSQL_READ_DEFAULT_FILE,
@@ -34,6 +39,7 @@ gethostattr(char *ip, char *attr)
 
 		fprintf(stderr, "gethostattr:mysql_options:failed: %s\n",
 			mysql_error(&mysql));
+		return(NULL);
 	}
 
 	if (mysql_real_connect(&mysql, "localhost", "apache", NULL, "cluster",
@@ -41,6 +47,7 @@ gethostattr(char *ip, char *attr)
 
 		fprintf(stderr, "gethostattr:mysql_real_connect:failed: %s\n",
 			mysql_error(&mysql));
+		return(NULL);
 	}
 
 	/*
@@ -152,38 +159,129 @@ gethostattr(char *ip, char *attr)
 	}
 
 	mysql_free_result(result);
+	mysql_close(&mysql);
 
-	if (value != NULL) {
-		mysql_close(&mysql);
+	return(value);
+}
+#endif
+
+char *
+getcoop(in_addr_t host, char *attr)
+{
+	struct hostent	*hostp;
+	struct in_addr	in;
+	int		i;
+	char		*value = NULL;
+	char		*ip;
+#ifdef	WITH_MYSQL
+	MYSQL_ROW	row;
+	MYSQL		mysql;
+	MYSQL_RES	*result;
+	char		query[1024];;
+	int		mysql_ready;
+#endif
+
+	/*
+	 * most likely the coop value has already been recorded in the
+	 * downloads table
+	 */
+	if (dt_table != NULL) {
+		for (i = 0 ; i < dt_table->size ; ++i) {
+			if ((dt_table->entry[i].host == host) && 
+					(dt_table->entry[i].coop != NULL)) {
+				value = strdup(dt_table->entry[i].coop);
+#ifdef	DEBUG
+				fprintf(stderr,
+					"getcoop: found cached value %s\n",
+					value);
+#endif
+				return(value);
+			}
+		}
+	}
+
+	in.s_addr = host;
+	ip = inet_ntoa(in);
+
+#ifdef	WITH_MYSQL
+	if ((value = gethostattr(ip, attr)) != NULL) {
 		return(value);
 	}
 
+	mysql_ready = 0;
+	if (mysql_init(&mysql) != NULL) {
+		if (mysql_options(&mysql, MYSQL_READ_DEFAULT_FILE,
+				"/opt/rocks/etc/my.cnf") == 0) {
+			if (mysql_real_connect(&mysql, "localhost", "apache",
+					NULL, "cluster", 0, NULL, 0) != NULL) {
+				mysql_ready = 1;
+			}
+		}
+	}
+
+	if (mysql_ready) {
+		/*
+		 * try to return the rack number for this host
+		 */
+		sprintf(query, "select n.rack from nodes n, networks net where \
+			net.ip = '%s' and net.node = n.id", ip);
+
+		if (mysql_real_query(&mysql, query, strlen(query)) != 0) {
+			fprintf(stderr,
+				"gethostattr:mysql_real_query:failed: %s\n",
+				mysql_error(&mysql));
+		}
+
+		if ((result = mysql_store_result(&mysql)) == NULL) {
+			fprintf(stderr,
+				"gethostattr:mysql_store_result:failed: %s\n",
+				mysql_error(&mysql));
+		}
+
+		if ((row = mysql_fetch_row(result)) != NULL) {
+			value = strdup(row[0]);
+		}
+
+		mysql_free_result(result);
+		mysql_close(&mysql);
+
+		if (value != NULL) {
+			return(value);
+		}
+	}
+#endif
+
 	/*
-	 * if none of the above work, then return the rack number for this host
+	 * the last resort - try to parse the host name
 	 */
-	sprintf(query, "select n.rack from nodes n, networks net where \
-		net.ip = '%s' and net.node = n.id", ip);
+	hostp = gethostbyaddr(&in, sizeof(in), AF_INET);
 
-	if (mysql_real_query(&mysql, query, strlen(query)) != 0) {
-		fprintf(stderr, "gethostattr:mysql_real_query:failed: %s\n",
-			mysql_error(&mysql));
+	if (hostp != NULL) {
+		int	i;
+		char	name[128], rack[16], rank[16];
+		char	*ptr;
+
+		/*
+		 * convert the last 2 '-' characters into blanks
+		 */
+		for (i = 0 ; i < 2 ; ++i) {
+			ptr = strrchr(hostp->h_name, '-');
+			if (ptr != NULL) {
+				*ptr = ' ';
+			} else {
+				/*
+				 * this host name is not standard form
+				 */
+				return(NULL);
+			}
+		}
+
+		sscanf(hostp->h_name, "%s %s %s.local", name, rack, rank);
+		value = strdup(rack);
 	}
 
-	if ((result = mysql_store_result(&mysql)) == NULL) {
-		fprintf(stderr, "gethostattr:mysql_store_result:failed: %s\n",
-			mysql_error(&mysql));
-	}
-
-	if ((row = mysql_fetch_row(result)) != NULL) {
-		value = strdup(row[0]);
-	}
-
-	mysql_free_result(result);
-
-	mysql_close(&mysql);
 	return(value);
 }
-
 
 static void
 random_shuffle(peer_t *peers, uint16_t numpeers)
@@ -214,8 +312,6 @@ stampit()
 	n = (now.tv_sec * 1000000) + now.tv_usec;
 	return(n);
 }
-
-dt_table_t	*dt_table = NULL;
 
 int
 grow_dt_table(int size)
@@ -276,8 +372,7 @@ add_to_dt_table(in_addr_t host, char **coop)
 			 */
 			dt_table->entry[i].host = host;
 			dt_table->entry[i].timestamp = 0;
-			dt_table->entry[i].coop = gethostattr(inet_ntoa(in),
-				"coop");
+			dt_table->entry[i].coop = getcoop(host, "coop");
 			*coop = dt_table->entry[i].coop;
 			break;
 		}
@@ -293,19 +388,49 @@ add_to_dt_table(in_addr_t host, char **coop)
 	return(dt_table->entry[i].timestamp);
 }
 
+
+/*
+ * reset the values in the download table for a host
+ */
+void
+clear_dt_table_entry(in_addr_t host)
+{
+	struct in_addr	in;
+	int		i;
+
+	in.s_addr = host;
+
+#ifdef	DEBUG
+	fprintf(stderr, "clear_dt_table_entry:host %s\n", inet_ntoa(in));
+#endif
+
+	for (i = 0 ; i < dt_table->size ; ++i) {
+		if (dt_table->entry[i].host == host) {
+			dt_table->entry[i].timestamp = 0;
+
+			if (dt_table->entry[i].coop != NULL) {
+				free(dt_table->entry[i].coop);
+				dt_table->entry[i].coop = NULL;
+			}
+
+			break;
+		}
+	}
+
+	return;
+}
+
 static unsigned long long
 lookup_timestamp(in_addr_t host, char **coop)
 {
 	unsigned long long	timestamp = 0;
+	struct in_addr		in;
 	int			i;
 
-#ifdef	DEBUG
-{
-	struct in_addr	in;
-
 	in.s_addr = host;
+
+#ifdef	DEBUG
 	fprintf(stderr, "lookup_timestamp:host (%s)\n", inet_ntoa(in));
-}
 #endif
 
 	if (dt_table == NULL) {
@@ -324,17 +449,24 @@ lookup_timestamp(in_addr_t host, char **coop)
 
 		if (dt_table->entry[i].host == host) {
 			timestamp = dt_table->entry[i].timestamp;
+
+			if (dt_table->entry[i].coop == NULL) {
+				dt_table->entry[i].coop = getcoop(host, "coop");
+			}
+
 			*coop = dt_table->entry[i].coop;
-			break;
+
+			return(timestamp);
 		}
 	}
 
-	if (timestamp == 0) {
-		/*
-		 * didn't find the host in the table. let's add it.
-		 */
-		timestamp = add_to_dt_table(host, coop);
-	}
+	/*
+	 * if we made it here, then we didn't find the host in the table.
+	 * let's add it.
+	 */
+	timestamp = add_to_dt_table(host, coop);
+
+	return(timestamp);
 }
 
 static void
