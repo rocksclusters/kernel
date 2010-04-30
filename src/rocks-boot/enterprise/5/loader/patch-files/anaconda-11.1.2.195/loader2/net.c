@@ -2458,6 +2458,7 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 	int		numdevices;
 	int		found = 0;
 	int		query;
+	char		*ksMacAddr = NULL
 
 	initLoopback();
 
@@ -2493,24 +2494,61 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 		return LOADER_ERROR;
 	}
 
+
 	/*
-	 * probeDevices() gives us the list in reverse order (that is, eth1
-	 * first, then eth0). so count the devices first, then use the
-	 * value to look at the devices in the 'correct' order.
+	 * This code is from chooseNetworkInterface.  
+	 *
+	 * If finds the mac address of the device specified.  
+	 * This adds support for *some* of the ksdevice= settings.
+	 * The big one we care about is "bootif".
+	 *
+	 * Needs testing to see what else would work (e.g. "eth0").
 	 */
-	numdevices = 0;
-	for (i = 0; devs[i]; i++) {
-		++numdevices;
-	}
+	if (loaderData->netDev && (loaderData->netDev_set) == 1) {
+	       	if ( loaderData->bootIf && loaderData->bootIf_set == 1 &&
+	       		!strcasecmp(loaderData->netDev, "bootif") )
+	       	{
+	        	ksMacAddr = strdup(loaderData->bootIf);
+	        } 
+	        else {
+	        	ksMacAddr = strdup(loaderData->netDev);
+	        }
+        	ksMacAddr = str2upper(ksMacAddr);
+    	}
+
 
 	/*
 	 * try sending a DHCP on all the network devices, the first one
 	 * get an answer on, we'll use.
 	 */
 	for (tries = 0; !found && tries < 3; tries++) {
-		for (i = 0; i < numdevices; ++i) {
+		for (i = 0; i < devs[i]; ++i) {
 			if (!devs[i]->device) {
 				continue;
+			}
+			
+			/*
+			 * If we specified a ksdevice (e.g. 'bootif') then
+			 * only continue to try to boot after we find it
+			 * by matching the macaddr.
+			 *
+			 * Otherwise (no ksMacAddr) just iterate over
+			 * all of the devices.
+			 */
+			if ( ksMacAddr ) {
+				char *devmac = nl_mac2str(devs[i]->device);
+				
+				if ( devmac ) {
+					int match = 0;
+					
+					if ( !strcmp(ksMacAddr, devmac) ) {
+						match = 1;
+					}
+					free(devmac);
+					if ( ! match ) {
+						continue; /* next interface */
+					}
+				}
 			}
 
 			loaderData->netDev = strdup(devs[i]->device);
