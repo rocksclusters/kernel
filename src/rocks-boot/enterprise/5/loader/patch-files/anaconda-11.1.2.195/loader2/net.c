@@ -2455,36 +2455,29 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 	int		i;
 	int		rc;
 	int		tries;
-	int		numdevices;
 	int		found = 0;
 	int		query;
-	char		*ksMacAddr = NULL
+	char 		*ksmac = NULL;
+	char		*ksdevice = NULL;
 
 	initLoopback();
 
 	memset(netCfgPtr, 0, sizeof(*netCfgPtr));
 	netCfgPtr->isDynamic = 1;
 
-	/* we don't want to end up asking about interface more than once
-	 * if we're in a kickstart-ish case (#100724) */
-	loaderData->netDev_set = 1;
-
-	/* JKFIXME: this is kind of crufty, we depend on the fact that the
-	 * ip is set and then just get the network up.  we should probably
-	 * add a way to do asking about static here and not be such a hack */
 	if (!loaderData->ip) {
 		loaderData->ip = strdup("dhcp");
 	} 
 
-	/* ROCKS - XXX look at this section */
-	loaderData->ipinfo_set = 1;
+        /* ROCKS - XXX look at this section */
+        loaderData->ipinfo_set = 1;
 
-	query = !strncmp(loaderData->ip, "query", 5);
+        query = !strncmp(loaderData->ip, "query", 5);
 
-	if (!query) {
-		loaderData->ipinfo_set = 1;
-	}
-	/* ROCKS - XXX look at this section */
+        if (!query) {
+                loaderData->ipinfo_set = 1;
+        }
+        /* ROCKS - XXX look at this section */
 
 	devs = probeDevices(CLASS_NETWORK, BUS_UNSPEC, PROBE_LOADED);
 	if (!devs) {
@@ -2504,59 +2497,75 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 	 *
 	 * Needs testing to see what else would work (e.g. "eth0").
 	 */
-	if (loaderData->netDev && (loaderData->netDev_set) == 1) {
-	       	if ( loaderData->bootIf && loaderData->bootIf_set == 1 &&
+	if ( loaderData->netDev && loaderData->netDev_set ) {
+		logMessage(INFO, "%s: netDev %s",
+		    "ROCKS:rocksNetworkUp", loaderData->netDev);
+	       	if ( loaderData->bootIf && loaderData->bootIf_set &&
 	       		!strcasecmp(loaderData->netDev, "bootif") )
 	       	{
-	        	ksMacAddr = strdup(loaderData->bootIf);
+			logMessage(INFO, "%s: bootIf %s",
+			    "ROCKS:rocksNetworkUp", loaderData->bootIf);
+	        	ksmac = str2upper(strdup(loaderData->bootIf));
 	        } 
 	        else {
-	        	ksMacAddr = strdup(loaderData->netDev);
+	        	ksdevice = strdup(loaderData->netDev);
 	        }
-        	ksMacAddr = str2upper(ksMacAddr);
-    	}
+	}
 
+	if ( ksmac ) {
+		logMessage(INFO, "%s: specified interface %s",
+			"ROCKS:rocksNetworkUp", ksmac);
+	}
+	if ( ksdevice ) {
+		logMessage(INFO, "%s: specified interface %s",
+			"ROCKS:rocksNetworkUp", ksdevice);
+	}
 
 	/*
 	 * try sending a DHCP on all the network devices, the first one
 	 * get an answer on, we'll use.
 	 */
 	for (tries = 0; !found && tries < 3; tries++) {
-		for (i = 0; i < devs[i]; ++i) {
+		for (i = 0; devs[i]; ++i) {
 			if (!devs[i]->device) {
 				continue;
 			}
-			
+
+                        logMessage(INFO, "%s: looking at device %s",
+                                "ROCKS:rocksNetworkUp", devs[i]->device);
+
 			/*
-			 * If we specified a ksdevice (e.g. 'bootif') then
-			 * only continue to try to boot after we find it
-			 * by matching the macaddr.
-			 *
-			 * Otherwise (no ksMacAddr) just iterate over
-			 * all of the devices.
+			 * If the device name was specified skip all the other
+			 * interfaces.
 			 */
-			if ( ksMacAddr ) {
-				char *devmac = nl_mac2str(devs[i]->device);
-				
-				if ( devmac ) {
-					int match = 0;
-					
-					if ( !strcmp(ksMacAddr, devmac) ) {
-						match = 1;
-					}
-					free(devmac);
-					if ( ! match ) {
-						continue; /* next interface */
-					}
-				}
+			if ( ksdevice && strcmp(ksdevice, devs[i]->device) ) {
+				continue;
 			}
+
+			/*
+			 * If the device mac addr was specified skip all other
+			 * interfaces.
+			 */
+                        if ( ksmac ) {
+                                char *devmac = nl_mac2str(devs[i]->device);
+
+				if ( !devmac ) {
+					continue;
+				}
+
+                                if ( strcmp(ksmac, devmac) ) {
+					free(devmac);
+					continue;
+                                }
+                                free(devmac);
+                        }
+
+
+			logMessage(INFO, "%s: using device %s",
+                                "ROCKS:rocksNetworkUp", devs[i]->device);
 
 			loaderData->netDev = strdup(devs[i]->device);
 			strcpy(netCfgPtr->dev.device, loaderData->netDev);
-
-			logMessage(INFO, "%s: looking at device (%s)", 
-				"ROCKS:rocksNetworkUp", loaderData->netDev);
-
 			setupNetworkDeviceConfig(netCfgPtr, loaderData);
 
 			if (netCfgPtr->preset != 1) {
@@ -2569,6 +2578,10 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 
 			rc = readNetConfig(loaderData->netDev, netCfgPtr,
 				loaderData->netCls, loaderData->method, query);
+
+			if ( loaderData->netDev) {
+				free(loaderData->netDev);
+			}
 
 			/*
 			 * if there is no bootfile provided from the DHCP
