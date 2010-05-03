@@ -2497,6 +2497,7 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 	 *
 	 * Needs testing to see what else would work (e.g. "eth0").
 	 */
+
 	if ( loaderData->netDev && loaderData->netDev_set ) {
 		logMessage(INFO, "%s: netDev %s",
 		    "ROCKS:rocksNetworkUp", loaderData->netDev);
@@ -2513,13 +2514,15 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 	}
 
 	if ( ksmac ) {
-		logMessage(INFO, "%s: specified interface %s",
+		logMessage(INFO, "%s: specified mac %s",
 			"ROCKS:rocksNetworkUp", ksmac);
 	}
 	if ( ksdevice ) {
-		logMessage(INFO, "%s: specified interface %s",
+		logMessage(INFO, "%s: specified device %s",
 			"ROCKS:rocksNetworkUp", ksdevice);
 	}
+
+	printLoaderDataIPINFO(loaderData);
 
 	/*
 	 * try sending a DHCP on all the network devices, the first one
@@ -2570,7 +2573,7 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 
 			if (netCfgPtr->preset != 1) {
 				logMessage(INFO,
-					"%s:no DHCP response on device (%s)",
+					"%s: no DHCP response on device (%s)",
 					"ROCKS:rocksNetworkUp",
 					loaderData->netDev);
 				continue;
@@ -2584,11 +2587,17 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 			}
 
 			/*
-			 * if there is no bootfile provided from the DHCP
-			 * response, then this is definitely not a frontend,
-			 * so continue and go to the next device
+			 * If device was not specified and there is no 
+			 * bootfile provided from the DHCP response, then 
+			 * this is definitely not a frontend, so continue 
+			 * and go to the next device.
 			 */
-			if (!(netCfgPtr->dev.set & PUMP_INTFINFO_HAS_BOOTFILE)){
+			if ( !ksdevice && !ksmac && 
+				!(netCfgPtr->dev.set & 
+					PUMP_INTFINFO_HAS_BOOTFILE))
+			{
+				logMessage(INFO, "%s: frontend not found",
+	                                "ROCKS:rocksNetworkUp");
 				continue;
 			}
 
@@ -2597,7 +2606,7 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 				break;
 			}
 		}
-	}
+ 	}
 
 	if (found == 0) {
 		logMessage(ERROR,

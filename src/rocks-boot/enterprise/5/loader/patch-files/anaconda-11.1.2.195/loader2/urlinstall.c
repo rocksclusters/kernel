@@ -620,16 +620,24 @@ int getFileFromUrl(char * url, char * dest,
 
     /*
      * this will be used when starting up mini_httpd()
+     *
+     * Get the nextServer from PUMP if we DHCP, otherwise it
+     * better be on the command line.
      */
 
-    tip = &(netCfg.dev.nextServer);
-    inet_ntop(tip->sa_family, IP_ADDR(tip), ret, IP_STRLEN(tip));
+    if ( netCfg.dev.set & PUMP_INTFINFO_HAS_BOOTFILE ) {
+    	tip = &(netCfg.dev.nextServer);
+    	inet_ntop(tip->sa_family, IP_ADDR(tip), ret, IP_STRLEN(tip));
 
-    if (strlen(ret) > 0) {
-        loaderData->nextServer = strdup(ret);
-    } else {
-        loaderData->nextServer = NULL;
+    	if (strlen(ret) > 0) {
+		loaderData->nextServer = strdup(ret);
+	} else {
+        	loaderData->nextServer = NULL;
+	}
     }
+
+    logMessage(INFO, "%s: nextServer %s",
+		"ROCKS:getFileFromUrl", loaderData->nextServer);
 #else
     if (kickstartNetworkUp(loaderData, &netCfg)) {
         logMessage(ERROR, "unable to bring up network");

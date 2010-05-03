@@ -767,6 +767,9 @@ static void parseCmdLineFlags(struct loaderData_s * loaderData,
         else if (!strcasecmp(argv[i], "ks") || !strncasecmp(argv[i], "ks=", 3))
             loaderData->ksFile = strdup(argv[i]);
 #ifdef ROCKS
+        else if (!strncasecmp(argv[i], "nextserver=", 11)) {
+            loaderData->nextServer = strdup(argv[i]+11);
+        }
         else if (!strncasecmp(argv[i], "dropcert", 8)) {
             loaderData->dropCert = 1;
         }
@@ -886,6 +889,9 @@ static void parseCmdLineFlags(struct loaderData_s * loaderData,
 
 #ifdef ROCKS 
     /*
+     * Do this only for the frontend, since this confuses the compute
+     * nodes.  Use the build argument (loaderData->server) for this.
+     *
      * if 'ksdevice=' isn't specified on the command line, then
      * default the kickstart device to eth1
      *  
@@ -897,10 +903,12 @@ static void parseCmdLineFlags(struct loaderData_s * loaderData,
      * to specify 'ksdevice=ethx' where 'ethx' is their interface of
      * choice.
      */     
-    if (loaderData->netDev_set != 1) {
-        loaderData->netDev = strdup("eth1");
-        loaderData->netDev_set = 1;
-    }       
+    if ( loaderData->server ) {
+    	if (loaderData->netDev_set != 1) {
+        	loaderData->netDev = strdup("eth1");
+        	loaderData->netDev_set = 1;
+    	}
+    }
 #endif 
 
     readNetInfo(&loaderData);
