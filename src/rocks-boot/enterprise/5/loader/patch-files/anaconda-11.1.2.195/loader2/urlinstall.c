@@ -636,6 +636,13 @@ int getFileFromUrl(char * url, char * dest,
 	}
     }
 
+    /*
+     * If no nextServer use the gateway.
+     */
+    if ( !loaderData->nextServer ) {
+    	loaderData->nextServer = strdup(loaderData->gateway);
+    }
+
     logMessage(INFO, "%s: nextServer %s",
 		"ROCKS:getFileFromUrl", loaderData->nextServer);
 #else
