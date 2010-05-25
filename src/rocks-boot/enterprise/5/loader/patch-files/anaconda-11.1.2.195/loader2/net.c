@@ -2568,6 +2568,8 @@ rocksNetworkUp(struct loaderData_s * loaderData,
                                 "ROCKS:rocksNetworkUp", devs[i]->device);
 
 			loaderData->netDev = strdup(devs[i]->device);
+			loaderData->netDev_set = 1;
+
 			strcpy(netCfgPtr->dev.device, loaderData->netDev);
 			setupNetworkDeviceConfig(netCfgPtr, loaderData);
 
@@ -2581,10 +2583,6 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 
 			rc = readNetConfig(loaderData->netDev, netCfgPtr,
 				loaderData->netCls, loaderData->method, query);
-
-			if ( loaderData->netDev) {
-				free(loaderData->netDev);
-			}
 
 			/*
 			 * If device was not specified and there is no 
