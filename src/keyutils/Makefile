@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.5 2009/08/14 18:00:12 bruno Exp $
+# $Id: Makefile,v 1.6 2010/06/22 21:55:09 mjk Exp $
 #
 # @Copyright@
 # 
@@ -55,6 +55,9 @@
 # @Copyright@
 #
 # $Log: Makefile,v $
+# Revision 1.6  2010/06/22 21:55:09  mjk
+# remove ROCKSROOT
+#
 # Revision 1.5  2009/08/14 18:00:12  bruno
 # install keyutils after building it
 #
@@ -103,7 +106,6 @@
 #
 
 REDHAT.ROOT     = $(CURDIR)/../../
-ROCKSROOT       = ../../../../..
 
 -include $(ROCKSROOT)/etc/Rules.mk
 include Rules.mk

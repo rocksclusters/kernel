@@ -1,5 +1,5 @@
 # --------------------------------------------------- -*- Makefile -*- --
-# $Id: Makefile,v 1.16 2009/05/01 19:07:20 mjk Exp $
+# $Id: Makefile,v 1.17 2010/06/22 21:55:10 mjk Exp $
 #
 # @Copyright@
 # 
@@ -55,6 +55,9 @@
 # @Copyright@
 #
 # $Log: Makefile,v $
+# Revision 1.17  2010/06/22 21:55:10  mjk
+# remove ROCKSROOT
+#
 # Revision 1.16  2009/05/01 19:07:20  mjk
 # chimi con queso
 #
@@ -247,7 +250,6 @@ MAKE.rpmroot	= 1
 default: $(NAME).spec ../$(NAME)-$(VERSION).tar.gz
 
 REDHAT.ROOT	= $(PWD)/../../
-ROCKSROOT	=  ../../../../..
 
 -include $(ROCKSROOT)/etc/Rules.mk
 include Rules.mk

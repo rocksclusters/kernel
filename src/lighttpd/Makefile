@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.9 2009/05/01 19:07:20 mjk Exp $
+# $Id: Makefile,v 1.10 2010/06/22 21:55:09 mjk Exp $
 #
 # @Copyright@
 # 
@@ -55,6 +55,9 @@
 # @Copyright@
 #
 # $Log: Makefile,v $
+# Revision 1.10  2010/06/22 21:55:09  mjk
+# remove ROCKSROOT
+#
 # Revision 1.9  2009/05/01 19:07:20  mjk
 # chimi con queso
 #
@@ -84,7 +87,6 @@
 
 PKGROOT		= /lighttpd
 REDHAT.ROOT     = $(CURDIR)/../../
-ROCKSROOT       = ../../../../..
 -include $(ROCKSROOT)/etc/Rules.mk
 include Rules.mk
 
