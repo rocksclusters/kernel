@@ -1,3 +1,4 @@
+fcgi
 keyutils
 keyutils-libs
 keyutils-libs-devel
@@ -7,4 +8,5 @@ rocks-boot-auto
 rocks-boot-cdrom
 rocks-boot-netstage
 rocks-boot-xen
+rocks-tracker
 roll-kernel-kickstart
