@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.19 2010/03/03 21:59:02 bruno Exp $
+# $Id: Boot.mk,v 1.20 2010/07/15 19:01:00 bruno Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -59,6 +59,9 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.20  2010/07/15 19:01:00  bruno
+# support for different trackers and package servers
+#
 # Revision 1.19  2010/03/03 21:59:02  bruno
 # add 'peer-done' to initrd
 #
@@ -123,8 +126,7 @@
 #
 #
 ifeq ($(ARCH),)
-ROCKSBIN=../../../../../../../../../bin
-ARCH=$(shell $(ROCKSBIN)/arch)
+ARCH=$(shell $(ROCKSROOT)/bin/arch)
 endif
 
 MOUNT   = mount -oloop
@@ -246,7 +248,7 @@ initrd-%.iso: $(LOADER)/loader prep-initrd make-driver-disk
 
 	# the rocks tracker client
 	mkdir -p $@.new/tracker
-	cp rocks-tracker/opt/rocks/bin/tracker-client.cgi $@.new/tracker/
+	cp rocks-tracker/opt/rocks/bin/tracker-client $@.new/tracker/
 	cp rocks-tracker/opt/rocks/bin/peer-done $@.new/tracker/
 	-for i in curl idn gssapi_krb5 krb5 k5crypto z krb5support ; do \
 		cp -d /usr/lib/lib$$i.so* $@.new/lib ; \

@@ -228,7 +228,7 @@ static char * getLoginName(char * login, struct iurlinfo ui) {
 
 #ifdef ROCKS
 void
-start_httpd(char *nextServer)
+start_httpd()
 {
 	/*
 	 * the first two NULLs are place holders for the 'nextServer' info
@@ -239,31 +239,6 @@ start_httpd(char *nextServer)
 	int	pid;
 	int	i;
 	struct device	**devs;
-	int	fd;
-	char	str[128];
-
-	if ((fd = open("/tmp/rocks.conf",
-					O_WRONLY|O_CREAT|O_TRUNC, 0666)) < 0) {
-		logMessage(ERROR,
-			"ROCKS:start_httpd:failed to open '/tmp/rocks.conf'");
-	}
-
-	/*
-	 * the next server (the ip address of the server that gave us a
-	 * kickstart file), is passed to lighttpd through a configuration file.
-	 * write that value into it.
-	 */
-	if (nextServer != NULL) {
-		sprintf(str, "var.serverip = \"%s\"\n", nextServer);
-	} else {
-		sprintf(str, "var.serverip = \"127.0.0.1\"\n");
-	}
-
-	if (write(fd, str, strlen(str)) < 0) {
-		logMessage(ERROR, "ROCKS:start_httpd:write failed");
-	}
-
-	close(fd);
 
 	/*
 	 * try to mount the CD
@@ -390,11 +365,7 @@ char * mountUrlImage(struct installMethod * method,
             }
 
 #ifdef  ROCKS
-	    if (loaderData->server) {
-	    	start_httpd(NULL);
-	    } else {
-	    	start_httpd(loaderData->nextServer);
-	    }
+	    start_httpd();
 #endif
 
 	    /* ok messy - see if we have a stage2 on local CD */
@@ -798,6 +769,7 @@ int getFileFromUrl(char * url, char * dest,
 
             if (mac) {
 #ifdef  ROCKS
+
                 /* A hint as to our primary interface. */
                 if (!strcmp(dev, loaderData->netDev)) {
                         snprintf(tmpstr, sizeof(tmpstr),
@@ -838,7 +810,8 @@ int getFileFromUrl(char * url, char * dest,
 
         BIO *sbio;
 
-        sbio = urlinstStartSSLTransfer(&ui, file, ehdrs, 1, flags);
+        sbio = urlinstStartSSLTransfer(&ui, file, ehdrs, 1, flags,
+		loaderData->nextServer);
         if (!sbio) {
                 logMessage(ERROR, "failed to retrieve https://%s/%s",
                         ui.address, file);

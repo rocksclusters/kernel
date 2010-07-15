@@ -1,10 +1,13 @@
 #
-# $Id: Makefile,v 1.12 2010/04/15 15:30:54 bruno Exp $
+# $Id: Makefile,v 1.13 2010/07/15 19:01:01 bruno Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.13  2010/07/15 19:01:01  bruno
+# support for different trackers and package servers
+#
 # Revision 1.12  2010/04/15 15:30:54  bruno
 # better coop processing. the simulation is now performing 20% better.
 #
@@ -73,7 +76,7 @@ EXTRA	= -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 #EXTRA	+= -DTIMEIT 
 #EXTRA	+= -DDEBUG
 EXTRA	+= -pg
-EXECS	= tracker-client unregister-file server peer-done stop-server
+EXECS	= tracker-client unregister-file tracker-server peer-done stop-server
 
 MYSQL	= 0
 
@@ -92,9 +95,9 @@ unregister-file:	unregister-file.c client.c lib.c
 	cc $(INCLUDE) $(EXTRA) -o unregister-file unregister-file.c \
 		client.c lib.c $(LIBS)
 
-server:		server.o lib.o shuffle.o
-	cc $(INCLUDE) $(EXTRA) -pg -o server server.o lib.o shuffle.o $(LIBS) \
-		$(SERVERLIBS)
+tracker-server:		server.o lib.o shuffle.o
+	cc $(INCLUDE) $(EXTRA) -pg -o tracker-server server.o lib.o shuffle.o \
+		$(LIBS) $(SERVERLIBS)
 
 lib.o:	lib.c
 	cc $(INCLUDE) $(EXTRA) -c lib.c

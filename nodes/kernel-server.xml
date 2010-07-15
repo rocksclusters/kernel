@@ -16,6 +16,9 @@ All rights reserved. Rocks(tm) v4.3 www.rocksclusters.org
 
 <changelog>
 $Log: kernel-server.xml,v $
+Revision 1.5  2010/07/15 19:01:00  bruno
+support for different trackers and package servers
+
 Revision 1.4  2009/05/22 16:26:14  bruno
 need keyutils to rebuild kernel roll
 
@@ -37,6 +40,8 @@ new XML node file to help support kernel roll rebuilding
 <package>keyutils</package>
 <package>keyutils-libs-devel</package>
 <package>iscsi-initiator-utils</package>
+<package>fcgi</package>
+<package>rocks-tracker</package>
 
 
 </kickstart>

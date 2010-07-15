@@ -1035,6 +1035,44 @@ addPublic(char **urlptr)
 	return 0;
 }
 
+void
+writeAvalancheInfo(char *trackers, char *pkgservers)
+{
+	int	fd;
+	char	str[512];
+
+	if ((fd = open("/tmp/rocks.conf",
+					O_WRONLY|O_CREAT|O_TRUNC, 0666)) < 0) {
+		logMessage(ERROR, "ROCKS:writeAvalancheInfo:failed to open '/tmp/rocks.conf'");
+	}
+
+	/*
+	 * the next server (the ip address of the server that gave us a
+	 * kickstart file), is passed to lighttpd through a configuration file.
+	 * write that value into it.
+	 */
+	if (trackers != NULL) {
+		sprintf(str, "var.trackers = \"%s\"\n", trackers);
+	} else {
+		sprintf(str, "var.trackers = \"127.0.0.1\"\n");
+	}
+
+	if (write(fd, str, strlen(str)) < 0) {
+		logMessage(ERROR, "ROCKS:writeAvalancheInfo:write failed");
+	}
+
+	if (pkgservers != NULL) {
+		sprintf(str, "var.pkgservers = \"%s\"\n", pkgservers);
+	} else {
+		sprintf(str, "var.pkgservers = \"127.0.0.1\"\n");
+	}
+
+	if (write(fd, str, strlen(str)) < 0) {
+		logMessage(ERROR, "ROCKS:writeAvalancheInfo:write failed");
+	}
+
+	close(fd);
+}
 
 /* Use SSL. Must be entirely different since the return
  * type is a pointer to an SSL structure.
@@ -1042,7 +1080,7 @@ addPublic(char **urlptr)
 BIO *
 urlinstStartSSLTransfer(struct iurlinfo * ui, char * filename, 
                          char *extraHeaders, int silentErrors,
-                         int flags) {
+                         int flags, char *nextServer) {
 
 	extern  void watchdog_reset();
 	int	tries = 1;
@@ -1061,7 +1099,42 @@ urlinstStartSSLTransfer(struct iurlinfo * ui, char * filename,
 	while ((errorcode < 0) && (tries < 10)) {
 		sbio = httpsGetFileDesc(ui->address, -1, filename,
 			extraHeaders, &errorcode);
-		if (errorcode == FTPERR_FAILED_DATA_CONNECT) {
+
+		if (errorcode == 0) {
+			char	*ptr;
+			char	trackers[256];
+			char	pkgservers[256];
+
+			if ((ptr = strstr(extraHeaders, "Avalanche-Trackers:"))
+					!= NULL) {
+				sscanf(ptr, "Avalanche-Trackers: %256s",
+					trackers);
+			} else {
+				if (nextServer != NULL) {
+					snprintf(trackers, sizeof(trackers) - 1,
+						"%s", nextServer);
+				} else {
+					strcpy(trackers, "127.0.0.1");
+				}
+			}
+
+			if ((ptr = strstr(extraHeaders,
+					"Avalanche-Pkg-Servers:")) != NULL) {
+				sscanf(ptr, "Avalanche-Pkg-Servers: %256s",
+					pkgservers);
+			} else {
+				if (nextServer != NULL) {
+					snprintf(pkgservers,
+						sizeof(pkgservers) - 1, "%s",
+						nextServer);
+				} else {
+					strcpy(pkgservers, "127.0.0.1");
+				}
+			}
+
+			writeAvalancheInfo(trackers, pkgservers);
+
+		} else if (errorcode == FTPERR_FAILED_DATA_CONNECT) {
 			/*
 			 * read the retry value from the return message
 			 */
@@ -1103,8 +1176,7 @@ urlinstStartSSLTransfer(struct iurlinfo * ui, char * filename,
 			   server is reporting busy */
 			watchdog_reset();
 			continue;
-		}
-		else if (errorcode == FTPERR_REFUSED) {
+		} else if (errorcode == FTPERR_REFUSED) {
 			/*
 			 * always accept the parent credentials
 			 */
@@ -1138,7 +1210,7 @@ urlinstStartSSLTransfer(struct iurlinfo * ui, char * filename,
 		}
 		if (rc==1) 	/* Retry */
 			return urlinstStartSSLTransfer(ui, filename,
-				extraHeaders, silentErrors, flags);
+				extraHeaders, silentErrors, flags, nextServer);
 		else	/* Cancel */
 			return NULL;
 	}
