@@ -404,18 +404,24 @@ clear_dt_table_entry(in_addr_t host)
 	fprintf(stderr, "clear_dt_table_entry:host %s\n", inet_ntoa(in));
 #endif
 
-	for (i = 0 ; i < dt_table->size ; ++i) {
-		if (dt_table->entry[i].host == host) {
-			dt_table->entry[i].timestamp = 0;
+	if (dt_table != NULL) {
+		for (i = 0 ; i < dt_table->size ; ++i) {
+			if (dt_table->entry[i].host == host) {
+				dt_table->entry[i].timestamp = 0;
 
-			if (dt_table->entry[i].coop != NULL) {
-				free(dt_table->entry[i].coop);
-				dt_table->entry[i].coop = NULL;
+				if (dt_table->entry[i].coop != NULL) {
+					free(dt_table->entry[i].coop);
+					dt_table->entry[i].coop = NULL;
+				}
+
+				break;
 			}
-
-			break;
 		}
 	}
+
+#ifdef	DEBUG
+	fprintf(stderr, "clear_dt_table_entry:exit\n");
+#endif
 
 	return;
 }

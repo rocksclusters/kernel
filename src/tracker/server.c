@@ -859,7 +859,7 @@ removepeer(int index, peer_t *peer)
 				hashinfo->hash = 0;
 				hashinfo->numpeers = 0;
 					
-					compact_hash_table();
+				compact_hash_table();
 				reclaim_free_entries();
 			} else {
 				/*
