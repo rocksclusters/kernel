@@ -959,15 +959,16 @@ show_cert (X509 *cert)
 
 BIO *
 httpsGetFileDesc(char * hostname, int port, char * remotename,
-	char *extraHeaders, int *errorcode) 
+	char *extraHeaders, int *errorcode, char **returnedHeaders) 
 {
-	char * buf;
+	char *buf;
 	char headers[4096];
-	char * nextChar = headers;
+	char *nextChar = headers;
 	char *hstr;
 	int sock;
 	int rc;
 	int checkedCode;
+	int headerslen;
 
 	int bufsize;
 	int byteswritten;
@@ -1126,6 +1127,7 @@ httpsGetFileDesc(char * hostname, int port, char * remotename,
 
 	*nextChar = '\0';
 	checkedCode = 0;
+	headerslen = 0;
 	while (!strstr(headers, "\r\n\r\n")) {
 
 		if (BIO_read(sbio, nextChar, 1) != 1) {
@@ -1135,6 +1137,7 @@ httpsGetFileDesc(char * hostname, int port, char * remotename,
 
 		nextChar++;
 		*nextChar = '\0';
+		++headerslen;
 
 		if (nextChar - headers == sizeof(headers)) {
 			goto error;
@@ -1182,6 +1185,10 @@ httpsGetFileDesc(char * hostname, int port, char * remotename,
 
 			*end = ' ';
 		}
+	}
+
+	if ((*returnedHeaders = (char *)malloc(headerslen + 1)) != NULL) {
+		memcpy(*returnedHeaders, headers, headerslen + 1);
 	}
 
 	return sbio;

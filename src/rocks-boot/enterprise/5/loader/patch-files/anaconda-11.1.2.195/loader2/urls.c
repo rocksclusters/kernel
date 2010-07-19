@@ -1087,6 +1087,7 @@ urlinstStartSSLTransfer(struct iurlinfo * ui, char * filename,
 	int	rc;
 	int	errorcode = -1;
 	int	sleepmin = KS_RETRY_MIN;
+	char	*returnedHeaders;
 	BIO	*sbio = 0;
 
 	logMessage(INFO, "ROCKS:transferring https://%s/%s\nHeaders:%s\n",
@@ -1098,16 +1099,16 @@ urlinstStartSSLTransfer(struct iurlinfo * ui, char * filename,
 
 	while ((errorcode < 0) && (tries < 10)) {
 		sbio = httpsGetFileDesc(ui->address, -1, filename,
-			extraHeaders, &errorcode);
+			extraHeaders, &errorcode, &returnedHeaders);
 
 		if (errorcode == 0) {
 			char	*ptr;
 			char	trackers[256];
 			char	pkgservers[256];
 
-			if ((ptr = strstr(extraHeaders, "Avalanche-Trackers:"))
-					!= NULL) {
-				sscanf(ptr, "Avalanche-Trackers: %256s",
+			if ((ptr = strstr(returnedHeaders,
+					"X-Avalanche-Trackers:")) != NULL) {
+				sscanf(ptr, "X-Avalanche-Trackers: %256s",
 					trackers);
 			} else {
 				if (nextServer != NULL) {
@@ -1118,9 +1119,9 @@ urlinstStartSSLTransfer(struct iurlinfo * ui, char * filename,
 				}
 			}
 
-			if ((ptr = strstr(extraHeaders,
-					"Avalanche-Pkg-Servers:")) != NULL) {
-				sscanf(ptr, "Avalanche-Pkg-Servers: %256s",
+			if ((ptr = strstr(returnedHeaders,
+					"X-Avalanche-Pkg-Servers:")) != NULL) {
+				sscanf(ptr, "X-Avalanche-Pkg-Servers: %256s",
 					pkgservers);
 			} else {
 				if (nextServer != NULL) {
@@ -1141,7 +1142,7 @@ urlinstStartSSLTransfer(struct iurlinfo * ui, char * filename,
 			char	*ptr;
 			int	sleeptime = 0;
 
-			if ((ptr = strstr(extraHeaders, "Retry-After:"))
+			if ((ptr = strstr(returnedHeaders, "Retry-After:"))
 					!= NULL) {
 				sscanf(ptr, "Retry-After: %d", &sleeptime);
 			}
