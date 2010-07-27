@@ -39,7 +39,7 @@ int httpGetFileDesc(char * hostname, int port, char * remotename, char *extraHea
 #define FTPERR_SERVER_SECURITY  -93
 
 BIO* httpsGetFileDesc(char * hostname, int port, char * remotename,
-	char *extraHeaders, int *errorcode);
+	char *extraHeaders, int *errorcode, char **returnedHeaders);
 #endif
 
 #endif

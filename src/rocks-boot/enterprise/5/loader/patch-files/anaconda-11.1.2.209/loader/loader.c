@@ -72,6 +72,9 @@
 #include "firewire.h"
 #include "pcmcia.h"
 #include "usb.h"
+#if !defined(__s390__) && !defined(__s390x__)
+#include "ibft.h"
+#endif
 
 /* install method stuff */
 #include "method.h"
@@ -114,6 +117,8 @@ uint64_t flags = LOADER_FLAGS_SELINUX | LOADER_FLAGS_NOFB;
 
 int num_link_checks = 5;
 int post_link_sleep = 0;
+
+static pid_t init_pid = 1;
 
 static struct installMethod installMethods[] = {
     { N_("Local CDROM"), "cdrom", 0, CLASS_CDROM, mountCdromImage },
@@ -729,6 +734,20 @@ static void parseCmdLineFlags(struct loaderData_s * loaderData,
         }
         else if (!strncasecmp(argv[i], "ksdevice=", 9)) {
             loaderData->netDev = strdup(argv[i] + 9);
+
+            /* Scan the MAC address and replace '-' with ':'.  This shouldn't
+             * really be getting supplied, but it was accidentally supported
+             * in RHEL4 and we need to continue support for now.
+             */
+            front = loaderData->netDev;
+            if (front) {
+                while (*front != '\0') {
+                    if (*front == '-')
+                        *front = ':';
+                    front++;
+                }
+            }
+
             loaderData->netDev_set = 1;
         }
         else if (!strncmp(argv[i], "BOOTIF=", 7)) {
@@ -753,6 +772,9 @@ static void parseCmdLineFlags(struct loaderData_s * loaderData,
         else if (!strcasecmp(argv[i], "ks") || !strncasecmp(argv[i], "ks=", 3))
             loaderData->ksFile = strdup(argv[i]);
 #ifdef ROCKS
+        else if (!strncasecmp(argv[i], "nextserver=", 11)) {
+            loaderData->nextServer = strdup(argv[i]+11);
+        }
         else if (!strncasecmp(argv[i], "dropcert", 8)) {
             loaderData->dropCert = 1;
         }
@@ -872,6 +894,9 @@ static void parseCmdLineFlags(struct loaderData_s * loaderData,
 
 #ifdef ROCKS 
     /*
+     * Do this only for the frontend, since this confuses the compute
+     * nodes.  Use the build argument (loaderData->server) for this.
+     *
      * if 'ksdevice=' isn't specified on the command line, then
      * default the kickstart device to eth1
      *  
@@ -883,10 +908,12 @@ static void parseCmdLineFlags(struct loaderData_s * loaderData,
      * to specify 'ksdevice=ethx' where 'ethx' is their interface of
      * choice.
      */     
-    if (loaderData->netDev_set != 1) {
-        loaderData->netDev = strdup("eth1");
-        loaderData->netDev_set = 1;
-    }       
+    if ( loaderData->server ) {
+    	if (loaderData->netDev_set != 1) {
+        	loaderData->netDev = strdup("eth1");
+        	loaderData->netDev_set = 1;
+    	}
+    }
 #endif 
 
     readNetInfo(&loaderData);
@@ -990,7 +1017,11 @@ static char *doLoaderMain(char * location,
         url = findAnacondaCD(location, modInfo, modLoaded, * modDepsPtr, !FL_RESCUE(flags));
         /* if we found a CD and we're not in rescue or vnc mode return */
         /* so we can short circuit straight to stage 2 from CD         */
-        if (url && (!FL_RESCUE(flags) && !hasGraphicalOverride()))
+        if (url && (!FL_RESCUE(flags) && !hasGraphicalOverride()
+#if !defined(__s390__) && !defined(__s390x__)
+                    && !ibft_present()
+#endif
+        ))
             return url;
         else {
             rhcdfnd = 1;
@@ -1169,7 +1200,11 @@ static char *doLoaderMain(char * location,
 #endif
             if ( (installMethods[validMethods[methodNum]].deviceType != 
                   CLASS_NETWORK) && (!hasGraphicalOverride()) &&
-                 !FL_ASKNETWORK(flags)) {
+                 !FL_ASKNETWORK(flags)
+#if !defined(__s390__) && !defined(__s390x__)
+                 && !ibft_present()
+#endif
+               ) {
                 needsNetwork = 0;
                 if (dir == 1) 
                     step = STEP_URL;
@@ -1418,6 +1453,11 @@ void loaderSegvHandler(int signum) {
     exit(1);
 }
 
+void loaderUsrXHandler(int signum) {
+    logMessage(INFO, "Sending signal %d to process %d\n", signum, init_pid);
+    kill(init_pid, signum);
+}
+
 static int anaconda_trace_init(void) {
 #if 0
     int fd;
@@ -1558,6 +1598,25 @@ int main(int argc, char ** argv) {
         { "virtpconsole", '\0', POPT_ARG_STRING, &virtpcon, 0, NULL, NULL },
         { 0, 0, 0, 0, 0, 0, 0 }
     };
+
+    /* get init PID if we have it */
+    if ((f = fopen("/var/run/init.pid", "r")) != NULL) {
+        char linebuf[256];
+
+        while (fgets(linebuf, sizeof(linebuf), f) != NULL) {
+            errno = 0;
+            init_pid = strtol(linebuf, NULL, 10);
+            if (errno == EINVAL || errno == ERANGE) {
+                logMessage(ERROR, "%s (%d): %m", __func__, __LINE__);
+                init_pid = 1;
+            }
+        }
+
+        fclose(f);
+    }
+
+    signal(SIGUSR1, loaderUsrXHandler);
+    signal(SIGUSR2, loaderUsrXHandler);
 
     /* Make sure sort order is right. */
     setenv ("LC_COLLATE", "C", 1);	
@@ -1746,13 +1805,32 @@ int main(int argc, char ** argv) {
      *        but is done as a quick hack for the present.
      */
     earlyModuleLoad(modInfo, modLoaded, modDeps, 0);
-    busProbe(modInfo, modLoaded, modDeps, 0);
-
-    /* JKFIXME: we'd really like to do this before the busprobe, but then
-     * we won't have network devices available (and that's the only thing
-     * we support with this right now */
     if (loaderData.ddsrc != NULL) {
+	/* If we load DUD over network (from ftp, http, or nfs location)
+         * do not load storage drivers so that they can be updated
+	 * from DUD before loading (#454478).
+	 */
+        if (!strncmp(loaderData.ddsrc, "nfs:", 4) || 
+            !strncmp(loaderData.ddsrc, "ftp://", 6) ||
+            !strncmp(loaderData.ddsrc, "http://", 7)) {
+            uint64_t save_flags = flags;
+            flags |= LOADER_FLAGS_NOSTORAGE;
+            busProbe(modInfo, modLoaded, modDeps, 0);
+            flags = save_flags;
+        } else {
+            busProbe(modInfo, modLoaded, modDeps, 0);
+        }
         getDDFromSource(&loaderData, loaderData.ddsrc);
+    } else {
+        busProbe(modInfo, modLoaded, modDeps, 0);
+    }
+
+    /*
+     * BUG#514971: If the mlx4_core is loaded load the mlx4_en too, since we do not use the modprobe rules
+     */
+    if(mlModuleInList("mlx4_core", modLoaded)){
+        logMessage(INFO, "mlx4_core module detected, trying to load the Ethernet part of it (mlx4_en)");
+        mlLoadModuleSet("mlx4_en", modLoaded, modDeps, modInfo);
     }
 
     /* JKFIXME: loaderData->ksFile is set to the arg from the command line,
@@ -1843,7 +1921,7 @@ int main(int argc, char ** argv) {
     else if (FL_UPDATES(flags))
         loadUpdates(&loaderData);
 
-    mlLoadModuleSet("md:raid0:raid1:raid5:raid6:raid456:dm-raid45:fat:msdos:jbd2:crc16:ext4dev:jbd:ext3:lock_nolock:gfs2:reiserfs:jfs:xfs:dm-mod:dm-zero:dm-mirror:dm-snapshot:dm-multipath:dm-round-robin:dm-emc:dm-crypt:dm-mem-cache:dm-region_hash:dm-message:aes_generic:sha256", modLoaded, modDeps, modInfo);
+    mlLoadModuleSet("md:raid0:raid1:raid10:raid5:raid6:raid456:dm-raid45:fat:msdos:jbd2:crc16:ext4:jbd:ext3:lock_nolock:gfs2:reiserfs:jfs:xfs:dm-mod:dm-zero:dm-mirror:dm-snapshot:dm-multipath:dm-round-robin:dm-emc:dm-crypt:dm-mem-cache:dm-region_hash:dm-message:aes_generic:sha256", modLoaded, modDeps, modInfo);
 
     usbInitializeMouse(modLoaded, modDeps, modInfo);
 
@@ -2070,23 +2148,6 @@ int main(int argc, char ** argv) {
             waitpid(pid, &status, 0);
         }
 
-#if defined(__s390__) || defined(__s390x__)
-        /* FIXME: we have to send a signal to linuxrc on s390 so that shutdown
-         * can happen.  this is ugly */
-        FILE * f;
-        f = fopen("/var/run/init.pid", "r");
-        if (!f) {
-            logMessage(WARNING, "can't find init.pid, guessing that init is pid 1");
-            pid = 1;
-        } else {
-            char * buf = malloc(256);
-            char *ret;
-
-            ret = fgets(buf, 256, f);
-            pid = atoi(buf);
-        }
-        kill(pid, SIGUSR2);
-#endif
         stop_fw_loader(&loaderData);
         return rc;
     }

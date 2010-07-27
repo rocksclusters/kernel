@@ -228,7 +228,7 @@ static char * getLoginName(char * login, struct iurlinfo ui) {
 
 #ifdef ROCKS
 void
-start_httpd(char *nextServer)
+start_httpd()
 {
 	/*
 	 * the first two NULLs are place holders for the 'nextServer' info
@@ -239,31 +239,6 @@ start_httpd(char *nextServer)
 	int	pid;
 	int	i;
 	struct device	**devs;
-	int	fd;
-	char	str[128];
-
-	if ((fd = open("/tmp/rocks.conf",
-					O_WRONLY|O_CREAT|O_TRUNC, 0666)) < 0) {
-		logMessage(ERROR,
-			"ROCKS:start_httpd:failed to open '/tmp/rocks.conf'");
-	}
-
-	/*
-	 * the next server (the ip address of the server that gave us a
-	 * kickstart file), is passed to lighttpd through a configuration file.
-	 * write that value into it.
-	 */
-	if (nextServer != NULL) {
-		sprintf(str, "var.serverip = \"%s\"\n", nextServer);
-	} else {
-		sprintf(str, "var.serverip = \"127.0.0.1\"\n");
-	}
-
-	if (write(fd, str, strlen(str)) < 0) {
-		logMessage(ERROR, "ROCKS:start_httpd:write failed");
-	}
-
-	close(fd);
 
 	/*
 	 * try to mount the CD
@@ -390,11 +365,7 @@ char * mountUrlImage(struct installMethod * method,
             }
 
 #ifdef  ROCKS
-	    if (loaderData->server) {
-	    	start_httpd(NULL);
-	    } else {
-	    	start_httpd(loaderData->nextServer);
-	    }
+	    start_httpd();
 #endif
 
 	    /* ok messy - see if we have a stage2 on local CD */
@@ -594,6 +565,7 @@ int getFileFromUrl(char * url, char * dest,
     enum urlprotocol_t proto = 
         !strncmp(url, "ftp://", 6) ? URL_METHOD_FTP : URL_METHOD_HTTP;
     char * host = NULL, * file = NULL, * chptr = NULL;
+    char * user = NULL, * password = NULL;
     int fd, rc;
     struct networkDeviceConfig netCfg;
     char * ehdrs = NULL;
@@ -620,16 +592,31 @@ int getFileFromUrl(char * url, char * dest,
 
     /*
      * this will be used when starting up mini_httpd()
+     *
+     * Get the nextServer from PUMP if we DHCP, otherwise it
+     * better be on the command line.
      */
 
-    tip = &(netCfg.dev.nextServer);
-    inet_ntop(tip->sa_family, IP_ADDR(tip), ret, IP_STRLEN(tip));
+    if ( netCfg.dev.set & PUMP_INTFINFO_HAS_BOOTFILE ) {
+    	tip = &(netCfg.dev.nextServer);
+    	inet_ntop(tip->sa_family, IP_ADDR(tip), ret, IP_STRLEN(tip));
 
-    if (strlen(ret) > 0) {
-        loaderData->nextServer = strdup(ret);
-    } else {
-        loaderData->nextServer = NULL;
+    	if (strlen(ret) > 0) {
+		loaderData->nextServer = strdup(ret);
+	} else {
+        	loaderData->nextServer = NULL;
+	}
     }
+
+    /*
+     * If no nextServer use the gateway.
+     */
+    if ( !loaderData->nextServer ) {
+    	loaderData->nextServer = strdup(loaderData->gateway);
+    }
+
+    logMessage(INFO, "%s: nextServer %s",
+		"ROCKS:getFileFromUrl", loaderData->nextServer);
 #else
     if (kickstartNetworkUp(loaderData, &netCfg)) {
         logMessage(ERROR, "unable to bring up network");
@@ -741,10 +728,10 @@ int getFileFromUrl(char * url, char * dest,
 #else
     tip = &(netCfg.dev.ip);
     inet_ntop(tip->sa_family, IP_ADDR(tip), ret, IP_STRLEN(tip));
-    getHostandPath((proto == URL_METHOD_FTP ? url + 6 : url + 7), 
-                   &host, &file, ret);
+    getHostPathandLogin((proto == URL_METHOD_FTP ? url + 6 : url + 7),
+                   &host, &file, &user, &password, ret);
 
-    logMessage(INFO, "file location: %s://%s/%s", 
+    logMessage(INFO, "file location: %s://%s/%s",
                (proto == URL_METHOD_FTP ? "ftp" : "http"), host, file);
 #endif
 
@@ -758,6 +745,11 @@ int getFileFromUrl(char * url, char * dest,
         host = chptr;
         *host = '/';
         ui.prefix = strdup(host);
+    }
+
+    if (user && strlen(user)) {
+        ui.login = strdup(user);
+        if (password && strlen(password)) ui.password = strdup(password);
     }
 
     if (proto == URL_METHOD_HTTP) {
@@ -783,6 +775,7 @@ int getFileFromUrl(char * url, char * dest,
 
             if (mac) {
 #ifdef  ROCKS
+
                 /* A hint as to our primary interface. */
                 if (!strcmp(dev, loaderData->netDev)) {
                         snprintf(tmpstr, sizeof(tmpstr),
@@ -816,14 +809,15 @@ int getFileFromUrl(char * url, char * dest,
             }
         }
     }
-	
+
 #ifdef ROCKS
 {
         /* Retrieve the kickstart file via HTTPS */
 
         BIO *sbio;
 
-        sbio = urlinstStartSSLTransfer(&ui, file, ehdrs, 1, flags);
+        sbio = urlinstStartSSLTransfer(&ui, file, ehdrs, 1, flags,
+		loaderData->nextServer);
         if (!sbio) {
                 logMessage(ERROR, "failed to retrieve https://%s/%s",
                         ui.address, file);

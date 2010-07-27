@@ -33,7 +33,7 @@ int urlinstFinishTransfer(struct iurlinfo * ui, int fd);
 #ifdef ROCKS
 #include <openssl/bio.h>
 BIO* urlinstStartSSLTransfer(struct iurlinfo * ui, char * filename,
-			char *extraHeaders, int silentErrors, int flags);
+	char *extraHeaders, int silentErrors, int flags, char *nextServer);
 int urlinstFinishSSLTransfer(BIO *sbio);
 
 int haveCertificate();

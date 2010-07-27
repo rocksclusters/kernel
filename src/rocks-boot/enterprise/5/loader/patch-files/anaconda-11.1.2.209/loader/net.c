@@ -72,6 +72,14 @@ char *netServerPrompt = \
        "    o the directory on that server containing\n" 
        "      %s for your architecture\n");
 
+char *nfsServerPrompt = \
+    N_("Please enter the following information:\n"
+       "\n"
+       "    o the name or IP number of your NFS server\n" 
+       "    o the directory on that server containing\n" 
+       "      %s for your architecture\n"
+       "    o optionally, parameters for the NFS mount\n");
+
 /**
  * Callback function for the CIDR entry boxes on the manual TCP/IP
  * configuration window.
@@ -1532,12 +1540,14 @@ int doDhcp(struct networkDeviceConfig *dev) {
     char *r = NULL, *class = NULL;
     char namebuf[HOST_NAME_MAX];
     time_t timeout;
-    int loglevel, status, ret = 0, i;
+    int loglevel, status, ret = 0, i, sz = 0;
     int shmpump;
     DHCP_Preference pref = 0;
     pid_t pid;
     key_t key;
     int mturet;
+    int culvert[2];
+    char buf[PATH_MAX];
 
     /* clear existing IP addresses */
     clearInterface(dev->dev.device);
@@ -1602,9 +1612,16 @@ int doDhcp(struct networkDeviceConfig *dev) {
 
         strncpy(pumpdev->device, dev->dev.device, IF_NAMESIZE);
 
+        if (pipe(culvert) == -1) {
+            logMessage(ERROR, "%s: pipe(): %s", __func__, strerror(errno));
+            return 1;
+        }
+
         /* call libdhcp in a separate process because libdhcp is bad */
         pid = fork();
         if (pid == 0) {
+            close(culvert[0]);
+
             if (pumpdev->set & PUMP_INTFINFO_HAS_MTU) {
                 mturet = nl_set_device_mtu((char *) pumpdev->device, pumpdev->mtu);
 
@@ -1658,14 +1675,24 @@ int doDhcp(struct networkDeviceConfig *dev) {
                 }
             }
 
-            /* we lose bootFile here, but you know, I just don't care, because
-             * we don't need it past doDhcp() calls, so whatever   --dcantrell
-             */
+            if (pumpdev->set & PUMP_INTFINFO_HAS_BOOTFILE) {
+                if (pumpdev->bootFile) {
+                    if (write(culvert[1], pumpdev->bootFile,
+                              strlen(pumpdev->bootFile) + 1) == -1) {
+                        logMessage(ERROR, "failed to send bootFile to parent "
+                                          "in %s: %s", __func__,
+                                   strerror(errno));
+                    }
+                }
+            }
 
+            close(culvert[1]);
             exit(0);
         } else if (pid == -1) {
             logMessage(CRITICAL, "dhcp client failed to start");
         } else {
+            close(culvert[1]);
+
             if (waitpid(pid, &status, 0) == -1) {
                 logMessage(ERROR, "waitpid() failure in %s", __func__);
             }
@@ -1732,6 +1759,36 @@ int doDhcp(struct networkDeviceConfig *dev) {
                     dev->dev.domain = strdup(namebuf);
                 }
             }
+
+            if (dev->dev.set & PUMP_INTFINFO_HAS_BOOTFILE) {
+                memset(&buf, '\0', sizeof(buf));
+                free(dev->dev.bootFile);
+                dev->dev.bootFile = NULL;
+
+                while ((sz = read(culvert[0], &buf, sizeof(buf))) > 0) {
+                    if (dev->dev.bootFile == NULL) {
+                        dev->dev.bootFile = calloc(sizeof(char), sz + 1);
+                        if (dev->dev.bootFile == NULL) {
+                            logMessage(ERROR, "unable to read bootfile");
+                            break;
+                        }
+
+                        dev->dev.bootFile = strncpy(dev->dev.bootFile, buf, sz);
+                    } else {
+                        dev->dev.bootFile = realloc(dev->dev.bootFile,
+                                                    strlen(dev->dev.bootFile) +
+                                                    sz + 1);
+                        if (dev->dev.bootFile == NULL) {
+                            logMessage(ERROR, "unable to read bootfile");
+                            break;
+                        }
+
+                        dev->dev.bootFile = strncat(dev->dev.bootFile, buf, sz);
+                    }
+                }
+            }
+
+            close(culvert[0]);
 
             if (shmdt(pumpdev) == -1) {
                 logMessage(ERROR, "%s: shmdt() pumpdev: %s", __func__,
@@ -1850,7 +1907,7 @@ int writeNetInfo(const char * fn, struct networkDeviceConfig * dev) {
 
     if (dev->layer2 && !strcmp(dev->layer2, "1"))
 	strcat(osa_opts, "layer2=1");
-    else if (dev->subchannels)
+    else if (dev->subchannels && !strcmp(dev->nettype, "qeth"))
 	fprintf(f, "ARP=no\n");
     if (dev->portno && !strcmp(dev->portno, "1")) {
 	if (strlen(osa_opts) != 0) {
@@ -2321,7 +2378,7 @@ int chooseNetworkInterface(struct loaderData_s * loaderData) {
                          _("You can identify the physical port for"),
                          devices[deviceNum],
                          _("by flashing the LED lights for a number of "
-                           "seconds.  Enter a number between 1 and 30 to "
+                           "seconds.  Enter a number between 1 and 300 to "
                            "set the duration to flash the LED port "
                            "lights.")) == -1) {
                 logMessage(ERROR, "asprintf() failure in %s: %m", __func__);
@@ -2342,11 +2399,11 @@ int chooseNetworkInterface(struct loaderData_s * loaderData) {
                         continue;
                     }
 
-                    if (secs <=0 || secs > 30) {
+                    if (secs <= 0 || secs > 300) {
                         newtWinMessage(_("Invalid Duration"), _("OK"),
                                        _("You must enter the number of "
                                          "seconds as an integer between 1 "
-                                         "and 30."));
+                                         "and 300."));
                         continue;
                     }
 
@@ -2406,35 +2463,29 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 	int		i;
 	int		rc;
 	int		tries;
-	int		numdevices;
 	int		found = 0;
 	int		query;
+	char 		*ksmac = NULL;
+	char		*ksdevice = NULL;
 
 	initLoopback();
 
 	memset(netCfgPtr, 0, sizeof(*netCfgPtr));
 	netCfgPtr->isDynamic = 1;
 
-	/* we don't want to end up asking about interface more than once
-	 * if we're in a kickstart-ish case (#100724) */
-	loaderData->netDev_set = 1;
-
-	/* JKFIXME: this is kind of crufty, we depend on the fact that the
-	 * ip is set and then just get the network up.  we should probably
-	 * add a way to do asking about static here and not be such a hack */
 	if (!loaderData->ip) {
 		loaderData->ip = strdup("dhcp");
 	} 
 
-	/* ROCKS - XXX look at this section */
-	loaderData->ipinfo_set = 1;
+        /* ROCKS - XXX look at this section */
+        loaderData->ipinfo_set = 1;
 
-	query = !strncmp(loaderData->ip, "query", 5);
+        query = !strncmp(loaderData->ip, "query", 5);
 
-	if (!query) {
-		loaderData->ipinfo_set = 1;
-	}
-	/* ROCKS - XXX look at this section */
+        if (!query) {
+                loaderData->ipinfo_set = 1;
+        }
+        /* ROCKS - XXX look at this section */
 
 	devs = probeDevices(CLASS_NETWORK, BUS_UNSPEC, PROBE_LOADED);
 	if (!devs) {
@@ -2444,37 +2495,95 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 		return LOADER_ERROR;
 	}
 
+
 	/*
-	 * probeDevices() gives us the list in reverse order (that is, eth1
-	 * first, then eth0). so count the devices first, then use the
-	 * value to look at the devices in the 'correct' order.
+	 * This code is from chooseNetworkInterface.  
+	 *
+	 * If finds the mac address of the device specified.  
+	 * This adds support for *some* of the ksdevice= settings.
+	 * The big one we care about is "bootif".
+	 *
+	 * Needs testing to see what else would work (e.g. "eth0").
 	 */
-	numdevices = 0;
-	for (i = 0; devs[i]; i++) {
-		++numdevices;
+
+	if ( loaderData->netDev && loaderData->netDev_set ) {
+		logMessage(INFO, "%s: netDev %s",
+		    "ROCKS:rocksNetworkUp", loaderData->netDev);
+	       	if ( loaderData->bootIf && loaderData->bootIf_set &&
+	       		!strcasecmp(loaderData->netDev, "bootif") )
+	       	{
+			logMessage(INFO, "%s: bootIf %s",
+			    "ROCKS:rocksNetworkUp", loaderData->bootIf);
+	        	ksmac = str2upper(strdup(loaderData->bootIf));
+	        } 
+	        else {
+	        	ksdevice = strdup(loaderData->netDev);
+	        }
 	}
+
+	if ( ksmac ) {
+		logMessage(INFO, "%s: specified mac %s",
+			"ROCKS:rocksNetworkUp", ksmac);
+	}
+	if ( ksdevice ) {
+		logMessage(INFO, "%s: specified device %s",
+			"ROCKS:rocksNetworkUp", ksdevice);
+	}
+
+	printLoaderDataIPINFO(loaderData);
 
 	/*
 	 * try sending a DHCP on all the network devices, the first one
 	 * get an answer on, we'll use.
 	 */
 	for (tries = 0; !found && tries < 3; tries++) {
-		for (i = 0; i < numdevices; ++i) {
+		for (i = 0; devs[i]; ++i) {
 			if (!devs[i]->device) {
 				continue;
 			}
 
+                        logMessage(INFO, "%s: looking at device %s",
+                                "ROCKS:rocksNetworkUp", devs[i]->device);
+
+			/*
+			 * If the device name was specified skip all the other
+			 * interfaces.
+			 */
+			if ( ksdevice && strcmp(ksdevice, devs[i]->device) ) {
+				continue;
+			}
+
+			/*
+			 * If the device mac addr was specified skip all other
+			 * interfaces.
+			 */
+                        if ( ksmac ) {
+                                char *devmac = nl_mac2str(devs[i]->device);
+
+				if ( !devmac ) {
+					continue;
+				}
+
+                                if ( strcmp(ksmac, devmac) ) {
+					free(devmac);
+					continue;
+                                }
+                                free(devmac);
+                        }
+
+
+			logMessage(INFO, "%s: using device %s",
+                                "ROCKS:rocksNetworkUp", devs[i]->device);
+
 			loaderData->netDev = strdup(devs[i]->device);
+			loaderData->netDev_set = 1;
+
 			strcpy(netCfgPtr->dev.device, loaderData->netDev);
-
-			logMessage(INFO, "%s: looking at device (%s)", 
-				"ROCKS:rocksNetworkUp", loaderData->netDev);
-
 			setupNetworkDeviceConfig(netCfgPtr, loaderData);
 
 			if (netCfgPtr->preset != 1) {
 				logMessage(INFO,
-					"%s:no DHCP response on device (%s)",
+					"%s: no DHCP response on device (%s)",
 					"ROCKS:rocksNetworkUp",
 					loaderData->netDev);
 				continue;
@@ -2484,11 +2593,17 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 				loaderData->netCls, loaderData->method, query);
 
 			/*
-			 * if there is no bootfile provided from the DHCP
-			 * response, then this is definitely not a frontend,
-			 * so continue and go to the next device
+			 * If device was not specified and there is no 
+			 * bootfile provided from the DHCP response, then 
+			 * this is definitely not a frontend, so continue 
+			 * and go to the next device.
 			 */
-			if (!(netCfgPtr->dev.set & PUMP_INTFINFO_HAS_BOOTFILE)){
+			if ( !ksdevice && !ksmac && 
+				!(netCfgPtr->dev.set & 
+					PUMP_INTFINFO_HAS_BOOTFILE))
+			{
+				logMessage(INFO, "%s: frontend not found",
+	                                "ROCKS:rocksNetworkUp");
 				continue;
 			}
 
@@ -2497,7 +2612,7 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 				break;
 			}
 		}
-	}
+ 	}
 
 	if (found == 0) {
 		logMessage(ERROR,
@@ -2516,10 +2631,14 @@ rocksNetworkUp(struct loaderData_s * loaderData,
 int kickstartNetworkUp(struct loaderData_s * loaderData,
                        struct networkDeviceConfig *netCfgPtr) {
     int rc, query;
+    static struct networkDeviceConfig netCfgStore;
 
     /* we may have networking already, so return to the caller */
     if ((loaderData->ipinfo_set == 1) || (loaderData->ipv6info_set == 1)) {
         logMessage(INFO, "networking already configured in kickstartNetworkUp");
+    
+        /* Give the network information to the caller (#495042) */
+        memcpy(netCfgPtr, &netCfgStore, sizeof(netCfgStore));
         return 0;
     }
 
@@ -2584,6 +2703,9 @@ int kickstartNetworkUp(struct loaderData_s * loaderData,
         else
             break;
     } while (1);
+
+    /* Store all information for possible subsequent calls (#495042) */
+    memcpy(&netCfgStore, netCfgPtr, sizeof(netCfgStore));
 
 #ifdef	ROCKS
 {
