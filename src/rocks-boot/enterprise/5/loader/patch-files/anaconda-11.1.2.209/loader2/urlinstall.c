@@ -53,6 +53,8 @@
 extern uint64_t flags;
 
 #ifdef	ROCKS
+extern void writeAvalancheInfo(char *, char *);
+
 static int num_cpus();
 #endif
 
@@ -365,6 +367,13 @@ char * mountUrlImage(struct installMethod * method,
             }
 
 #ifdef  ROCKS
+	    /*
+	     * before we start the web server, make sure /tmp/rocks.conf
+	     * exists
+	     */
+	    if (access("/tmp/rocks.conf", F_OK) != 0) {
+		writeAvalancheInfo(NULL, NULL);	
+	    }
 	    start_httpd();
 #endif
 
