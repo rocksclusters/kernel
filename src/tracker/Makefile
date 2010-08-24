@@ -1,10 +1,13 @@
 #
-# $Id: Makefile,v 1.13 2010/07/15 19:01:01 bruno Exp $
+# $Id: Makefile,v 1.14 2010/08/24 20:43:04 bruno Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.14  2010/08/24 20:43:04  bruno
+# md5 checksum tweaks
+#
 # Revision 1.13  2010/07/15 19:01:01  bruno
 # support for different trackers and package servers
 #
@@ -87,9 +90,9 @@ endif
 
 build:	$(EXECS)
 
-tracker-client:	tracker-client.c client.c lib.c
+tracker-client:	tracker-client.c client.c lib.c checkmd5.c
 	cc $(INCLUDE) $(EXTRA) -DFASTCGI -o tracker-client tracker-client.c \
-		client.c lib.c $(LIBS) /opt/rocks/fcgi/lib/libfcgi.a
+		client.c lib.c checkmd5.c $(LIBS) /opt/rocks/fcgi/lib/libfcgi.a
 
 unregister-file:	unregister-file.c client.c lib.c
 	cc $(INCLUDE) $(EXTRA) -o unregister-file unregister-file.c \
