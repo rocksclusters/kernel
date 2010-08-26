@@ -1,6 +1,6 @@
 #!/opt/rocks/bin/python
 #
-# $Id: prep-initrd.py,v 1.28 2010/02/25 05:45:48 bruno Exp $
+# $Id: prep-initrd.py,v 1.29 2010/08/26 01:10:49 bruno Exp $
 #
 # @Copyright@
 # 
@@ -56,6 +56,10 @@
 # @Copyright@
 #
 # $Log: prep-initrd.py,v $
+# Revision 1.29  2010/08/26 01:10:49  bruno
+# tweak for the beta -- ensure the 164 version of the kernel are used for
+# install
+#
 # Revision 1.28  2010/02/25 05:45:48  bruno
 # makin' progress
 #
@@ -267,7 +271,17 @@ class Distribution:
 	def generate(self, flags=""):
 		#rocks.util.system('rocks-dist %s --dist=%s --notorrent dist' % 
 			#(flags, self.name))
+
+		#
+		# get the kernels that will be used for the installer
+		#
+		os.system('rm -f /usr/src/redhat/RPMS/%s/kernel*rpm' %
+			self.arch)
+
+		os.system('cd /usr/src/redhat/RPMS/%s ; wget ftp://ftp.rocksclusters.org/pub/rocks/beta/5.4/kernels/kernel*%s.rpm' % (self.arch, self.arch))
+
 		rocks.util.system('/opt/rocks/bin/rocks create distro')
+
 		self.tree = rocks.file.Tree(os.path.join(os.getcwd(), 
 			self.getPath()))
 		
