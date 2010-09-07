@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.4 2009/05/01 19:07:21 mjk Exp $
+# $Id: Makefile,v 1.5 2010/09/07 23:53:23 bruno Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -9,9 +9,9 @@
 # 
 # 				Rocks(r)
 # 		         www.rocksclusters.org
-# 		       version 5.2 (Chimichanga)
+# 		         version 5.4 (Maverick)
 # 
-# Copyright (c) 2000 - 2009 The Regents of the University of California.
+# Copyright (c) 2000 - 2010 The Regents of the University of California.
 # All rights reserved.	
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -59,6 +59,9 @@
 # @Copyright@
 #
 # $Log: Makefile,v $
+# Revision 1.5  2010/09/07 23:53:23  bruno
+# star power for gb
+#
 # Revision 1.4  2009/05/01 19:07:21  mjk
 # chimi con queso
 #
