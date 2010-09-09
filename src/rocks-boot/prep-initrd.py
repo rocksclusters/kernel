@@ -1,6 +1,6 @@
 #!/opt/rocks/bin/python
 #
-# $Id: prep-initrd.py,v 1.30 2010/09/07 23:53:23 bruno Exp $
+# $Id: prep-initrd.py,v 1.31 2010/09/09 21:40:48 bruno Exp $
 #
 # @Copyright@
 # 
@@ -56,6 +56,9 @@
 # @Copyright@
 #
 # $Log: prep-initrd.py,v $
+# Revision 1.31  2010/09/09 21:40:48  bruno
+# new
+#
 # Revision 1.30  2010/09/07 23:53:23  bruno
 # star power for gb
 #
@@ -278,10 +281,13 @@ class Distribution:
 		#
 		# get the kernels that will be used for the installer
 		#
-		os.system('rm -f /usr/src/redhat/RPMS/%s/kernel*rpm' %
-			self.arch)
+		if 1:
+			os.system('rm -f /usr/src/redhat/RPMS/%s/kernel*rpm' %
+				self.arch)
 
-		os.system('cd /usr/src/redhat/RPMS/%s ; wget ftp://ftp.rocksclusters.org/pub/rocks/beta/5.4/kernels/kernel*%s.rpm' % (self.arch, self.arch))
+			os.system('cd /usr/src/redhat/RPMS/%s ; wget ftp://ftp.rocksclusters.org/pub/rocks/beta/5.4/kernels/kernel*%s.rpm' % (self.arch, self.arch))
+			os.system('touch /usr/src/redhat/RPMS/%s/kernel*rpm' %
+				self.arch)
 
 		rocks.util.system('/opt/rocks/bin/rocks create distro')
 
