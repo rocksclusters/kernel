@@ -1,6 +1,6 @@
 #!/opt/rocks/bin/python
 #
-# $Id: prep-initrd.py,v 1.31 2010/09/09 21:40:48 bruno Exp $
+# $Id: prep-initrd.py,v 1.32 2010/09/23 19:37:50 bruno Exp $
 #
 # @Copyright@
 # 
@@ -56,6 +56,11 @@
 # @Copyright@
 #
 # $Log: prep-initrd.py,v $
+# Revision 1.32  2010/09/23 19:37:50  bruno
+# it looks like kernel version 2.6.18-194.11.4.el5 no longer panics during
+# installation on rocks 5.4, so let's disable the code that downloads known-good
+# kernel RPMS.
+#
 # Revision 1.31  2010/09/09 21:40:48  bruno
 # new
 #
@@ -281,9 +286,10 @@ class Distribution:
 		#
 		# get the kernels that will be used for the installer
 		#
-		if 1:
-			os.system('rm -f /usr/src/redhat/RPMS/%s/kernel*rpm' %
-				self.arch)
+		os.system('rm -f /usr/src/redhat/RPMS/%s/kernel*rpm' %
+			self.arch)
+
+		if 0:
 
 			os.system('cd /usr/src/redhat/RPMS/%s ; wget ftp://ftp.rocksclusters.org/pub/rocks/beta/5.4/kernels/kernel*%s.rpm' % (self.arch, self.arch))
 			os.system('touch /usr/src/redhat/RPMS/%s/kernel*rpm' %
