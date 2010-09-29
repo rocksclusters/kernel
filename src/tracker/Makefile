@@ -1,10 +1,13 @@
 #
-# $Id: Makefile,v 1.14 2010/08/24 20:43:04 bruno Exp $
+# $Id: Makefile,v 1.15 2010/09/29 18:09:42 bruno Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.15  2010/09/29 18:09:42  bruno
+# fix to build on i386
+#
 # Revision 1.14  2010/08/24 20:43:04  bruno
 # md5 checksum tweaks
 #
@@ -75,7 +78,7 @@ INCLUDE	= -I/usr/include/apr-1 -I/opt/rocks/fcgi/include
 #LIBS	= -lcurl -lssl -lidn -lgssapi_krb5 -lkrb5 -lk5crypto -lkrb5support -lpthread -lcrypto -lz -ldl -lcom_err -lkeyutils -lresolv -lselinux -lsepol
 #LIBS	= -L /opt/rocks/curl/lib/ -lcurl
 LIBS	= -lcurl
-EXTRA	= -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+EXTRA	= -Wall `apr-1-config --cppflags --cflags`
 #EXTRA	+= -DTIMEIT 
 #EXTRA	+= -DDEBUG
 EXTRA	+= -pg
