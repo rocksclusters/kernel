@@ -1,6 +1,6 @@
 #!/opt/rocks/bin/python
 #
-# $Id: prep-initrd.py,v 1.32 2010/09/23 19:37:50 bruno Exp $
+# $Id: prep-initrd.py,v 1.33 2010/10/05 23:30:11 bruno Exp $
 #
 # @Copyright@
 # 
@@ -56,6 +56,9 @@
 # @Copyright@
 #
 # $Log: prep-initrd.py,v $
+# Revision 1.33  2010/10/05 23:30:11  bruno
+# still need to bring in the old kernels
+#
 # Revision 1.32  2010/09/23 19:37:50  bruno
 # it looks like kernel version 2.6.18-194.11.4.el5 no longer panics during
 # installation on rocks 5.4, so let's disable the code that downloads known-good
@@ -286,14 +289,15 @@ class Distribution:
 		#
 		# get the kernels that will be used for the installer
 		#
-		os.system('rm -f /usr/src/redhat/RPMS/%s/kernel*rpm' %
-			self.arch)
+		os.system('rm -f /usr/src/redhat/RPMS/*/kernel*rpm')
 
-		if 0:
-
-			os.system('cd /usr/src/redhat/RPMS/%s ; wget ftp://ftp.rocksclusters.org/pub/rocks/beta/5.4/kernels/kernel*%s.rpm' % (self.arch, self.arch))
-			os.system('touch /usr/src/redhat/RPMS/%s/kernel*rpm' %
-				self.arch)
+		if 1:
+			if self.arch == 'i386':
+				os.system('cd /usr/src/redhat/RPMS/i386 ; wget ftp://ftp.rocksclusters.org/pub/rocks/beta/5.4/kernels/kernel*i386.rpm')
+				os.system('cd /usr/src/redhat/RPMS/i686 ; wget ftp://ftp.rocksclusters.org/pub/rocks/beta/5.4/kernels/kernel*i686.rpm')
+			else:
+				os.system('cd /usr/src/redhat/RPMS/%s ; wget ftp://ftp.rocksclusters.org/pub/rocks/beta/5.4/kernels/kernel*%s.rpm' % (self.arch, self.arch))
+			os.system('touch /usr/src/redhat/RPMS/*/kernel*rpm')
 
 		rocks.util.system('/opt/rocks/bin/rocks create distro')
 
