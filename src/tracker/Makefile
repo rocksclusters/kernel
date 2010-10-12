@@ -1,10 +1,14 @@
 #
-# $Id: Makefile,v 1.15 2010/09/29 18:09:42 bruno Exp $
+# $Id: Makefile,v 1.16 2010/10/12 19:37:21 bruno Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.16  2010/10/12 19:37:21  bruno
+# turn mysql back on. the tracker server will consult the database to find
+# the locations of the clients
+#
 # Revision 1.15  2010/09/29 18:09:42  bruno
 # fix to build on i386
 #
@@ -84,10 +88,10 @@ EXTRA	= -Wall `apr-1-config --cppflags --cflags`
 EXTRA	+= -pg
 EXECS	= tracker-client unregister-file tracker-server peer-done stop-server
 
-MYSQL	= 0
+MYSQL	= 1
 
 ifeq ($(MYSQL),1)
-SERVERLIBS	= -L/usr/lib64/mysql -lmysqlclient
+SERVERLIBS	= -L/usr/$(LIBARCH)/mysql -lmysqlclient
 EXTRA		+= -DWITH_MYSQL 
 endif
 
