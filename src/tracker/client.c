@@ -235,7 +235,7 @@ unregister_hash(int sockfd, in_addr_t *ip, uint32_t numhashes,
 	req->numhashes = numhashes;
 
 #ifdef	DEBUG
-	logmsg("infolen (%d)\n", infolen);
+	logmsg("infolen (%d), numhashes (%d)\n", infolen, numhashes);
 #endif
 
 	memcpy(req->info, info, infolen);
@@ -243,7 +243,7 @@ unregister_hash(int sockfd, in_addr_t *ip, uint32_t numhashes,
 	tracker_send(sockfd, (void *)req, len, 
 		(struct sockaddr *)&send_addr, sizeof(send_addr));
 
-#ifdef	DEBUG
+#ifdef	LATER
 {
 	struct in_addr		in;
 

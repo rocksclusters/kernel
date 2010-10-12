@@ -1,10 +1,15 @@
 /*
- * $Id: unregister-file.c,v 1.2 2010/03/07 23:20:18 bruno Exp $
+ * $Id: unregister-file.c,v 1.3 2010/10/12 19:39:21 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: unregister-file.c,v $
+ * Revision 1.3  2010/10/12 19:39:21  bruno
+ * allow a client to 'unregister' another client. this is useful when a client
+ * detects a download error from another client. this is a way to nuke misbehaving
+ * clients.
+ *
  * Revision 1.2  2010/03/07 23:20:18  bruno
  * progress. can now run this as a non-root user -- should be able to run tests
  * on triton.
@@ -42,8 +47,7 @@ extern void logmsg(const char *, ...);
 int	status = HTTP_OK;
 
 int
-getargs(char *forminfo, char *filename, char *trackers_url,
-	char *pkg_servers_url)
+getargs(char *forminfo, char *filename)
 {
 	char	*ptr;
 
@@ -58,8 +62,7 @@ getargs(char *forminfo, char *filename, char *trackers_url,
 		*ptr = ' ';
 	}
 
-	if (sscanf(forminfo, "filename=%4095s trackers=%256s pkgservers=%256s",
-			filename, trackers_url, pkg_servers_url) != 3) {
+	if (sscanf(forminfo, "filename=%4095s", filename) != 1) {
 		/*
 		 * XXX - log an error
 		 */
@@ -77,12 +80,13 @@ unregister_file(char *filename)
 	uint16_t	maxpeers;
 	uint16_t	num_pkg_servers;
 	in_addr_t	pkg_servers[MAX_PKG_SERVERS];
-	tracker_info_t	info[1];
+	tracker_info_t	*info;
 	int		sockfd;
 	int		i;
 	char		trackers_url[256];
 	char		pkg_servers_url[256];
 	FILE		*file;
+	char		buf[PATH_MAX];
 
 	hash = hashit(filename);
 
@@ -91,11 +95,16 @@ unregister_file(char *filename)
 		return(-1);
 	}
 
-	fscanf(file, "var.trackers = \"%255s\"", trackers_url);
-	fseek(file, 0, SEEK_SET);
-	fscanf(file, "var.pkgservers = \"%255s\"", pkg_servers_url);
+	fgets(buf, sizeof(buf), file);
+	sscanf(buf, "var.trackers = \"%[^\"]", trackers_url);
+
+	fgets(buf, sizeof(buf), file);
+	sscanf(buf, "var.pkgservers = \"%[^\"]", pkg_servers_url);
 
 	fclose(file);
+
+fprintf(stderr, "trackers_url %s\n", trackers_url);
+fprintf(stderr, "pkg_servers_url %s\n", pkg_servers_url);
 	
 	if (init(&num_trackers, trackers_url, trackers, &maxpeers,
 			pkg_servers_url, &num_pkg_servers, pkg_servers) != 0) {
@@ -108,9 +117,12 @@ unregister_file(char *filename)
 		return(-1);
 	}
 
-	bzero(info, sizeof(info));
-	info[0].hash = hash;
-	info[0].numpeers = 0;
+	bzero(buf, sizeof(buf));
+	info = (tracker_info_t *)buf;
+
+	info->hash = hash;
+	info->numpeers = 1;
+	info->peers[0].ip = inet_addr("10.1.255.254");
 
 	for (i = 0 ; i < num_trackers; ++i) {
 		unregister_hash(sockfd, &trackers[i], 1, info);
@@ -124,19 +136,15 @@ main()
 {
 	char	*forminfo;
 	char	filename[PATH_MAX];
-	char	trackers_url[256];
-	char	pkg_servers_url[256];
 
 	bzero(filename, sizeof(filename));
-	bzero(trackers_url, sizeof(trackers_url));
-	bzero(pkg_servers_url, sizeof(pkg_servers_url));
 
 	if ((forminfo = getenv("QUERY_STRING")) == NULL) {
 		fprintf(stderr, "No QUERY_STRING\n");
 		return(0);
 	}
 
-	if (getargs(forminfo, filename, trackers_url, pkg_servers_url) != 0) {
+	if (getargs(forminfo, filename) != 0) {
 		fprintf(stderr, "getargs():failed\n");
 		return(0);
 	}

@@ -1,10 +1,15 @@
 /*
- * $Id: tracker-client.c,v 1.16 2010/08/24 20:43:04 bruno Exp $
+ * $Id: tracker-client.c,v 1.17 2010/10/12 19:39:21 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.17  2010/10/12 19:39:21  bruno
+ * allow a client to 'unregister' another client. this is useful when a client
+ * detects a download error from another client. this is a way to nuke misbehaving
+ * clients.
+ *
  * Revision 1.16  2010/08/24 20:43:04  bruno
  * md5 checksum tweaks
  *
@@ -1043,7 +1048,7 @@ trackfile(int sockfd, char *filename, char *range, uint16_t num_trackers,
 			if (strncmp(inet_ntoa(in), "10.", 3)) {
 				for (k = 0 ; i < num_trackers; ++k) {
 					send_msg(sockfd, &trackers[k],
-					STOP_SERVER);
+						STOP_SERVER);
 				}
 
 				logmsg("trackfile:bogus IP (%s)\n",
@@ -1059,6 +1064,35 @@ trackfile(int sockfd, char *filename, char *range, uint16_t num_trackers,
 				 */
 				success = 1;
 				break;
+			} else {
+				/*
+				 * mark the peer as 'bad'. we do this by
+				 * telling the tracker server to 'unregister'
+				 * this hash.
+				 */
+
+				tracker_info_t	*info;
+				int		len;
+				int		j;
+
+				len = sizeof(*info) + sizeof(peer_t);
+
+				if ((info = (tracker_info_t *)malloc(len))
+						!= NULL) {
+
+					bzero(info, len);
+					info->hash = hash;
+					info->numpeers = 1;
+					info->peers[0].ip =
+						infoptr->peers[i].ip;
+
+					for (j = 0 ; j < num_trackers; ++j) {
+						unregister_hash(sockfd,
+							&trackers[j], 1, info);
+					}
+
+					free(info);
+				}
 			}
 		}
 	}

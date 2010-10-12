@@ -894,7 +894,7 @@ unregister_hash(char *buf, struct sockaddr_in *from_addr)
 	tracker_unregister_t	*req = (tracker_unregister_t *)buf;
 	peer_t			peer;
 	int			index;
-	int			i;
+	int			i, j;
 
 #ifdef	DEBUG
 	fprintf(stderr, "unregister_hash:enter\n");
@@ -902,11 +902,16 @@ unregister_hash(char *buf, struct sockaddr_in *from_addr)
 	print_hash_table();
 #endif
 
-	peer.ip = from_addr->sin_addr.s_addr;
+	bzero(&peer, sizeof(peer));
 
 	for (i = 0 ; i < req->numhashes ; ++i) {
-		if (getpeers(req->info[i].hash, &index) != NULL) {
-			removepeer(index, &peer);
+		tracker_info_t	*info = &req->info[i];
+
+		if (getpeers(info->hash, &index) != NULL) {
+			for (j = 0 ; j < info->numpeers ; ++j) {
+				peer.ip = info->peers[j].ip;
+				removepeer(index, &peer);
+			}
 		}
 	}
 
@@ -914,7 +919,6 @@ unregister_hash(char *buf, struct sockaddr_in *from_addr)
 	fprintf(stderr, "unregister_hash:hash_table:after\n\n");
 	print_hash_table();
 #endif
-
 }
 
 void

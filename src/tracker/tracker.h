@@ -106,7 +106,7 @@ typedef struct {
 
 /*
  * this is flexible enough to be able to unregister multiple files (hashes) or
- * register multiple files for multiple other peers
+ * unregister multiple files for multiple other peers
  */
 typedef struct {
 	tracker_header_t	header;
