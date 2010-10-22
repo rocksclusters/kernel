@@ -1,6 +1,6 @@
 #!/opt/rocks/bin/python
 #
-# $Id: prep-initrd.py,v 1.33 2010/10/05 23:30:11 bruno Exp $
+# $Id: prep-initrd.py,v 1.34 2010/10/22 22:43:50 bruno Exp $
 #
 # @Copyright@
 # 
@@ -56,6 +56,9 @@
 # @Copyright@
 #
 # $Log: prep-initrd.py,v $
+# Revision 1.34  2010/10/22 22:43:50  bruno
+# cleanup the installation kernels
+#
 # Revision 1.33  2010/10/05 23:30:11  bruno
 # still need to bring in the old kernels
 #
@@ -467,6 +470,13 @@ class App(rocks.app.Application):
 			self.boot.applyRPM(RPM, 
 				os.path.join(os.getcwd(), 'kernels'),
 					flags='--noscripts --excludedocs')
+
+		if 1:
+			#
+			# make sure we don't pollute other builds (like the OS
+			# roll)
+			#
+			os.system('rm -f /usr/src/redhat/RPMS/*/kernel*rpm')
 
 		return
 
