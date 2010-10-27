@@ -54,6 +54,9 @@
 # @Copyright@
 #
 # $Log: Makefile,v $
+# Revision 1.10  2010/10/27 01:01:54  bruno
+# ghostrider, your splash screen is a beaut
+#
 # Revision 1.9  2010/09/07 23:53:23  bruno
 # star power for gb
 #
@@ -129,7 +132,7 @@ splash.png:
 	#mogrify -colors 8 splash.png
 
 boot.msg: splash.png
-	pngtopnm splash.png | ppmtolss16 '#fdfffc=0' '#050807=7' > splash.lss
+	pngtopnm splash.png | ppmtolss16 > splash.lss
 	./create_boot.msg.py message boot.msg
 
 clean:
