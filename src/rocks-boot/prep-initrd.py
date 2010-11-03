@@ -1,6 +1,6 @@
 #!/opt/rocks/bin/python
 #
-# $Id: prep-initrd.py,v 1.35 2010/11/03 16:21:33 bruno Exp $
+# $Id: prep-initrd.py,v 1.36 2010/11/03 16:23:14 bruno Exp $
 #
 # @Copyright@
 # 
@@ -56,6 +56,9 @@
 # @Copyright@
 #
 # $Log: prep-initrd.py,v $
+# Revision 1.36  2010/11/03 16:23:14  bruno
+# nuke code that gets older kernels for installation
+#
 # Revision 1.35  2010/11/03 16:21:33  bruno
 # don't include older kernels for the installation environment
 #
@@ -289,22 +292,6 @@ class Distribution:
 		return os.path.join(self.name, self.arch)
 		
 	def generate(self, flags=""):
-		#rocks.util.system('rocks-dist %s --dist=%s --notorrent dist' % 
-			#(flags, self.name))
-
-		#
-		# get the kernels that will be used for the installer
-		#
-		os.system('rm -f /usr/src/redhat/RPMS/*/kernel*rpm')
-
-		if 0:
-			if self.arch == 'i386':
-				os.system('cd /usr/src/redhat/RPMS/i386 ; wget ftp://ftp.rocksclusters.org/pub/rocks/beta/5.4/kernels/kernel*i386.rpm')
-				os.system('cd /usr/src/redhat/RPMS/i686 ; wget ftp://ftp.rocksclusters.org/pub/rocks/beta/5.4/kernels/kernel*i686.rpm')
-			else:
-				os.system('cd /usr/src/redhat/RPMS/%s ; wget ftp://ftp.rocksclusters.org/pub/rocks/beta/5.4/kernels/kernel*%s.rpm' % (self.arch, self.arch))
-			os.system('touch /usr/src/redhat/RPMS/*/kernel*rpm')
-
 		rocks.util.system('/opt/rocks/bin/rocks create distro')
 
 		self.tree = rocks.file.Tree(os.path.join(os.getcwd(), 
@@ -473,13 +460,6 @@ class App(rocks.app.Application):
 			self.boot.applyRPM(RPM, 
 				os.path.join(os.getcwd(), 'kernels'),
 					flags='--noscripts --excludedocs')
-
-		if 1:
-			#
-			# make sure we don't pollute other builds (like the OS
-			# roll)
-			#
-			os.system('rm -f /usr/src/redhat/RPMS/*/kernel*rpm')
 
 		return
 
