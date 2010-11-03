@@ -1,6 +1,6 @@
 #!/opt/rocks/bin/python
 #
-# $Id: prep-initrd.py,v 1.34 2010/10/22 22:43:50 bruno Exp $
+# $Id: prep-initrd.py,v 1.35 2010/11/03 16:21:33 bruno Exp $
 #
 # @Copyright@
 # 
@@ -56,6 +56,9 @@
 # @Copyright@
 #
 # $Log: prep-initrd.py,v $
+# Revision 1.35  2010/11/03 16:21:33  bruno
+# don't include older kernels for the installation environment
+#
 # Revision 1.34  2010/10/22 22:43:50  bruno
 # cleanup the installation kernels
 #
@@ -294,7 +297,7 @@ class Distribution:
 		#
 		os.system('rm -f /usr/src/redhat/RPMS/*/kernel*rpm')
 
-		if 1:
+		if 0:
 			if self.arch == 'i386':
 				os.system('cd /usr/src/redhat/RPMS/i386 ; wget ftp://ftp.rocksclusters.org/pub/rocks/beta/5.4/kernels/kernel*i386.rpm')
 				os.system('cd /usr/src/redhat/RPMS/i686 ; wget ftp://ftp.rocksclusters.org/pub/rocks/beta/5.4/kernels/kernel*i686.rpm')
