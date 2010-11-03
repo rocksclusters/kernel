@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.21 2010/09/07 23:53:23 bruno Exp $
+# $Id: Boot.mk,v 1.22 2010/11/03 21:29:07 bruno Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -59,6 +59,10 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.22  2010/11/03 21:29:07  bruno
+# strip the ext4 module out of modules.cgz in initrd.img. that way, we'll avoid
+# any panic related to the ext4 driver.
+#
 # Revision 1.21  2010/09/07 23:53:23  bruno
 # star power for gb
 #
@@ -234,6 +238,22 @@ initrd-%.iso: $(LOADER)/loader prep-initrd make-driver-disk
 	if [ ! -x $@.new ]; then mkdir $@.new; fi
 
 	cd $@.new && cpio -iv < ../$(basename $@)
+
+	#
+	# nuke ext4 module from modules.cgz
+	#
+	mkdir nukeext4
+	( cd nukeext4 ; \
+		gunzip -c ../$@.new/modules/modules.cgz | cpio -idu ; \
+		rm -f `find . | grep ext4.ko` ; \
+		find . -type f | cpio -H crc -o | \
+			gzip -9 > ../$@.new/modules/modules.cgz ; \
+	)
+
+	echo "stalling"
+	/bin/bash
+
+	rm -rf nukeext4
 
 	cp $(LOADER)/loader $@.new/sbin/loader
 	cp $(LOADER)/init $@.new/sbin/init
