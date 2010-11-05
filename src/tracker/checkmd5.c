@@ -12,7 +12,7 @@ extern MD5_CTX	context;
 
 
 static int
-verify_md5(char *filename, char *md5)
+verify_md5(char *md5)
 {
 	int		i;
 	unsigned char	digest[16];
@@ -71,17 +71,26 @@ check_md5(char *filename)
 		retval = fscanf(file, "%s %s", digest, fname);
 
 		if (retval == 2) {
-			if (strcmp(fname, filename) == 0) {
-				if (verify_md5(filename, digest) == 1) {
-					logmsg("MD5 checksum passed for file %s\n", filename);
-					passed = 1;
-				} else {
-					logmsg("MD5 checksum failed for file %s\n", filename);
-					passed = -1;
-				}
+			if (strlen(filename) >= strlen(fname)) {
+				/*
+				 * check if the last part of the filename
+				 * matches fname found in the packages.md5 file
+				 */
+				char *ptr = (char *)&filename[
+					strlen(filename) - strlen(fname)];
 
-				done = 1;
-				continue;
+				if (strcmp(fname, ptr) == 0) {
+					if (verify_md5(digest) == 1) {
+						logmsg("MD5 checksum passed for file %s\n", filename);
+						passed = 1;
+					} else {
+						logmsg("MD5 checksum failed for file %s\n", filename);
+						passed = -1;
+					}
+
+					done = 1;
+					continue;
+				}
 			}
 		} else if (retval == EOF) {
 			done = 1;
