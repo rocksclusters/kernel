@@ -42,7 +42,8 @@ print_peers(hash_info_t *hashinfo)
 	struct in_addr	in;
 	int		i;
 
-fprintf(stderr, "print_peers:numpeers %d\n",  hashinfo->numpeers);
+	fprintf(stderr, "print_peers:numpeers %d\n",  hashinfo->numpeers);
+
 	for (i = 0 ; i < hashinfo->numpeers ; ++i) {
 		in.s_addr = hashinfo->peers[i].ip;
 		fprintf(stderr, "\t%s : %c\n", inet_ntoa(in), 
@@ -59,8 +60,8 @@ print_hash_table()
 	fprintf(stderr, "tail: (%d)\n", hash_table->tail);
 
 	if (hash_table->head >= hash_table->tail) {
-		for (i = hash_table->head ;
-				(i >= hash_table->tail) && (i >= 0) ; --i) {
+		for (i = hash_table->head - 1;
+				(i > hash_table->tail) && (i >= 0) ; --i) {
 
 			fprintf(stderr, "entry[%d] : hash (0x%lx)\n", i,
 				hash_table->entry[i].hash);
@@ -82,6 +83,44 @@ print_hash_table()
 				hash_table->entry[i].hash);
 
 			print_peers(&hash_table->entry[i]);
+		}
+	}
+
+	return;
+}
+
+void
+verify_hash_table()
+{
+	int	i;
+
+	print_hash_table();
+
+	if (hash_table->head >= hash_table->tail) {
+		for (i = hash_table->head - 1;
+				(i > hash_table->tail) && (i >= 0) ; --i) {
+
+			if (hash_table->entry[i].hash == 0) {
+				fprintf(stderr, "verify_hash_table:1: error at entry %d\n", i);
+				exit(-1);
+			}
+		}
+	} else {
+		for (i = hash_table->head - 1; i >= 0 ; --i) {
+			if (hash_table->entry[i].hash == 0) {
+				fprintf(stderr, "verify_hash_table:2: error at entry %d\n", i);
+				exit(-1);
+			}
+		}
+
+		for (i = (hash_table->size - 1) ;
+				(i > hash_table->tail) && (i >= 0) ; --i) {
+
+			if (hash_table->entry[i].hash == 0) {
+				fprintf(stderr, "verify_hash_table:3: error at entry %d\n", i);
+				exit(-1);
+			}
+
 		}
 	}
 
@@ -284,10 +323,11 @@ grow_hash_table(int size)
 	uint32_t	oldsize = hash_table->size;
 	uint32_t	newsize = size + hash_table->size;
 	int		len;
+	int		tailentries;
 
 	len = sizeof(hash_table_t) + (newsize * sizeof(hash_info_t));
 
-#ifdef	LATER
+#ifdef	DEBUG
 	fprintf(stderr, "grow_hash_table:enter:size (%d)\n", hash_table->size);
 	fprintf(stderr, "grow_hash_table:enter:head (%d)\n", hash_table->head);
 	fprintf(stderr, "grow_hash_table:enter:tail (%d)\n", hash_table->tail);
@@ -301,33 +341,53 @@ grow_hash_table(int size)
 		return(-1);
 	}
 
-	/*
-	 * create an initialized space in the new table for the new entries.
-	 * these new entries are being 'spliced' into the middle of the table
-	 * starting at 'head'.
-	 * 
-	 * need to move the entries from the table head down to the end of
-	 * the old table into the last part of the new table.
-	 */
-	memcpy(&hash_table->entry[oldsize],
-		&hash_table->entry[hash_table->head],
-			size * sizeof(hash_info_t));
-	
+	tailentries = oldsize - 1 - hash_table->tail;
+#ifdef	DEBUG
+	fprintf(stderr, "grow_hash_table:tailentries (%d)\n", tailentries);
+#endif
+	if (tailentries > 0) {
+		/*
+		 * if the tail is "not" pointing at the last entry of the
+		 * old table, then we need to copy the bottom of the old
+		 * table to the bottom of the new table
+		 */
+		memcpy(&hash_table->entry[newsize - tailentries],
+			&hash_table->entry[hash_table->tail + 1],
+			tailentries * sizeof(hash_info_t));
+	}
+
 	/*
 	 * initialize the new entries
 	 */
-	bzero(&hash_table->entry[hash_table->head], size * sizeof(hash_info_t));
+	bzero(&hash_table->entry[hash_table->head],
+		(size + 1) * sizeof(hash_info_t));
 
 	hash_table->size = newsize;
 	hash_table->tail = hash_table->tail + size;
 
-#ifdef	LATER
+#ifdef	DEBUG
 	fprintf(stderr, "grow_hash_table:exit:size (%d)\n", hash_table->size);
 	fprintf(stderr, "grow_hash_table:exit:head (%d)\n", hash_table->head);
 	fprintf(stderr, "grow_hash_table:exit:tail (%d)\n", hash_table->tail);
 
 	fprintf(stderr, "grow_hash_table:after\n\n");
 	print_hash_table();
+#endif
+
+#ifdef	DEBUG
+	fprintf(stderr, "grow_hash_table:validate new free entries\n");
+{
+	int	i;
+
+	for (i = hash_table->head; i <= hash_table->tail; ++i) {
+		fprintf(stderr, "\tentry[%d] : hash (0x%lx)\n", i,
+			hash_table->entry[i].hash);
+		if (hash_table->entry[i].hash != 0) {
+			fprintf(stderr, "grow_hash_table:validate fail\n");
+			exit(-1);
+		}
+	}
+}
 #endif
 
 	return(0);
@@ -832,7 +892,7 @@ register_hash(char *buf, struct sockaddr_in *from_addr)
 }
 
 void
-removepeer(int index, peer_t *peer)
+removepeer(int index, peer_t *peer, char do_compact)
 {
 	hash_info_t	*hashinfo = &hash_table->entry[index];
 	int		i, j;
@@ -858,9 +918,11 @@ removepeer(int index, peer_t *peer)
 				hashinfo->peers = NULL;
 				hashinfo->hash = 0;
 				hashinfo->numpeers = 0;
-					
-				compact_hash_table();
-				reclaim_free_entries();
+
+				if (do_compact) {
+					compact_hash_table();
+					reclaim_free_entries();
+				}
 			} else {
 				/*
 				 * remove the peer by compacting all subsequent
@@ -910,7 +972,7 @@ unregister_hash(char *buf, struct sockaddr_in *from_addr)
 		if (getpeers(info->hash, &index) != NULL) {
 			for (j = 0 ; j < info->numpeers ; ++j) {
 				peer.ip = info->peers[j].ip;
-				removepeer(index, &peer);
+				removepeer(index, &peer, 1);
 			}
 		}
 	}
@@ -935,11 +997,24 @@ unregister_all(char *buf, struct sockaddr_in *from_addr)
 
 	peer.ip = from_addr->sin_addr.s_addr;
 
-	for (i = 0 ; i < hash_table->size; ++i) {
-		if (hash_table->entry[i].hash != 0) {
-			removepeer(i, &peer);
+	if (hash_table->head >= hash_table->tail) {
+		for (i = hash_table->head - 1;
+				(i > hash_table->tail) && (i >= 0) ; --i) {
+			removepeer(i, &peer, 0);
+		}
+	} else {
+		for (i = hash_table->head - 1; i >= 0 ; --i) {
+			removepeer(i, &peer, 0);
+		}
+
+		for (i = (hash_table->size - 1) ;
+				(i > hash_table->tail) && (i >= 0) ; --i) {
+			removepeer(i, &peer, 0);
 		}
 	}
+
+	compact_hash_table();
+	reclaim_free_entries();
 
 	clear_dt_table_entry(peer.ip);
 
@@ -1045,6 +1120,9 @@ main()
 			e = (end_time.tv_sec * 1000000) + end_time.tv_usec;
 			fprintf(stderr, "main:svc time: %lld\n", (e - s));
 #ifdef	TIMEIT
+#endif
+#ifdef	LATER
+			verify_hash_table();
 #endif
 		}
 	}
