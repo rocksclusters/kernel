@@ -63,14 +63,14 @@ print_hash_table()
 		for (i = hash_table->head - 1;
 				(i > hash_table->tail) && (i >= 0) ; --i) {
 
-			fprintf(stderr, "entry[%d] : hash (0x%lx)\n", i,
+			fprintf(stderr, "entry[%d] : hash (0x%llx)\n", i,
 				hash_table->entry[i].hash);
 
 			print_peers(&hash_table->entry[i]);
 		}
 	} else {
 		for (i = hash_table->head - 1; i >= 0 ; --i) {
-			fprintf(stderr, "entry[%d] : hash (0x%lx)\n", i,
+			fprintf(stderr, "entry[%d] : hash (0x%llx)\n", i,
 				hash_table->entry[i].hash);
 
 			print_peers(&hash_table->entry[i]);
@@ -79,7 +79,7 @@ print_hash_table()
 		for (i = (hash_table->size - 1) ;
 				(i > hash_table->tail) && (i >= 0) ; --i) {
 
-			fprintf(stderr, "entry[%d] : hash (0x%lx)\n", i,
+			fprintf(stderr, "entry[%d] : hash (0x%llx)\n", i,
 				hash_table->entry[i].hash);
 
 			print_peers(&hash_table->entry[i]);
@@ -380,7 +380,7 @@ grow_hash_table(int size)
 	int	i;
 
 	for (i = hash_table->head; i <= hash_table->tail; ++i) {
-		fprintf(stderr, "\tentry[%d] : hash (0x%lx)\n", i,
+		fprintf(stderr, "\tentry[%d] : hash (0x%llx)\n", i,
 			hash_table->entry[i].hash);
 		if (hash_table->entry[i].hash != 0) {
 			fprintf(stderr, "grow_hash_table:validate fail\n");
@@ -429,7 +429,7 @@ addpeer(hash_info_t *hashinfo, peer_t *peer)
 	struct in_addr	in;
 
 	in.s_addr = peer->ip;
-	fprintf(stderr, "addpeer:adding peer (%s) for hash (0x%016lx)\n",
+	fprintf(stderr, "addpeer:adding peer (%s) for hash (0x%016llx)\n",
 		inet_ntoa(in), hashinfo->hash);
 
 	fprintf(stderr, "addpeer:before\n");
@@ -521,7 +521,7 @@ getpeers(uint64_t hash, int *index)
 
 	if (found != -1) {
 #ifdef	DEBUG
-		fprintf(stderr, "getpeers:hash (0x%016lx) found\n", hash);
+		fprintf(stderr, "getpeers:hash (0x%016llx) found\n", hash);
 #endif
 		if (index != NULL) {
 			*index = i;
@@ -534,7 +534,7 @@ getpeers(uint64_t hash, int *index)
 	 * if we made it here, then the hash is not in the table
 	 */
 #ifdef	DEBUG
-	fprintf(stderr, "getpeers:hash (0x%016lx) not found\n", hash);
+	fprintf(stderr, "getpeers:hash (0x%016llx) not found\n", hash);
 #endif
 
 #ifdef	TIMEIT
@@ -552,7 +552,7 @@ getnextpeers(uint64_t hash, int *index)
 	int	i;
 
 #ifdef	DEBUG
-	fprintf(stderr, "getnextpeers:hash (0x%lx), index (%d), head (%d), tail (%d)", hash, *index, hash_table->head, hash_table->tail);
+	fprintf(stderr, "getnextpeers:hash (0x%llx), index (%d), head (%d), tail (%d)", hash, *index, hash_table->head, hash_table->tail);
 #endif
 
 	/*
@@ -570,7 +570,7 @@ getnextpeers(uint64_t hash, int *index)
 		if (hash_table->entry[i].hash != 0) {
 			*index = i;
 #ifdef	DEBUG
-			fprintf(stderr, " return: index (%d), hash (0x%lx)\n",
+			fprintf(stderr, " return: index (%d), hash (0x%llx)\n",
 				i, hash_table->entry[i].hash);
 #endif
 			return(&hash_table->entry[i]);
@@ -584,7 +584,7 @@ getnextpeers(uint64_t hash, int *index)
 		if (hash_table->entry[i].hash != 0) {
 			*index = i;
 #ifdef	DEBUG
-			fprintf(stderr, " return: index (%d), hash (0x%lx)\n",
+			fprintf(stderr, " return: index (%d), hash (0x%llx)\n",
 				i, hash_table->entry[i].hash);
 #endif
 			return(&hash_table->entry[i]);
@@ -785,7 +785,7 @@ dolookup(int sockfd, uint64_t hash, uint32_t seqno,
 		sizeof(*from_addr));
 
 #ifdef	DEBUG
-	fprintf(stderr, "dolookup:exit:hash (0x%lx)\n", hash);
+	fprintf(stderr, "dolookup:exit:hash (0x%llx)\n", hash);
 #endif
 
 	return;
@@ -806,7 +806,7 @@ register_hash(char *buf, struct sockaddr_in *from_addr)
 		reqinfo = &req->info[i];
 #ifdef	LATER
 		fprintf(stderr,
-			"register_hash:enter:hash (0x%lx)\n", reqinfo->hash);
+			"register_hash:enter:hash (0x%llx)\n", reqinfo->hash);
 		fprintf(stderr, "register_hash:hash_table:before\n\n");
 		print_hash_table();
 #endif
@@ -886,7 +886,7 @@ register_hash(char *buf, struct sockaddr_in *from_addr)
 #endif
 
 #ifdef	DEBUG
-	fprintf(stderr, "register_hash:exit:hash (0x%lx)\n", reqinfo->hash);
+	fprintf(stderr, "register_hash:exit:hash (0x%llx)\n", reqinfo->hash);
 #endif
 	}
 }
@@ -902,7 +902,7 @@ removepeer(int index, peer_t *peer, char do_compact)
 	struct in_addr	in;
 
 	in.s_addr = peer->ip;
-	fprintf(stderr, "removepeer:removing peer (%s) for hash (0x%016lx)\n",
+	fprintf(stderr, "removepeer:removing peer (%s) for hash (0x%016llx)\n",
 		inet_ntoa(in), hashinfo->hash);
 }
 #endif

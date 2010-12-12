@@ -1,10 +1,13 @@
 /*
- * $Id: tracker-client.c,v 1.18 2010/11/05 18:20:29 bruno Exp $
+ * $Id: tracker-client.c,v 1.19 2010/12/12 17:56:22 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.19  2010/12/12 17:56:22  bruno
+ * fix structure alignment so 64-bit and 32-bit nodes can talk to each other
+ *
  * Revision 1.18  2010/11/05 18:20:29  bruno
  * support to verify the MD5 checksums for all the packages that we track
  *
@@ -778,7 +781,7 @@ save_prediction_info(tracker_info_t *infoptr, int info_count)
 
 #ifdef	DEBUG
 		logmsg("prediction info\n");
-		logmsg("info:hash (0x%lx)\n", infoptr->hash);
+		logmsg("info:hash (0x%llx)\n", infoptr->hash);
 		logmsg("info:numpeers (%d)\n", infoptr->numpeers);
 {
 		int	j;
@@ -832,7 +835,7 @@ getprediction(uint64_t hash, tracker_info_t **info)
 	int		retval = 0;
 
 #ifdef	DEBUG
-	logmsg("getprediction:hash (0x%016lx)\n", hash);
+	logmsg("getprediction:hash (0x%016llx)\n", hash);
 #endif
 
 	if (predictions == NULL) {
@@ -847,7 +850,7 @@ getprediction(uint64_t hash, tracker_info_t **info)
 
 	while (totalsize < predictions_size) {
 #ifdef	DEBUG
-		logmsg("getprediction:pred hash (0x%016lx)\n", p->hash);
+		logmsg("getprediction:pred hash (0x%016llx)\n", p->hash);
 #endif
 		size = sizeof(tracker_info_t) +
 			(sizeof(p->peers[0]) * p->numpeers);
@@ -892,6 +895,8 @@ trackfile(int sockfd, char *filename, char *range, uint16_t num_trackers,
 #endif
 
 	hash = hashit(filename);
+
+fprintf(stderr, "trackfile:sizeof(hash) %d\n", sizeof(hash));
 
 #ifdef	TIMEIT
 	gettimeofday(&end_time, NULL);
@@ -939,9 +944,9 @@ trackfile(int sockfd, char *filename, char *range, uint16_t num_trackers,
 
 #ifdef	DEBUG
 	if (info_count == 0) {
-		logmsg("trackfile:pred miss (0x%016lx)\n", hash);
+		logmsg("trackfile:pred miss (0x%016llx)\n", hash);
 	} else {
-		logmsg("trackfile:pred hit (0x%016lx)\n", hash);
+		logmsg("trackfile:pred hit (0x%016llx)\n", hash);
 	}
 #endif
 
@@ -1005,7 +1010,7 @@ trackfile(int sockfd, char *filename, char *range, uint16_t num_trackers,
 #endif
 
 #ifdef	DEBUG
-		logmsg("trackfile:hash (0x%lx) : numpeers (%d)\n",
+		logmsg("trackfile:hash (0x%llx) : numpeers (%d)\n",
 			infoptr->hash, infoptr->numpeers);
 
 		logmsg("trackfile:peers:\n");

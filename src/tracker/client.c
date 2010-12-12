@@ -182,12 +182,14 @@ register_hash(int sockfd, in_addr_t *ip, uint32_t numhashes,
 	tracker_send(sockfd, (void *)req, len, 
 		(struct sockaddr *)&send_addr, sizeof(send_addr));
 
+logmsg("register_hash:here:1\n");
+
 #ifdef	DEBUG
 {
 	struct in_addr		in;
 
 	in.s_addr = *ip;
-	logmsg("register: registered hash (0x%016lx) with tracker (%s)\n",
+	logmsg("register: registered hash (0x%016llx) with tracker (%s)\n",
 		info->hash, inet_ntoa(in));
 }
 #endif
@@ -248,7 +250,7 @@ unregister_hash(int sockfd, in_addr_t *ip, uint32_t numhashes,
 	struct in_addr		in;
 
 	in.s_addr = *ip;
-	logmsg("unregister_hash: unregistered hash (0x%016lx) with tracker (%s)\n",
+	logmsg("unregister_hash: unregistered hash (0x%016llx) with tracker (%s)\n",
 		info->hash, inet_ntoa(in));
 }
 #endif

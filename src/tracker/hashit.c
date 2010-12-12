@@ -20,5 +20,5 @@ main(int argc, char **argv)
 	}
 
 	hash = hashit(argv[1]);
-	printf("0x%016lx %s\n", hash, argv[1]);
+	printf("0x%016llx %s\n", hash, argv[1]);
 }

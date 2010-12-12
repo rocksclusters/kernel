@@ -56,7 +56,6 @@ typedef struct {
 
 typedef struct {
 	uint64_t	hash;
-	size_t		filesize;
 	uint16_t	numpeers;
 	char		pad[6];		/* align on 64-bit boundary */
 	peer_t		peers[0];
@@ -71,7 +70,7 @@ typedef struct {
 typedef struct {
 	uint64_t	hash;
 	uint16_t	numpeers;
-	size_t		filesize;
+	char		pad[6];		/* align on 64-bit boundary */
 	peer_t		*peers;
 } hash_info_t;
 
