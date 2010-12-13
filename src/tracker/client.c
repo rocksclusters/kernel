@@ -182,8 +182,6 @@ register_hash(int sockfd, in_addr_t *ip, uint32_t numhashes,
 	tracker_send(sockfd, (void *)req, len, 
 		(struct sockaddr *)&send_addr, sizeof(send_addr));
 
-logmsg("register_hash:here:1\n");
-
 #ifdef	DEBUG
 {
 	struct in_addr		in;

@@ -1,10 +1,13 @@
 /*
- * $Id: tracker-client.c,v 1.19 2010/12/12 17:56:22 bruno Exp $
+ * $Id: tracker-client.c,v 1.20 2010/12/13 18:52:36 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.20  2010/12/13 18:52:36  bruno
+ * remove debug statements
+ *
  * Revision 1.19  2010/12/12 17:56:22  bruno
  * fix structure alignment so 64-bit and 32-bit nodes can talk to each other
  *
@@ -895,8 +898,6 @@ trackfile(int sockfd, char *filename, char *range, uint16_t num_trackers,
 #endif
 
 	hash = hashit(filename);
-
-fprintf(stderr, "trackfile:sizeof(hash) %d\n", sizeof(hash));
 
 #ifdef	TIMEIT
 	gettimeofday(&end_time, NULL);
