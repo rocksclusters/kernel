@@ -10,6 +10,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+static char builton[] = { "Built on: " __DATE__ " " __TIME__ };
+
 extern int shuffle(peer_t *, uint16_t, char *);
 extern char *getcoop(in_addr_t, char *);
 extern void clear_dt_table_entry(in_addr_t);

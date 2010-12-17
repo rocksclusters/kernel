@@ -1,10 +1,13 @@
 /*
- * $Id: unregister-file.c,v 1.3 2010/10/12 19:39:21 bruno Exp $
+ * $Id: unregister-file.c,v 1.4 2010/12/17 21:51:06 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: unregister-file.c,v $
+ * Revision 1.4  2010/12/17 21:51:06  bruno
+ * put a string in each executable that tells us when it was built.
+ *
  * Revision 1.3  2010/10/12 19:39:21  bruno
  * allow a client to 'unregister' another client. this is useful when a client
  * detects a download error from another client. this is a way to nuke misbehaving
@@ -38,6 +41,8 @@
 #include "tracker.h"
 #include <sys/socket.h>
 #include <arpa/inet.h>
+
+static char builton[] = { "Built on: " __DATE__ " " __TIME__ };
 
 extern int init(uint16_t *, char *, in_addr_t *, uint16_t *, char *, uint16_t *,
 	in_addr_t *);

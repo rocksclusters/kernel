@@ -1,10 +1,13 @@
 /*
- * $Id: peer-done.c,v 1.3 2010/03/15 23:05:56 bruno Exp $
+ * $Id: peer-done.c,v 1.4 2010/12/17 21:51:06 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: peer-done.c,v $
+ * Revision 1.4  2010/12/17 21:51:06  bruno
+ * put a string in each executable that tells us when it was built.
+ *
  * Revision 1.3  2010/03/15 23:05:56  bruno
  * tweaks
  *
@@ -40,6 +43,8 @@
 #include "tracker.h"
 #include <sys/socket.h>
 #include <arpa/inet.h>
+
+static char builton[] = { "Built on: " __DATE__ " " __TIME__ };
 
 extern int init(uint16_t *, char *, in_addr_t *, uint16_t *, char *, uint16_t *,
 	in_addr_t *);

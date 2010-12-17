@@ -1,10 +1,13 @@
 /*
- * $Id: tracker-client.c,v 1.20 2010/12/13 18:52:36 bruno Exp $
+ * $Id: tracker-client.c,v 1.21 2010/12/17 21:51:06 bruno Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.21  2010/12/17 21:51:06  bruno
+ * put a string in each executable that tells us when it was built.
+ *
  * Revision 1.20  2010/12/13 18:52:36  bruno
  * remove debug statements
  *
@@ -111,6 +114,8 @@
 #include <arpa/inet.h>
 #include <libgen.h>
 #include <openssl/md5.h>
+
+static char builton[] = { "Built on: " __DATE__ " " __TIME__ };
 
 extern int init(uint16_t *, char *, in_addr_t *, uint16_t *, char *, uint16_t *,
 	in_addr_t *);

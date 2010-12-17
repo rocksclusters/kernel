@@ -7,6 +7,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+static char builton[] = { "Built on: " __DATE__ " " __TIME__ };
+
 extern uint64_t hashit(char *);
 
 int
