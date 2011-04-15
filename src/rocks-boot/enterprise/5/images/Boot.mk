@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.23 2010/11/03 21:44:31 bruno Exp $
+# $Id: Boot.mk,v 1.24 2011/04/15 19:41:59 phil Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -59,6 +59,15 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.24  2011/04/15 19:41:59  phil
+# Updates to build under CentOS 5.6 and new anaconda version.
+# Calling this version5.4.3. Codename Viper.
+#
+# Had to rebuild our own kudzu lib because the CentOS 5.6 version on initial
+# release was bad. See bug ID 4813 on bugs.centos.org. That was a not fun debug.
+#
+# Splash screen is work in progress.
+#
 # Revision 1.23  2010/11/03 21:44:31  bruno
 # take out debug code
 #
@@ -245,14 +254,15 @@ initrd-%.iso: $(LOADER)/loader prep-initrd make-driver-disk
 	#
 	# nuke ext4 module from modules.cgz
 	#
-	mkdir nukeext4
-	( cd nukeext4 ; \
-		gunzip -c ../$@.new/modules/modules.cgz | cpio -idu ; \
-		rm -f `find . | grep ext4.ko` ; \
-		find . -type f | cpio -H crc -o | \
-			gzip -9 > ../$@.new/modules/modules.cgz ; \
-	)
-	rm -rf nukeext4
+	# Anaconda 224, don't nuke ext4 support
+	#mkdir nukeext4
+	#( cd nukeext4 ; \
+	#	gunzip -c ../$@.new/modules/modules.cgz | cpio -idu ; \
+	#	rm -f `find . | grep ext4.ko` ; \
+	#	find . -type f | cpio -H crc -o | \
+	#		gzip -9 > ../$@.new/modules/modules.cgz ; \
+	#)
+	#rm -rf nukeext4
 
 	cp $(LOADER)/loader $@.new/sbin/loader
 	cp $(LOADER)/init $@.new/sbin/init
