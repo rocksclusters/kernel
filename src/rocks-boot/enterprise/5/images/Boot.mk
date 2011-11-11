@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.26 2011/11/11 05:59:01 phil Exp $
+# $Id: Boot.mk,v 1.27 2011/11/11 15:44:31 phil Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -59,6 +59,9 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.27  2011/11/11 15:44:31  phil
+# remove libz from the list that copies from /usr/lib[64]. It's only really in /lib and /lib64 on Centos5.7
+#
 # Revision 1.26  2011/11/11 05:59:01  phil
 # Anaconda and updates from RHEL 5.7
 #
@@ -288,13 +291,13 @@ initrd-%.iso: $(LOADER)/loader prep-initrd make-driver-disk
 	mkdir -p $@.new/tracker
 	cp rocks-tracker/opt/rocks/bin/tracker-client $@.new/tracker/
 	cp rocks-tracker/opt/rocks/bin/peer-done $@.new/tracker/
-	-for i in curl idn gssapi_krb5 krb5 k5crypto z krb5support ; do \
+	-for i in curl idn gssapi_krb5 krb5 k5crypto krb5support ; do \
 		cp -d /usr/lib/lib$$i.so* $@.new/lib ; \
 		cp -d /usr/lib64/lib$$i.so* $@.new/lib64 ; \
 	done
 	# special handling for libz (required for Centos 5.7)
 	-for i in z; do \
-		cp -d /lib$$i.so* $@.new/lib ; \
+		cp -d /lib/lib$$i.so* $@.new/lib ; \
 		cp -d /lib64/lib$$i.so* $@.new/lib64 ; \
 	done
 
