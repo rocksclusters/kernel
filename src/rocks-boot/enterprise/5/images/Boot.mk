@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.27 2011/11/11 15:44:31 phil Exp $
+# $Id: Boot.mk,v 1.28 2011/12/14 20:17:11 phil Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -59,6 +59,9 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.28  2011/12/14 20:17:11  phil
+# busybox version of rpm was "in the way"
+#
 # Revision 1.27  2011/11/11 15:44:31  phil
 # remove libz from the list that copies from /usr/lib[64]. It's only really in /lib and /lib64 on Centos5.7
 #
@@ -295,11 +298,16 @@ initrd-%.iso: $(LOADER)/loader prep-initrd make-driver-disk
 		cp -d /usr/lib/lib$$i.so* $@.new/lib ; \
 		cp -d /usr/lib64/lib$$i.so* $@.new/lib64 ; \
 	done
-	# special handling for libz (required for Centos 5.7)
+	# special handling for libz (required for CentOS 5.7)
 	-for i in z; do \
 		cp -d /lib/lib$$i.so* $@.new/lib ; \
 		cp -d /lib64/lib$$i.so* $@.new/lib64 ; \
 	done
+
+	# remove busybox version of rpm. we need the real one (CentOS 5.7)
+	if [ -h $@.new/sbin/rpm ]; then \
+		/bin/rm $@.new/sbin/rpm; \
+	fi
 
 	# for firefox
 	-cp -d /lib/libasound* $@.new/lib
