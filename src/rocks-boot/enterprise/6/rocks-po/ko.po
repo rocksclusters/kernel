@@ -1,0 +1,340 @@
+##
+##
+## messages for Rocks 
+
+msgid "Install Roll"
+msgstr "Roll 설치"
+
+msgid "Put Roll disk '%s' "
+msgstr "Roll 디스크 '%s'를 드라이브에 "
+
+msgid "in the drive\n"
+msgstr "넣으십시오\n"
+
+msgid "Scanning Media"
+msgstr "미디어 검색중입니다"
+
+msgid "Scanning the media for rolls..."
+msgstr "Roll에 대한 미디어를 검색하고 있습니다.."
+
+msgid "Copying Roll '%s'\n\n"
+msgstr "'%s' Roll를 복사하고 있습니다\n\n"
+
+msgid "This will take some time..."
+msgstr "이 작업은 약간 시간이 걸립니다..."
+
+msgid "Error while retrieving:\n\n%s\n\n%s"
+msgstr "다음을 추출하는 도중에 오류 발생: \n\n%s\n\n%s"
+
+msgid "Break"
+msgstr "멈춤"
+
+msgid "From %s"
+msgstr "%s 로부터"
+
+msgid "Retrieving %s..."
+msgstr "%s 를 추출하고 있습니다.."
+
+msgid "%s roll"
+msgstr "%s Roll"
+
+msgid "Missing Roll"
+msgstr "Roll이 없음"
+
+msgid "Cannot find/install roll '%s'"
+msgstr "'%s' Roll를 찾거나 설치할 수 없음"
+
+msgid "Found Roll"
+msgstr "Roll을 찾음"
+
+msgid "Found Roll '%s'"
+msgstr "'%s' Roll를 찾음"
+
+msgid "Rolls available on %s"
+msgstr "%s 에서 이용 가능한 Roll"
+
+msgid "Arch: %s\tDist: %s"
+msgstr "아키텍처: %s\t대상: %s"
+
+msgid "Arch"
+msgstr "아키텍처"
+
+msgid "Available Rolls"
+msgstr "이용 가능한 Roll"
+
+msgid "Choose Architecture"
+msgstr "아키텍처를 선택하십시오"
+
+msgid "No CD Rolls"
+msgstr "CD Roll이 없음"
+
+msgid "No %s Rolls found on CD/DVD"
+msgstr "CD나 DVD에서 %s Roll를 찾을 수 없음"
+
+msgid "Add Roll CD/DVD"
+msgstr "CD 혹은 DVD Roll 추가"
+
+msgid "Insert the Roll CD/DVD and press 'Ok'\n"
+msgstr "Roll CD나 DVD를 삽입한후 '확인'를 누르십시오\n"
+
+msgid "Roll CD/DVD"
+msgstr "Roll CD/DVD"
+
+msgid "Do you have a roll CD/DVD?\n"
+msgstr "Roll CD/DVD가 있습니까?\n"
+
+msgid "CD Roll"
+msgstr "CD Roll"
+
+msgid "Installed CD/DVD Rolls"
+msgstr "CD/DVD Roll를 설치함"
+
+msgid "Do you have another roll CD/DVD?"
+msgstr "다른 Roll CD나 DVD가 있습니까?"
+
+msgid "No Network Rolls"
+msgstr "네트워크 Roll이 아님"
+
+msgid "No %s Rolls found in %s"
+msgstr "%s Roll를 %s에서 찾을 수 없음"
+
+msgid  "Network Roll"
+msgstr "네트워크 Roll"
+
+msgid "Do you have %s roll server?\n"
+msgstr "%s Roll 서버를 가지고 있습니까?\n"
+
+msgid "Use 'all' client"
+msgstr "'모든' 클라이언트 사용"
+
+msgid "Roll Server"
+msgstr "Roll 서버"
+
+msgid "Enter the full name (FQDN) of your Roll Server"
+msgstr "Roll 서버에 대한 전체 이름(FQDN)를 입력하십시오"
+
+msgid "Server:"
+msgstr "서버: "
+
+msgid "Dist:"
+msgstr "대상: "
+
+msgid "Access:"
+msgstr "접근: "
+
+msgid "Rocks v%s "
+msgstr "Rokcs %s 버전"
+
+msgid "CACL Setup Information"
+msgstr "CACL 설치 정보"
+
+msgid "Information Used to Configure CACL System"
+msgstr "CACL 시스템을 설정하기 위해 사용하는 정보"
+
+msgid "Organization Name:"
+msgstr "조직 이름:"
+
+msgid "Organization Unit:"
+msgstr "조직 단위:"
+
+msgid "Must Select Manual Partitioning"
+msgstr "반드시 수동 파티셔닝을 선택하십시오"
+
+msgid "When upgrading, you must select manual "
+"partitioning.\n\n"
+"Please select 'Disk Druid' or 'fdisk'."
+msgstr "업그레이드를 할 경우 반드시 수동 파티셔닝"
+"을 선택하셔야 합니다.\n\n"
+"'Disk Druid'나 'fdisk'를 선택하십시오."
+
+msgid "Finding all attached disks\n\n"
+"This may take some time..."
+msgstr "시스템에 장착된 모든 디스크를 찾고 있습니다\n\n"
+"이 작업은 약간 시간이 걸릴 것입니다.."
+
+msgid "- (private cluster network)"
+msgstr "- (내부 클러스터 네트워크)"
+
+msgid " - (public cluster network)"
+msgstr " - (공개 클러스터 네트워크)"
+
+msgid "Which network time server would you like to use?"
+msgstr "어떤 네트워크 타임 서버를 사용하십니까?"
+
+msgid "Time Configuration"
+msgstr "시간 설정"
+
+msgid "Bad Name"
+msgstr "잘못된 이름"
+
+msgid "Cluster Name cannot contain the '/' character"
+msgstr "클러스터 이름에는 '/' 문자가 포함될 수 없습니다"
+
+msgid "Should be exactly %s characters long"
+msgstr "%s 문자 길이는 정확히 일치해야 합니다"
+
+msgid "Should be between %s and %s characters long"
+msgstr "%s 와 %s 문자 사이가 너무 긴듯합니다"
+
+msgid "Should be at most %s characters"
+msgstr "최소한 %s 문자이상이어야 합니다"
+
+msgid "Field Length Error"
+msgstr "필드 길이 오류"
+
+msgid "'%s' is not the right length.\n%s"
+msgstr "'%s'는 올바른 길이가 아닙니다\n%s"
+
+msgid "Our Cluster"
+msgstr "클러스터"
+
+msgid "Cluster Information"
+msgstr "클러스터 정보"
+
+msgid "Fully Qualified Hostname:"
+msgstr "유효한 전체 호스트이름:"
+
+msgid "Cluster Name:"
+msgstr "클러스터 이름:"
+
+msgid "Organization:"
+msgstr "조직:"
+
+msgid "Locality:"
+msgstr "위치:"
+
+msgid "State:"
+msgstr "주 : "
+
+msgid "Country:"
+msgstr "국가: "
+
+msgid "Contact:"
+msgstr "연락처:"
+
+msgid "LatLong:"
+msgstr "위/경도:"
+
+msgid
+"You must supply a value for the\n"
+"'%s'"
+msgstr "반드시 다음 값을 입력해야 합니다\n"
+"'%s'"
+
+msgid "User 1 Title"
+msgstr "사용자 1 타이틀"
+
+msgid "User 1 text\n"
+msgstr "사용자 1 텍스트\n"
+
+msgid "User 2 Title"
+msgstr "사용자 2 타이틀"
+
+msgid "Value:"
+msgstr "값:"
+
+msgid "User 3 Title"
+msgstr "사용자 3 타이틀"
+
+msgid "yoda is %s\n"
+msgstr "요다는 %s 임\n"
+
+msgid "Define OptIPuter Site Router"
+msgstr "OptIPuter 사이트 라이터 정의"
+
+msgid "IP Address of OptIPuter Site Router : "
+msgstr "OptiPuter 사이트 라이터에 대한 IP 주소: "
+
+msgid "Netmask CIDR-Style (e.g. /24) : "
+msgstr "Netmask 8진수 값으로 입력(예. /24) : "
+
+msgid "Bad Allocation Id"
+msgstr "잘못 할당된 ID"
+
+msgid "Allocation id must be an integer"
+msgstr "ID는 반드시 정수이어야 합니다"
+
+msgid "Allocation id: "
+msgstr "id 할당: "
+
+msgid "Server: "
+msgstr "서버: "
+
+msgid "Resource Allocation"
+msgstr "리소스 할당"
+
+msgid "Name your Allocated Blocks"
+msgstr "할당된 블럭의 이름"
+
+#
+# Add from loader patch file
+msgid "Name"
+msgstr "이름"
+
+msgid "Country"
+msgstr "나라"
+
+msgid "State"
+msgstr "주 "
+
+msgid "Locality"
+msgstr "지역"
+
+msgid "Contact"
+msgstr "연락처"
+
+msgid "Org Unit"
+msgstr "조직 단위"
+
+msgid "Org"
+msgstr "조직"
+
+msgid "Installation Server:"
+msgstr "설치 서버: "
+
+msgid "Certified by:"
+msgstr "다음으로 증명: "
+
+msgid "Authenticate Installation Server"
+msgstr "인증 설치 서버"
+
+msgid "Secure Kickstart"
+msgstr "보안 킥스타트"
+
+msgid "Looking for Kickstart keys..."
+msgstr "킥스타트 키를 찾고 있습니다.."
+
+msgid "GET File Error"
+msgstr "파일을 가져올 수 없음"
+
+msgid "Could not get file:\n\nhttp://%s/%s\n\n%s"
+msgstr "다음 파일을 가져올 수 없음:\n\nhttp://%s/%s\n\n%s"
+
+msgid "Server Busy"
+msgstr "서버의 응답이 없음"
+
+msgid "I will retry for a ks file after a %d sec sleep..."
+msgstr "%d 초 후에 ks 파일을 다시 가져옵니다..."
+
+msgid "Skeptical"
+msgstr "차이점 발견"
+
+msgid ""
+"The security credentials of server '%s' do "
+"not match those saved on our last install.\n\n"
+"This can happen if you are installing from a "
+"different parent server, or if the desired "
+"server has been compromised."
+msgstr ""
+" %s 서버의 보안 증명서가 최근에 저장된것과 다릅니다.\n\n"
+"아마 다른 서버에서 설치했거나 서버간의 통신을 "
+"재설정해야 합니다"
+
+msgid "another"
+msgstr "다른"
+
+msgid "a"
+msgstr " "
+
+msgid "Ok"
+msgstr "확인"
