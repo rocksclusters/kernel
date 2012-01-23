@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.4 2011/07/23 02:31:14 phil Exp $
+# $Id: Makefile,v 1.5 2012/01/23 20:44:47 phil Exp $
 #
 # @Copyright@
 # 
@@ -55,6 +55,9 @@
 # @Copyright@
 #
 # $Log: Makefile,v $
+# Revision 1.5  2012/01/23 20:44:47  phil
+# include fixup
+#
 # Revision 1.4  2011/07/23 02:31:14  phil
 # Viper Copyright
 #
@@ -101,6 +104,7 @@ include Rules.mk
 
 build:
 	tar zvfx $(NAME)-$(VERSION).tar.gz
+	cd patch-files && find . -type f | grep -v CVS | cpio -pduv ../
 	(								\
 		cd $(NAME)-$(VERSION) ;					\
 		./configure --prefix=$(PKGROOT) ;			\
