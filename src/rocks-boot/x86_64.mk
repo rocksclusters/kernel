@@ -1,5 +1,5 @@
 # --------------------------------------------------- -*- Makefile -*- --
-# $Id: x86_64.mk,v 1.14 2011/07/23 02:31:14 phil Exp $
+# $Id: x86_64.mk,v 1.15 2012/01/23 20:49:32 phil Exp $
 #
 # @Copyright@
 # 
@@ -55,6 +55,9 @@
 # @Copyright@
 #
 # $Log: x86_64.mk,v $
+# Revision 1.15  2012/01/23 20:49:32  phil
+# Support for build under 5 or 6
+#
 # Revision 1.14  2011/07/23 02:31:14  phil
 # Viper Copyright
 #
@@ -119,4 +122,10 @@
 #
 #
 
+ifeq ($strip $(VERSION.MAJOR), 5)
 REDHAT_RELEASE	= enterprise/5
+STATIC_LINK_FLAG = -static
+else
+REDHAT_RELEASE	= enterprise/6
+STATIC_LINK_FLAG = -static-libgcc
+endif

@@ -1,5 +1,5 @@
 # --------------------------------------------------- -*- Makefile -*- --
-# $Id: Makefile,v 1.19 2011/07/23 02:31:14 phil Exp $
+# $Id: Makefile,v 1.20 2012/01/23 20:49:32 phil Exp $
 #
 # @Copyright@
 # 
@@ -55,6 +55,9 @@
 # @Copyright@
 #
 # $Log: Makefile,v $
+# Revision 1.20  2012/01/23 20:49:32  phil
+# Support for build under 5 or 6
+#
 # Revision 1.19  2011/07/23 02:31:14  phil
 # Viper Copyright
 #
@@ -253,16 +256,22 @@ RELEASE		= 1
 USERID		= $(shell id -u)
 MAKE.rpmroot	= 1
 
-default: $(NAME).spec ../$(NAME)-$(VERSION).tar.gz
+default: $(NAME).spec.in $(NAME).spec ../$(NAME)-$(VERSION).tar.gz
+
+$(NAME).spec.in:
+		/bin/cp $@-$(VERSION.MAJOR) $@
 
 REDHAT.ROOT	= $(PWD)/../../
+
 
 -include $(ROCKSROOT)/etc/Rules.mk
 include Rules.mk
 
+BUILDROOT = $(REDHAT.VAR)/tmp/$(NAME)-buildroot
+
 SEDSPEC += -e s%@REDHAT_RELEASE@%$(REDHAT_RELEASE)%g 
 
-build:: cluster-kickstart
+build:: cluster-kickstart prep-initrd.py
 
 install build clean::
 	$(MAKE) ROOT=$(ROOT) PROJECT_NAME=$(PROJECT_NAME) REDHAT_RELEASE=$(REDHAT_RELEASE) VERSION=$(VERSION) -C $(REDHAT_RELEASE)/images/$(ARCH) $@
@@ -277,7 +286,11 @@ install::
 
 
 cluster-kickstart: cluster-kickstart.o
-	$(CC) $(CFLAGS) -static -o$@ $^
+	$(CC) $(CFLAGS) $(STATIC_LINK_FLAG) -o$@ $^
+
+prep-initrd.py:
+	install -m 755 prep-initrd-$(VERSION.MAJOR).py prep-initrd.py
+
 
 
 BOOTDISK=rocks-bootdisk-$(VERSION).$(ARCH).iso
