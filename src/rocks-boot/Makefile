@@ -1,5 +1,5 @@
 # --------------------------------------------------- -*- Makefile -*- --
-# $Id: Makefile,v 1.20 2012/01/23 20:49:32 phil Exp $
+# $Id: Makefile,v 1.21 2012/01/24 05:36:32 phil Exp $
 #
 # @Copyright@
 # 
@@ -55,6 +55,9 @@
 # @Copyright@
 #
 # $Log: Makefile,v $
+# Revision 1.21  2012/01/24 05:36:32  phil
+# now a version-specific spec file
+#
 # Revision 1.20  2012/01/23 20:49:32  phil
 # Support for build under 5 or 6
 #
@@ -302,5 +305,5 @@ bootdisk:
 	@echo "Wrote: $(BOOTDISK)"
 
 clean::
-	-rm -f *.spec *.o cluster-kickstart $(BOOTDISK)
+	-rm -f *.spec *.spec.in *.o cluster-kickstart $(BOOTDISK)
 	rm -rf /tmp/hdstg2* /tmp/instimage* /tmp/keymaps* /tmp/netstg2* /tmp/stage2.img /tmp/treedir*
