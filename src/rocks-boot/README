@@ -1,0 +1,36 @@
+The following is for RedHat/CentOS 6
+
+There are 4 file system images that are used during installation
+
+1. initrd
+	This is the standard initial ramdisk. Rocks brings up
+lighttpd, rock-tracker
+
+2. updates.img - this is created by rocks in the base roll in the updates.img.
+This brings a large set of tools to create kickstart files
+
+3. product.img - this has small number of python files that contain rocks 
+patches to anaconda.
+
+4. install.img - this is is created by the anaconda buildinstall script. The contents of this image are defined by each particular version of anaconda
+
+
+Dissecting loader.  
+Loader is the compiled program the begins execution only with files in initrd. 
+It is charged with determining where the other img files are located (network, cd, harddisk), and the type installation to start It finds and loads the img files and generally "merges" some elements of the file system. 
+
+updates.img is mounted on /tmp/updates
+install.img is mounted on /mnt/runtime (in loader, this is called stage2)
+product.img contents are compied to /tmp/product 
+
+Once the images are mounted the following directory manipulations
+(see loader.c)
+            /usr, /lib, /lib64 a retargeted to /mnt/runtime/[usr,lib,lib64]
+            this means that unloaded libs in initrd become unavailable. 
+            --> may need some libs in both initrd and install.img
+
+            contents of /tmp/mnt/runtime/[etc,var] are copied to the existing
+            ones (from initrd)
+
+            finally, /mnt/runtime/etc/selinux are copied to /etc/selinux. 
+            if configured, selinux is started.
