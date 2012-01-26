@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.1 2012/01/23 20:43:56 phil Exp $
+# $Id: Boot.mk,v 1.2 2012/01/26 07:20:31 phil Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -59,6 +59,10 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.2  2012/01/26 07:20:31  phil
+# Really do have to modify install.img (previously stage2) to add some
+# libraries so that firerox will start properly
+#
 # Revision 1.1  2012/01/23 20:43:56  phil
 # Latest Anaconda for 6
 #
@@ -167,7 +171,6 @@ DEFAULT  = isolinux
 KERNELBASENAME	= `uname -r | sed -e 's/xen//' -e 's/PAE//'`
 
 
-#initrd.img:
 prep-initrd:
 	$(BOOTBASE)/prep-initrd.py
 
@@ -246,26 +249,17 @@ make-stage2:
 #initrd-%: %.img
 	#gunzip -c $< > $@
 
+initrd-%.iso.gz: initrd-%.iso
+	#gzip -9 -f $<
 
-initrd-%.iso: $(LOADER)/loader prep-initrd
+
+initrd-%.iso: $(LOADER)/loader prep-initrd update-install-img
 
 	if [ ! -x $@.new ]; then mkdir $@.new; fi
 
 	cd $@.new && xz --decompress --stdout ../$(basename $@).img  | cpio -iv 
 
-	#
-	# nuke ext4 module from modules.cgz
-	#
-	# Anaconda 224, don't nuke ext4 support
-	#mkdir nukeext4
-	#( cd nukeext4 ; \
-	#	gunzip -c ../$@.new/modules/modules.cgz | cpio -idu ; \
-	#	rm -f `find . | grep ext4.ko` ; \
-	#	find . -type f | cpio -H crc -o | \
-	#		gzip -9 > ../$@.new/modules/modules.cgz ; \
-	#)
-	#rm -rf nukeext4
-
+	# Put our patched version of loader/init into initrd
 	cp $(LOADER)/loader $@.new/sbin/loader
 	cp $(LOADER)/init $@.new/sbin/init
 
@@ -289,40 +283,13 @@ initrd-%.iso: $(LOADER)/loader prep-initrd
 	# for firefox
 	-cp -d /lib/libasound* $@.new/lib
 	-cp -d /lib64/libasound* $@.new/lib64
+	cp /usr/bin/dirname $@.new/bin
+	cp /bin/basename $@.new/bin
+	cp /bin/pwd $@.new/bin
 
-	# For createrepo
-	#mkdir -p $@.new/usr/share
-	#( cd $@.new/usr/share ; \
-		#ln -s /tmp/updates/usr/share/createrepo createrepo )
-
-	#
-	# get some files off the stage2 image
-	#
-	#if [ ! -d stage2 ] ; then mkdir stage2 ; fi
-	#mount -o loop -t squashfs \
-		#rocks-dist/$(ARCH)/images/stage2.img stage2
-	#cp -r -d stage2/lib* $@.new/
-	#cp -r stage2/etc $@.new/
-	#umount stage2
-
-	#( if [ $(basename $@) == 'initrd-xen' ] ; then \
-			#cd modules-kernel-xen ; else cd modules-kernel ; fi ; \
-		#find . -type f | cpio -H crc -o | \
-		#gzip -9 > ../$@.new/modules/modules.cgz )
-
-	# LATER
-	# LATER
-	# LATER
-	#( cd modules ; \
-		#cp module-info ../$@.new/modules/ ; \
-		#cp modules.dep ../$@.new/modules/ ; \
-		#cp pci.ids ../$@.new/modules/ ; \
-		#cp modules.alias ../$@.new/modules/ )
 
 	echo "TERM=vt100" >> $@.new/.profile
 	echo "export TERM" >> $@.new/.profile
-
-	#cp $@.new/modules/modules.cgz modules-$(basename $@).cgz
 
 	rm -f $@.new/etc/arch
 
@@ -347,12 +314,46 @@ initrd-%.iso: $(LOADER)/loader prep-initrd
 	
 	( cd $@.new && find . | cpio --quiet -c -o | xz --format=lzma  -9 > ../$@.gz )
 
-	#rm -rf $@.new
 
+update-install-img:
+	if [ ! -x $@.orig ]; then mkdir $@.orig; fi
+	if [ ! -x $@.new ]; then mkdir $@.new; fi
 
-# Compress the ramdisk image so it can go back into the boot disk.
-initrd-%.iso.gz: initrd-%.iso
-	#gzip -9 -f $<
+	mount -o loop -t squashfs \
+		rocks-dist/$(ARCH)/images/install.img $@.orig
+	
+	# copy contents of original install image
+	(cd $@.orig; tar cf - * ) | (cd $@.new; tar xvfBp -)
+
+	# for firerox - see README two levels up
+	-cp -d /lib/libasound* $@.new/lib
+	-cp -d /lib64/libasound* $@.new/lib64
+	-cp -d /usr/lib/libXt* $@.new/usr/lib
+	-cp -d /usr/lib64/libXt* $@.new/usr/lib64
+	-cp -d /usr/lib/libXext* $@.new/usr/lib
+	-cp -d /usr/lib64/libXext* $@.new/usr/lib64
+
+	# In case we want to restart lighttd or tracker.
+	# for lighttpd. In initrd, too 
+	-cp -d /lib/libpcre* $@.new/lib
+	-cp -d /lib64/libpcre* $@.new/lib64
+
+	# for the tracker
+	-for i in curl idn gssapi_krb5 krb5 k5crypto z krb5support ; do \
+		cp -d /usr/lib/lib$$i.so* $@.new/lib ; \
+		cp -d /usr/lib64/lib$$i.so* $@.new/lib64 ; \
+	done
+	
+	# unmount original, delete
+	echo "Size of Original install.img"
+	/bin/ls -l rocks-dist/$(ARCH)/images/install.img
+	umount $@.orig
+	/bin/rm	rocks-dist/$(ARCH)/images/install.img 
+
+	# rebuild squashfs image
+	mksquashfs $@.new rocks-dist/$(ARCH)/images/install.img  -no-fragments -no-progress
+	echo "Size of New install.img"
+	/bin/ls -l rocks-dist/$(ARCH)/images/install.img
 
 isolinux: /usr/share/syslinux/isolinux.bin initrd-boot.iso.gz $(SPLASH)/splash.lss
 	if [ ! -x $@ ]; then mkdir $@; fi
