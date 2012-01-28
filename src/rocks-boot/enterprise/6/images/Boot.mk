@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.2 2012/01/26 07:20:31 phil Exp $
+# $Id: Boot.mk,v 1.3 2012/01/28 00:00:17 phil Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -59,6 +59,9 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.3  2012/01/28 00:00:17  phil
+# really want chmod in /bin for the nochroot env.
+#
 # Revision 1.2  2012/01/26 07:20:31  phil
 # Really do have to modify install.img (previously stage2) to add some
 # libraries so that firerox will start properly
@@ -262,6 +265,9 @@ initrd-%.iso: $(LOADER)/loader prep-initrd update-install-img
 	# Put our patched version of loader/init into initrd
 	cp $(LOADER)/loader $@.new/sbin/loader
 	cp $(LOADER)/init $@.new/sbin/init
+
+	# chmod in the install enviro is in /usr/bin. need a copy in /bin
+	cp /bin/chmod $@.new/bin
 
 	# For lighttpd
 	mkdir -p $@.new/mnt/cdrom
