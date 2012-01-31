@@ -2140,7 +2140,8 @@ int chooseNetworkInterface(struct loaderData_s * loaderData) {
 
     if (deviceNum == -1) {
 	logMessage(CRITICAL, "ROCKS:chooseNetworkInterface:couldn't find a network device that is connected to a frontend");
-	return LOADER_ERROR;
+	/* return LOADER_ERROR; */
+	deviceNum = 0;
     }
 #endif
 
