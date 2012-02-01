@@ -1,6 +1,6 @@
 #!/opt/rocks/bin/python
 #
-# $Id: prep-initrd-6.py,v 1.1 2012/01/23 20:49:32 phil Exp $
+# $Id: prep-initrd-6.py,v 1.2 2012/02/01 20:48:28 phil Exp $
 #
 # @Copyright@
 # 
@@ -56,6 +56,9 @@
 # @Copyright@
 #
 # $Log: prep-initrd-6.py,v $
+# Revision 1.2  2012/02/01 20:48:28  phil
+# Use subprocess instead of popen2 module
+#
 # Revision 1.1  2012/01/23 20:49:32  phil
 # Support for build under 5 or 6
 #
@@ -63,7 +66,7 @@
 #
 
 import string
-import popen2
+import subprocess 
 import rocks.kickstart
 import os
 import os.path
@@ -202,7 +205,7 @@ class App(rocks.app.Application):
                 # patch mk-images to not use EFI 
                 #
 
-                os.system('/bin/cp ../../../../mk-images anaconda/usr/lib/anaconda-runtime/')
+                subprocess.call('/bin/cp ../../../../mk-images anaconda/usr/lib/anaconda-runtime/', shell=True)
 
 		#
 		# make stage2.img 
@@ -223,21 +226,21 @@ class App(rocks.app.Application):
 			+ '--release "0" ' \
 			+ os.path.join(cwd, self.dist.getPath())
 		print "Buildinstall cmd:", cmd
-		os.system(cmd)
+		subprocess.call(cmd, shell=True)
 		os.chdir(cwd)
 
 		if self.getArch() == 'ia64':
 			images = os.path.join(self.dist.getPath(), 'images')
-			os.system('cp %s/boot.img .' % (images))
+			subprocess.call('cp %s/boot.img .' % (images), shell=True)
 
-			os.system('mount -o loop boot.img mnt')
-			os.system('cp mnt/initrd.img . ')
-			os.system('umount mnt')
+			subprocess.call('mount -o loop boot.img mnt', shell=True)
+			subprocess.call('cp mnt/initrd.img . ', shell=True)
+			subprocess.call('umount mnt', shell=True)
 		else:
 			cmd = 'cp -f %s initrd-boot.img' % \
 				os.path.join(self.dist.getPath(),
                                 'isolinux', 'initrd.img')
-			rc = os.system(cmd)
+			rc = subprocess.call(cmd, shell=True)
 			if rc != 0:
 				raise DistError, "Could not find initrd. " + \
 					"Did buildinstall complete?"
@@ -245,7 +248,7 @@ class App(rocks.app.Application):
 			#cmd = 'cp -f %s initrd-xen.img' % \
 			#	os.path.join(self.dist.getPath(),
                         #        'images', 'xen', 'initrd.img')
-			# rc = os.system(cmd)
+			# rc = subprocess.call(cmd, shell=True)
 
 		#
 		# install the kernel RPMs. this is used when building 
