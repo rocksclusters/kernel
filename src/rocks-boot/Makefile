@@ -1,5 +1,5 @@
 # --------------------------------------------------- -*- Makefile -*- --
-# $Id: Makefile,v 1.21 2012/01/24 05:36:32 phil Exp $
+# $Id: Makefile,v 1.22 2012/02/01 20:47:34 phil Exp $
 #
 # @Copyright@
 # 
@@ -55,6 +55,9 @@
 # @Copyright@
 #
 # $Log: Makefile,v $
+# Revision 1.22  2012/02/01 20:47:34  phil
+# Support prespec (copy of version-specific spec.in file) before spec file is made
+#
 # Revision 1.21  2012/01/24 05:36:32  phil
 # now a version-specific spec file
 #
@@ -258,21 +261,21 @@ NAME		= rocks-boot
 RELEASE		= 1
 USERID		= $(shell id -u)
 MAKE.rpmroot	= 1
+BUILDROOT = $(REDHAT.VAR)/tmp/$(NAME)-buildroot
 
-default: $(NAME).spec.in $(NAME).spec ../$(NAME)-$(VERSION).tar.gz
+MAKEPRESPEC 	= True
 
-$(NAME).spec.in:
-		/bin/cp $@-$(VERSION.MAJOR) $@
+default: $(NAME).spec ../$(NAME)-$(VERSION).tar.gz
 
 REDHAT.ROOT	= $(PWD)/../../
-
 
 -include $(ROCKSROOT)/etc/Rules.mk
 include Rules.mk
 
-BUILDROOT = $(REDHAT.VAR)/tmp/$(NAME)-buildroot
-
 SEDSPEC += -e s%@REDHAT_RELEASE@%$(REDHAT_RELEASE)%g 
+
+prespec:: 
+	/bin/cp $(NAME).spec.in-$(VERSION.MAJOR) $(NAME).spec.in
 
 build:: cluster-kickstart prep-initrd.py
 
