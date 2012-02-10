@@ -1,10 +1,13 @@
 /*
- * $Id: tracker-client.c,v 1.21 2010/12/17 21:51:06 bruno Exp $
+ * $Id: tracker-client.c,v 1.22 2012/02/10 03:57:54 phil Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.22  2012/02/10 03:57:54  phil
+ * Fixup for tracker to keep it from making a circular soft link
+ *
  * Revision 1.21  2010/12/17 21:51:06  bruno
  * put a string in each executable that tells us when it was built.
  *
@@ -568,10 +571,16 @@ getremote(char *filename, peer_t *peer, char *range, CURL *curlhandle)
 	 */
 	if (stat("/mnt/sysimage", &buf) == 0) {
 		if (stat("/mnt/sysimage/install", &buf) != 0) {
-			system("/usr/bin/cp -R /install /mnt/sysimage");
-			rename("/install", "/install-old");
+			if (stat("/install", &buf) == 0) 
+			{
+				system("/usr/bin/cp -R /install /mnt/sysimage");
+				system("/usr/bin/rm -rf /install");
+			}
+			else
+			{
+				mkdir("/mnt/sysimage/install", 0755);
+			}
 			symlink("/mnt/sysimage/install", "/install");
-			system("/usr/bin/rm -rf /install-old");
 		}
 	}
 
