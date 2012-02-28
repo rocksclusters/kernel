@@ -1,10 +1,13 @@
 #
-# $Id: Makefile,v 1.16 2010/10/12 19:37:21 bruno Exp $
+# $Id: Makefile,v 1.17 2012/02/28 05:09:42 phil Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.17  2012/02/28 05:09:42  phil
+# New tracker based on sqlite. Still testing
+#
 # Revision 1.16  2010/10/12 19:37:21  bruno
 # turn mysql back on. the tracker server will consult the database to find
 # the locations of the clients
@@ -84,11 +87,12 @@ INCLUDE	= -I/usr/include/apr-1 -I/opt/rocks/fcgi/include
 LIBS	= -lcurl
 EXTRA	= -Wall `apr-1-config --cppflags --cflags`
 #EXTRA	+= -DTIMEIT 
-#EXTRA	+= -DDEBUG
-EXTRA	+= -pg
-EXECS	= tracker-client unregister-file tracker-server peer-done stop-server
+EXTRA	+= -DDEBUG
+#EXTRA	+= -DDEBUG1
+EXTRA	+= -pg -g
+EXECS	= tracker-client unregister-file tracker-server peer-done stop-server dump-tables server2 server4
 
-MYSQL	= 1
+MYSQL	= 0
 
 ifeq ($(MYSQL),1)
 SERVERLIBS	= -L/usr/$(LIBARCH)/mysql -lmysqlclient
@@ -128,6 +132,20 @@ peer-done:	peer-done.c
 stop-server:	stop-server.c
 	cc $(INCLUDE) $(EXTRA) -o stop-server stop-server.c client.c lib.c \
 		$(LIBS)
+
+dump-tables:	dump-tables.c
+	cc $(INCLUDE) $(EXTRA) -o dump-tables dump-tables.c client.c lib.c \
+		$(LIBS)
+
+
+server4:	server4.c
+	cc -g -o server4 server4.c -I/opt/sqlite/include \
+		/opt/sqlite/lib/libsqlite3.a -l pthread -ldl
+
+server2:	server2.c lib.o
+	cc -g -o server2 server2.c $(EXTRA) -I/opt/sqlite/include \
+		/opt/sqlite/lib/libsqlite3.a lib.o -l pthread -ldl
+
 
 install::
 	mkdir -p $(ROOT)/$(PKGROOT)/bin

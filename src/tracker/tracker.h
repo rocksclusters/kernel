@@ -10,6 +10,8 @@
 #define DOWNLOAD_PORT		80
 #define MAX_TRACKERS		32
 #define MAX_PKG_SERVERS		32
+#define MAX_SHUFFLE_PEERS	16
+#define	MAX_PEERS 	PEERS_PER_PREDICTION		
 
 /*
  * don't know why this isn't in a standard include file
@@ -39,6 +41,7 @@ typedef struct {
 #define	UNREGISTER	3
 #define	PEER_DONE	4
 #define	STOP_SERVER	5
+#define	DUMP_TABLES	6
 
 /*
  * tracker 'states'
@@ -121,7 +124,7 @@ typedef struct {
 /*
  * hash table to hold the order in which files are requested
  */
-#define	HASH_TABLE_ENTRIES	256
+#define	HASH_TABLE_ENTRIES	16384
 
 typedef struct {
 	int		head;
