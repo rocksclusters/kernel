@@ -1,5 +1,5 @@
 # --------------------------------------------------- -*- Makefile -*- --
-# $Id: i386.mk,v 1.15 2012/01/23 20:49:32 phil Exp $
+# $Id: i386.mk,v 1.16 2012/02/28 19:19:51 clem Exp $
 #
 # @Copyright@
 # 
@@ -55,6 +55,9 @@
 # @Copyright@
 #
 # $Log: i386.mk,v $
+# Revision 1.16  2012/02/28 19:19:51  clem
+# Fix strip function syntax problem
+#
 # Revision 1.15  2012/01/23 20:49:32  phil
 # Support for build under 5 or 6
 #
@@ -134,7 +137,7 @@
 #
 
 
-ifeq ($strip $(VERSION.MAJOR), 5)
+ifeq ($(strip $(VERSION.MAJOR)), 5)
 REDHAT_RELEASE	= enterprise/5
 STATIC_LINK_FLAG = -static
 else
