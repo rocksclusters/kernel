@@ -94,6 +94,9 @@ init_db(sqlite3 **db)
 	sql_stmt(*db, "CREATE TABLE hashes (hashid INTEGER PRIMARY KEY, hash INTEGER)");
 	sql_stmt(*db, "CREATE TABLE peers (hashid INTEGER, hostid INTEGER, state INTEGER)");
 
+	sql_stmt(*db, "CREATE INDEX hashidx on hashes(hash)");
+	sql_stmt(*db, "CREATE INDEX hostidx on hosts(ip)");
+	sql_stmt(*db, "CREATE INDEX hostidx2 on peers(hashid)");
 	return(0);
 }
 
@@ -243,7 +246,7 @@ char sqlStmt[256];
 peer_t			peers[MAX_SHUFFLE_PEERS];
 sqlite3_stmt *preppedStmt; 
 int rcode, sqlCode;
-int ip, hashid, hostid, state;
+int ip, hashid, state;
 
 	/* -- Response Header -- */
 	resp = (tracker_lookup_resp_t *)buf;
@@ -265,7 +268,8 @@ int ip, hashid, hostid, state;
 	len += sizeof(tracker_info_t);
 
 	/*  -- Query Database for peers of this hash -- */
-	sprintf(sqlStmt, "select IP,hashid,hostid,state from peers inner join hashes using(hashid) inner join hosts using(hostid) where hash=%ld", hash);
+	hashid = addHash(db,hash);
+	sprintf(sqlStmt, "select IP,state from peers inner join hosts using(hostid) where hashid=%d", hashid);
 	if (prep_stmt(db, sqlStmt, &preppedStmt) == SQLITE_OK)
 	{
 		npeers = 0;
@@ -273,9 +277,7 @@ int ip, hashid, hostid, state;
 				&& npeers < MAX_SHUFFLE_PEERS)
 		{
 			ip = sqlite3_column_int(preppedStmt,0);
-			hashid = sqlite3_column_int(preppedStmt,1);
-			hostid = sqlite3_column_int(preppedStmt,2);
-			state = sqlite3_column_int(preppedStmt,3);
+			state = sqlite3_column_int(preppedStmt,1);
 			
 			/* check if requestor is already a peer */
 			if (ip == (int) from_addr->sin_addr.s_addr) 
