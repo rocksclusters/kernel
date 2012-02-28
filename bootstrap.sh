@@ -2,7 +2,7 @@
 #
 # This file should remain OS independent
 #
-# $Id: bootstrap.sh,v 1.2 2011/07/23 02:31:14 phil Exp $
+# $Id: bootstrap.sh,v 1.3 2012/02/28 05:03:57 phil Exp $
 #
 # @Copyright@
 # 
@@ -58,6 +58,9 @@
 # @Copyright@
 #
 # $Log: bootstrap.sh,v $
+# Revision 1.3  2012/02/28 05:03:57  phil
+# Add build of sqlite
+#
 # Revision 1.2  2011/07/23 02:31:14  phil
 # Viper Copyright
 #
@@ -69,3 +72,4 @@
 
 compile fastcgi
 install fcgi
+compile_and_install sqlite 
