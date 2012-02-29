@@ -1,10 +1,13 @@
 #
-# $Id: Makefile,v 1.17 2012/02/28 05:09:42 phil Exp $
+# $Id: Makefile,v 1.18 2012/02/29 23:04:10 phil Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.18  2012/02/29 23:04:10  phil
+# Make server2 to the default tracker-server.  Now has simple prediction
+#
 # Revision 1.17  2012/02/28 05:09:42  phil
 # New tracker based on sqlite. Still testing
 #
@@ -80,17 +83,18 @@ REDHAT.ROOT     = $(CURDIR)/../../
 -include $(ROCKSROOT)/etc/Rules.mk
 include Rules.mk
 
-INCLUDE	= -I/usr/include/apr-1 -I/opt/rocks/fcgi/include
+INCLUDE	= -I/usr/include/apr-1 -I/opt/rocks/fcgi/include -I/opt/sqlite/include
+SQLITELIBS = -ldl -lpthread /opt/sqlite/lib/libsqlite3.a
 #LIBS	= -L/opt/rocks/lib -lcurl
 #LIBS	= -lcurl -lssl -lidn -lgssapi_krb5 -lkrb5 -lk5crypto -lkrb5support -lpthread -lcrypto -lz -ldl -lcom_err -lkeyutils -lresolv -lselinux -lsepol
 #LIBS	= -L /opt/rocks/curl/lib/ -lcurl
-LIBS	= -lcurl
+LIBS	= -lcurl $(SQLITELIBS)
 EXTRA	= -Wall `apr-1-config --cppflags --cflags`
 #EXTRA	+= -DTIMEIT 
-EXTRA	+= -DDEBUG
+#EXTRA	+= -DDEBUG
 #EXTRA	+= -DDEBUG1
 EXTRA	+= -pg -g
-EXECS	= tracker-client unregister-file tracker-server peer-done stop-server dump-tables server2 server4
+EXECS	= tracker-client unregister-file tracker-server peer-done stop-server dump-tables 
 
 MYSQL	= 0
 
@@ -109,8 +113,8 @@ unregister-file:	unregister-file.c client.c lib.c
 	cc $(INCLUDE) $(EXTRA) -o unregister-file unregister-file.c \
 		client.c lib.c $(LIBS)
 
-tracker-server:		server.o lib.o shuffle.o
-	cc $(INCLUDE) $(EXTRA) -pg -o tracker-server server.o lib.o shuffle.o \
+tracker-server:		server2.o lib.o shuffle.o
+	cc $(INCLUDE) $(EXTRA) -pg -o tracker-server server2.o lib.o shuffle.o \
 		$(LIBS) $(SERVERLIBS)
 
 lib.o:	lib.c
@@ -142,10 +146,12 @@ server4:	server4.c
 	cc -g -o server4 server4.c -I/opt/sqlite/include \
 		/opt/sqlite/lib/libsqlite3.a -l pthread -ldl
 
-server2:	server2.c lib.o
-	cc -g -o server2 server2.c $(EXTRA) -I/opt/sqlite/include \
-		/opt/sqlite/lib/libsqlite3.a lib.o -l pthread -ldl
+server2:	server2.o lib.o
+	cc -g -o server2 server2.o lib.o \
+		/opt/sqlite/lib/libsqlite3.a -l pthread -ldl
 
+server2.o:	server2.c
+	cc $(INCLUDE) $(EXTRA) -c server2.c
 
 install::
 	mkdir -p $(ROOT)/$(PKGROOT)/bin

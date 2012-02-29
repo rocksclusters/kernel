@@ -1,10 +1,13 @@
 /*
- * $Id: dump-tables.c,v 1.1 2012/02/28 05:09:42 phil Exp $
+ * $Id: dump-tables.c,v 1.2 2012/02/29 23:04:10 phil Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: dump-tables.c,v $
+ * Revision 1.2  2012/02/29 23:04:10  phil
+ * Make server2 to the default tracker-server.  Now has simple prediction
+ *
  * Revision 1.1  2012/02/28 05:09:42  phil
  * New tracker based on sqlite. Still testing
  *
@@ -53,8 +56,6 @@ main()
 	int		sockfd;
 	char		trackers_url[256];
 	char		pkg_servers_url[256];
-	char		buf[256];
-	FILE		*file;
 
 	sprintf(trackers_url,"127.0.0.1");
 

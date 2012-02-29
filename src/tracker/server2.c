@@ -64,7 +64,7 @@ int sqlCode;
 			case SQLITE_DONE:
 				break;
 			default:
-				printf("Error in getRowID Query\n");
+				printf("Error in getIntValue Query\n");
 	
 		}
 		sqlite3_finalize(preppedStmt);
@@ -72,6 +72,27 @@ int sqlCode;
 	return rvalue;
 }
 
+long long getInt64Value(sqlite3 *db, char *sqlStmt) {
+sqlite3_stmt *preppedStmt; 
+long long rvalue = 0;
+int sqlCode;
+	if (prep_stmt(db, sqlStmt, &preppedStmt) == SQLITE_OK)
+	{
+		sqlCode = sqlite3_step(preppedStmt); 
+		switch (sqlCode) {
+			case SQLITE_ROW:
+				rvalue = sqlite3_column_int64(preppedStmt,0);
+				break;
+			case SQLITE_DONE:
+				break;
+			default:
+				printf("Error in getInt64Value Query\n");
+	
+		}
+		sqlite3_finalize(preppedStmt);
+	}
+	return rvalue;
+}
 /* --- check if a host exists in the hosts table --- */
 int hostExists(sqlite3 *db, int ip) {
 char sqlStmt[256];
@@ -141,6 +162,14 @@ char sqlStmt[256];
 	sprintf(sqlStmt, "SELECT hashid FROM hashes WHERE hash=%ld", hash);
 	return getIntValue(db,sqlStmt);
 }
+
+/* --- check if a hash exists in the hashes table --- */
+uint64_t hashidToHash(sqlite3 *db, int hashid) {
+char sqlStmt[256];
+	sprintf(sqlStmt, "SELECT hash FROM hashes WHERE hashid=%d", hashid);
+	return (uint64_t) getInt64Value(db,sqlStmt);
+}
+
 
 /* --- add a hash --- */
 int addHash(sqlite3 *db, uint64_t hash) {
@@ -247,6 +276,7 @@ peer_t			peers[MAX_SHUFFLE_PEERS];
 sqlite3_stmt *preppedStmt; 
 int rcode, sqlCode;
 int ip, hashid, state;
+int peercount, thisid;
 
 	/* -- Response Header -- */
 	resp = (tracker_lookup_resp_t *)buf;
@@ -269,30 +299,65 @@ int ip, hashid, state;
 
 	/*  -- Query Database for peers of this hash -- */
 	hashid = addHash(db,hash);
-	sprintf(sqlStmt, "select IP,state from peers inner join hosts using(hostid) where hashid=%d", hashid);
+	sprintf(sqlStmt, "select hashid,IP,state from peers inner join hosts using(hostid) where hashid >= %d and hashid < %d order by hashid", hashid, hashid + PREDICTIONS);
 	if (prep_stmt(db, sqlStmt, &preppedStmt) == SQLITE_OK)
 	{
 		npeers = 0;
-		while ( (sqlCode = sqlite3_step(preppedStmt))  == SQLITE_ROW
-				&& npeers < MAX_SHUFFLE_PEERS)
+		peercount = 0;
+		while ( (sqlCode = sqlite3_step(preppedStmt))  == SQLITE_ROW )
 		{
-			ip = sqlite3_column_int(preppedStmt,0);
-			state = sqlite3_column_int(preppedStmt,1);
-			
+			thisid = sqlite3_column_int(preppedStmt,0);
+			ip = sqlite3_column_int(preppedStmt,1);
+			state = sqlite3_column_int(preppedStmt,2);
+
+			/* see if we have predicted a new hash */
+			if (thisid != hashid) 
+			{
+				/* shuffle and copy peers of previous hash */
+				respinfo->numpeers = 
+					randomCopyPeers(respinfo->peers, 
+					peers, npeers, MAX_PEERS);
+				len += (sizeof(respinfo->peers[0]) * 
+					respinfo->numpeers);
+
+				hash = hashidToHash(db, thisid);
+#ifdef	DEBUG
+				fprintf(stderr, "new predicted hash (%llx)\n", 
+					(long long unsigned) hash);
+				fprintf(stderr, "resp info numpeers (%d)\n", 
+					respinfo->numpeers);
+#endif
+				/* new "header" for this new hash */
+				respinfo = (tracker_info_t *) 
+					(&(respinfo->peers[respinfo->numpeers]));
+				len += sizeof(tracker_info_t);
+				
+				respinfo->hash = hash;
+				respinfo->numpeers = 0;
+				hashid = thisid;
+				npeers = 0;
+				peercount = 0;
+				resp->numhashes ++;
+			}
+
 			/* check if requestor is already a peer */
 			if (ip == (int) from_addr->sin_addr.s_addr) 
 				continue;
-
+				
 			/* copy the info just read from DB into unshuffled
                            peers array */ 
-			peers[npeers].ip = ip;
-			peers[npeers].state = (state == DOWNLOADING ? 'd' :'r');
-			npeers++;
+		 	peercount++;
+			if ( peercount < MAX_SHUFFLE_PEERS)
+			{
+				peers[npeers].ip = ip;
+				peers[npeers].state = (state == DOWNLOADING ? 'd' :'r');
+				npeers++;
+			}
 		}
 		if (sqlCode != SQLITE_DONE && npeers < MAX_SHUFFLE_PEERS)
 		{
 			rcode=sqlCode;
-			printf ("error in getPeers (%d)\n", rcode);
+			fprintf (stderr, "error in getPeers (%d)\n", rcode);
 		}
 		sqlite3_finalize(preppedStmt);
 	}
@@ -304,8 +369,6 @@ int ip, hashid, state;
 
 	len += (sizeof(respinfo->peers[0]) * respinfo->numpeers);
 
-	/* ---  Predict the Next Hashes this client will want --- */
-	respinfo = (tracker_info_t *) (&(respinfo->peers[respinfo->numpeers]));
 #ifdef	DEBUG
 	fprintf(stderr, "len (%d)\n", (int)len);
 	fprintf(stderr, "dolookup:numhashes (%d)\n", resp->numhashes);
@@ -323,7 +386,7 @@ int ip, hashid, state;
 		sizeof(*from_addr));
 
 #ifdef	DEBUG
-	fprintf(stderr, "dolookup:exit:hash (0x%llx)\n", hash);
+	fprintf(stderr, "dolookup:exit:hash (0x%llx)\n", (long long unsigned) hash);
 #endif
 
 	return;
@@ -369,7 +432,7 @@ int sqlCode;
 		{
 			hashid = sqlite3_column_int(preppedStmt,0);
 			hash = sqlite3_column_int64(preppedStmt,1);
-			fprintf(stderr,"%d\t|%llx\n",hashid, hash);
+			fprintf(stderr,"%d\t|%llx\n",hashid, (long long unsigned) hash);
 		}
 		sqlite3_finalize(preppedStmt);
 	}
@@ -383,7 +446,7 @@ int sqlCode;
 			hash = sqlite3_column_int64(preppedStmt,0);
 			ip = sqlite3_column_int(preppedStmt,1);
 			state = sqlite3_column_int(preppedStmt,2);
-			fprintf(stderr, "%llx\t|0x%08x\t|%d\n",hash, ip, state);
+			fprintf(stderr, "%llx\t|0x%08x\t|%d\n",(long long unsigned) hash, ip, state);
 		}
 		sqlite3_finalize(preppedStmt);
 	}
@@ -423,27 +486,44 @@ register_hash(sqlite3 *db, char *buf, struct sockaddr_in *from_addr)
 			registerPeer(db, reqinfo->hash, peers[j].ip); 
 		}
 #ifdef	DEBUG
-	fprintf(stderr, "register_hash:exit:hash (0x%llx)\n", reqinfo->hash);
+	fprintf(stderr, "register_hash:exit:hash (0x%llx)\n", (long long unsigned) reqinfo->hash);
 #endif
 	}
 }
 
+/* -- this is called when a client "gossips" that it 
+	can't reliably download a hash from a supplied peer -- */
 void
 unregister_hash(sqlite3 *db, char *buf, struct sockaddr_in *from_addr)
 {
 	tracker_unregister_t	*req = (tracker_unregister_t *)buf;
-	int			i;
+	int			i,j;
+	int			hashid, hostid;
+	char			sqlStmt[256];
 
 #ifdef	DEBUG
 	fprintf(stderr, "unregister_hash:enter\n");
 	fprintf(stderr, "unregister_hash:hash_table:before\n\n");
 	dumpTables(db);
 #endif
-	for (i = 0 ; i < req->numhashes ; ++i)
+
+	for (i = 0 ; i < req->numhashes ; ++i) 
 	{
 		tracker_info_t	*info = &req->info[i];
-		deleteHash(db, info->hash) ;
+		if( (hashid = hashExists(db, info->hash)) )
+		{
+			for (j = 0 ; j < info->numpeers ; ++j) 
+			{
+				if ( (hostid = 
+					hostExists(db,info->peers[j].ip)) )
+				{
+					sprintf(sqlStmt, "DELETE FROM peers WHERE hashid=%d and hostid=%d", hashid, hostid);
+					sql_stmt(db,sqlStmt);
+				}
+			}
+		}
 	}
+
 #ifdef	DEBUG
 	fprintf(stderr, "unregister_hash:hash_table:after\n\n");
 	dumpTables(db);
