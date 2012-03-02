@@ -2,7 +2,7 @@
 #
 # This file should remain OS independent
 #
-# $Id: bootstrap.sh,v 1.3 2012/02/28 05:03:57 phil Exp $
+# $Id: bootstrap.sh,v 1.4 2012/03/02 07:11:29 phil Exp $
 #
 # @Copyright@
 # 
@@ -58,6 +58,9 @@
 # @Copyright@
 #
 # $Log: bootstrap.sh,v $
+# Revision 1.4  2012/03/02 07:11:29  phil
+# reflect name change to foundation-sqlite
+#
 # Revision 1.3  2012/02/28 05:03:57  phil
 # Add build of sqlite
 #
@@ -72,4 +75,5 @@
 
 compile fastcgi
 install fcgi
-compile_and_install sqlite 
+compile sqlite 
+install foundation-sqlite
