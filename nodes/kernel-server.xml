@@ -16,6 +16,9 @@ All rights reserved. Rocks(tm) v4.3 www.rocksclusters.org
 
 <changelog>
 $Log: kernel-server.xml,v $
+Revision 1.7  2012/03/02 07:12:23  phil
+install foundation-sqlite on servers
+
 Revision 1.6  2010/07/19 23:37:01  bruno
 add an init script for the rocks tracker
 
@@ -45,6 +48,7 @@ new XML node file to help support kernel roll rebuilding
 <package>iscsi-initiator-utils</package>
 <package>fcgi</package>
 <package>rocks-tracker</package>
+<package>foundation-sqlite</package>
 
 
 <post>
