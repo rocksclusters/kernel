@@ -2680,6 +2680,11 @@ int main(int argc, char ** argv) {
         fmt = _("Running anaconda %s, the %s rescue mode - please wait.\n");
     } else {
         fmt = _("Running anaconda %s, the %s system installer - please wait.\n");
+#ifdef ROCKS
+	/* everything has been copied from the cdrom (if a frontend).
+	   so unmount */
+	umount("/mnt/cdrom");
+#endif 
     }
     printf(fmt, VERSION, getProductName());
 
