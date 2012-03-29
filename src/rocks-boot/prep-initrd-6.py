@@ -1,6 +1,6 @@
 #!/opt/rocks/bin/python
 #
-# $Id: prep-initrd-6.py,v 1.2 2012/02/01 20:48:28 phil Exp $
+# $Id: prep-initrd-6.py,v 1.3 2012/03/29 14:21:48 phil Exp $
 #
 # @Copyright@
 # 
@@ -56,6 +56,9 @@
 # @Copyright@
 #
 # $Log: prep-initrd-6.py,v $
+# Revision 1.3  2012/03/29 14:21:48  phil
+# No PAE kernels in CentOS 6
+#
 # Revision 1.2  2012/02/01 20:48:28  phil
 # Use subprocess instead of popen2 module
 #
@@ -258,8 +261,6 @@ class App(rocks.app.Application):
 
 		if self.getArch() == "i386":
 			kernelarch = "i686"
-			pkgs.append('kernel-PAE')
-			pkgs.append('kernel-PAE-devel')
 		else:
 			kernelarch = self.getArch()
 
