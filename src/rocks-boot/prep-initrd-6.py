@@ -1,6 +1,6 @@
 #!/opt/rocks/bin/python
 #
-# $Id: prep-initrd-6.py,v 1.3 2012/03/29 14:21:48 phil Exp $
+# $Id: prep-initrd-6.py,v 1.4 2012/04/05 22:02:27 phil Exp $
 #
 # @Copyright@
 # 
@@ -56,6 +56,9 @@
 # @Copyright@
 #
 # $Log: prep-initrd-6.py,v $
+# Revision 1.4  2012/04/05 22:02:27  phil
+# Don't create md5sums when creating the local distro
+#
 # Revision 1.3  2012/03/29 14:21:48  phil
 # No PAE kernels in CentOS 6
 #
@@ -104,7 +107,7 @@ class Distribution:
 		return os.path.join(self.name, self.arch)
 		
 	def generate(self, flags=""):
-		rocks.util.system('/opt/rocks/bin/rocks create distro')
+		rocks.util.system('/opt/rocks/bin/rocks create distro md5=no')
 
 		self.tree = rocks.file.Tree(os.path.join(os.getcwd(), 
 			self.getPath()))

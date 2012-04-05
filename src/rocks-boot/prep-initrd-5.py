@@ -1,6 +1,6 @@
 #!/opt/rocks/bin/python
 #
-# $Id: prep-initrd-5.py,v 1.1 2012/01/23 20:49:32 phil Exp $
+# $Id: prep-initrd-5.py,v 1.2 2012/04/05 22:02:27 phil Exp $
 #
 # @Copyright@
 # 
@@ -56,6 +56,9 @@
 # @Copyright@
 #
 # $Log: prep-initrd-5.py,v $
+# Revision 1.2  2012/04/05 22:02:27  phil
+# Don't create md5sums when creating the local distro
+#
 # Revision 1.1  2012/01/23 20:49:32  phil
 # Support for build under 5 or 6
 #
@@ -298,7 +301,7 @@ class Distribution:
 		return os.path.join(self.name, self.arch)
 		
 	def generate(self, flags=""):
-		rocks.util.system('/opt/rocks/bin/rocks create distro')
+		rocks.util.system('/opt/rocks/bin/rocks create distro md5=no')
 
 		self.tree = rocks.file.Tree(os.path.join(os.getcwd(), 
 			self.getPath()))
