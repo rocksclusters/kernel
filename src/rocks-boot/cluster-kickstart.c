@@ -1,4 +1,4 @@
-static char rcsid[] = "$Id: cluster-kickstart.c,v 1.15 2011/07/23 02:31:14 phil Exp $";
+static char rcsid[] = "$Id: cluster-kickstart.c,v 1.16 2012/04/09 17:31:15 phil Exp $";
 /* -----------------------------------------------------------------------
  *
  * $RCSfile: cluster-kickstart.c,v $
@@ -60,11 +60,15 @@ static char rcsid[] = "$Id: cluster-kickstart.c,v 1.15 2011/07/23 02:31:14 phil 
  * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
- * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ s IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * @Copyright@
  *
  * $Log: cluster-kickstart.c,v $
+ * Revision 1.16  2012/04/09 17:31:15  phil
+ * syslog is now rsyslog for CentOS 6. Check for which syslogger we should
+ * stop.
+ *
  * Revision 1.15  2011/07/23 02:31:14  phil
  * Viper Copyright
  *
@@ -546,9 +550,20 @@ grub_reboot(void)
 	/*
 	 * Syslog causes problems, kill it early
 	 */ 
-	if ( system("/etc/rc.d/init.d/syslog stop") ) {
-		perror("cannot reboot: "
-		       "/etc/rc.d/init.d/syslog failed");
+	if  (access("/etc/rc.d/init.d/syslog",X_OK) >= 0 )
+	{
+		if ( system("/etc/rc.d/init.d/syslog stop") ) {
+			perror("Warning. reboot may hang: stop of"
+		       		"/etc/rc.d/init.d/syslog failed");
+		}
+
+	}
+	if  (access("/etc/rc.d/init.d/rsyslog",X_OK) >= 0 )
+	{
+		if ( system("/etc/rc.d/init.d/rsyslog stop") ) {
+				perror("Warning. reboot may hang: stop of"
+		       			"/etc/rc.d/init.d/rsyslog failed");
+		}
 	}
 	
 	if (doReboot == 1) {
