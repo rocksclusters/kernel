@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.17 2011/07/23 02:31:14 phil Exp $
+# $Id: Makefile,v 1.18 2012/05/02 05:26:22 phil Exp $
 #
 # @Copyright@
 # 
@@ -54,6 +54,9 @@
 # @Copyright@
 #
 # $Log: Makefile,v $
+# Revision 1.18  2012/05/02 05:26:22  phil
+# Don't build keyutils
+#
 # Revision 1.17  2011/07/23 02:31:14  phil
 # Viper Copyright
 #
@@ -133,6 +136,7 @@ SRCDIRS = `find . -type d -maxdepth 1 \
 	-not -name CVS \
 	-not -name rocks-kernel \
 	-not -name kernel.org \
+	-not -name keyutils \
 	-not -name rocks-boot \
 	-not -name .` rocks-boot
 
