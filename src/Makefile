@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.18 2012/05/02 05:26:22 phil Exp $
+# $Id: Makefile,v 1.19 2012/05/03 05:17:20 phil Exp $
 #
 # @Copyright@
 # 
@@ -54,6 +54,9 @@
 # @Copyright@
 #
 # $Log: Makefile,v $
+# Revision 1.19  2012/05/03 05:17:20  phil
+# Build keyutils on 5
+#
 # Revision 1.18  2012/05/02 05:26:22  phil
 # Don't build keyutils
 #
@@ -132,15 +135,27 @@
 #
 # make sure kernel.org is built first and rocks-boot is built last
 #
+ROCKS.OS.VERSION.MAJOR=$(shell lsb_release -rs | cut -d . -f 1)
+
 SRCDIRS = `find . -type d -maxdepth 1 \
 	-not -name CVS \
 	-not -name rocks-kernel \
 	-not -name kernel.org \
 	-not -name keyutils \
 	-not -name rocks-boot \
-	-not -name .` rocks-boot
+	-not -name .` 
+
+ifeq ($(strip $(ROCKS.OS.VERSION.MAJOR)), 5)
+SRCDIRS += keyutils
+endif
+
+SRCDIRS += rocks-boot
 
 default:	pkg
+
+foo:
+	echo $(SRCDIRS)
+	echo $(ROCKS.OS.VERSION.MAJOR)
 
 copyright rpm pkg clean::
 	for i in $(SRCDIRS) ; do \
