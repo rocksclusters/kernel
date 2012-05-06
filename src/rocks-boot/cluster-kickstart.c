@@ -1,4 +1,4 @@
-static char rcsid[] = "$Id: cluster-kickstart.c,v 1.16 2012/04/09 17:31:15 phil Exp $";
+static char rcsid[] = "$Id: cluster-kickstart.c,v 1.17 2012/05/06 05:49:14 phil Exp $";
 /* -----------------------------------------------------------------------
  *
  * $RCSfile: cluster-kickstart.c,v $
@@ -15,9 +15,10 @@ static char rcsid[] = "$Id: cluster-kickstart.c,v 1.16 2012/04/09 17:31:15 phil 
  * 
  * 				Rocks(r)
  * 		         www.rocksclusters.org
- * 		         version 5.4.3 (Viper)
+ * 		         version 5.5 (Mamba)
+ * 		         version 6.0 (Mamba)
  * 
- * Copyright (c) 2000 - 2011 The Regents of the University of California.
+ * Copyright (c) 2000 - 2012 The Regents of the University of California.
  * All rights reserved.	
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +37,7 @@ static char rcsid[] = "$Id: cluster-kickstart.c,v 1.16 2012/04/09 17:31:15 phil 
  * features or use of this software must display the following acknowledgement: 
  * 
  * 	"This product includes software developed by the Rocks(r)
- * 	Development Team at the San Diego Supercomputer Center at the
+ * 	Cluster Group at the San Diego Supercomputer Center at the
  * 	University of California, San Diego and its contributors."
  * 
  * 4. Except as permitted for the purposes of acknowledgment in paragraph 3,
@@ -60,11 +61,14 @@ static char rcsid[] = "$Id: cluster-kickstart.c,v 1.16 2012/04/09 17:31:15 phil 
  * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
- s IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  * @Copyright@
  *
  * $Log: cluster-kickstart.c,v $
+ * Revision 1.17  2012/05/06 05:49:14  phil
+ * Copyright Storm for Mamba
+ *
  * Revision 1.16  2012/04/09 17:31:15  phil
  * syslog is now rsyslog for CentOS 6. Check for which syslogger we should
  * stop.

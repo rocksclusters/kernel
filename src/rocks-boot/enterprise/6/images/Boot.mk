@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.3 2012/01/28 00:00:17 phil Exp $
+# $Id: Boot.mk,v 1.4 2012/05/06 05:49:15 phil Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -9,9 +9,10 @@
 # 
 # 				Rocks(r)
 # 		         www.rocksclusters.org
-# 		         version 5.4 (Maverick)
+# 		         version 5.5 (Mamba)
+# 		         version 6.0 (Mamba)
 # 
-# Copyright (c) 2000 - 2010 The Regents of the University of California.
+# Copyright (c) 2000 - 2012 The Regents of the University of California.
 # All rights reserved.	
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -59,6 +60,9 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.4  2012/05/06 05:49:15  phil
+# Copyright Storm for Mamba
+#
 # Revision 1.3  2012/01/28 00:00:17  phil
 # really want chmod in /bin for the nochroot env.
 #
