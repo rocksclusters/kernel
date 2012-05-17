@@ -2272,6 +2272,71 @@ int activateDevice(struct loaderData_s * loaderData, iface_t * iface) {
 
     } while (1);
 
+
+#ifdef	ROCKS
+{
+	/*
+	 * write the networking info to a file that will be used by
+	 * later stages of the installer
+	 */
+	FILE		*f;
+	int		i;
+	char		ret[INET_ADDRSTRLEN];
+
+
+	if ((f = fopen("/tmp/netinfo-rocks", "w")) == NULL) {
+		logMessage(ERROR,
+			"ROCKS:unable to open file /tmp/netinfo-rocks");
+	} else {
+		if ( iface_have_in_addr( & iface->ipaddr) ) {
+			inet_ntop(AF_INET, & iface->ipaddr, ret,
+				INET_ADDRSTRLEN);
+
+			fprintf(f, "Kickstart_PublicAddress:%s\n", ret);
+		}else{
+			logMessage(INFO, "ip address is not valid for iface %s", iface->device);
+		}
+		
+
+		if ( iface_have_in_addr( & iface->netmask) ) {
+			inet_ntop(AF_INET, & iface->netmask, ret,
+				INET_ADDRSTRLEN);
+
+			fprintf(f, "Kickstart_PublicNetmask:%s\n", ret);
+		}else{
+                        logMessage(INFO, "netmask address is not valid for iface %s", iface->device);
+                }
+
+		if ( iface_have_in_addr( & iface->gateway ) ) {
+			inet_ntop(AF_INET, & iface->gateway, ret,
+				INET_ADDRSTRLEN);
+
+			fprintf(f, "Kickstart_PublicGateway:%s\n", ret);
+		}
+
+		if (iface->numdns > 0) {
+			fprintf(f, "Kickstart_PublicDNSServers:");
+		}
+		for (i = 0; i < iface->numdns; i++) {
+			
+			fprintf(f, "%s", iface->dns[i]);
+
+			/*
+			 * if this isn't the last entry and if there are
+			 * more than one entry, then write a comma
+			 */
+			if ((i + 1) < iface->numdns) {
+				fprintf(f, ",");
+			}
+		}
+		if (iface->numdns > 0) {
+			fprintf(f, "\n");
+		}
+
+		fclose(f);
+	}
+}
+#endif /* ROCKS */
     return 0;
 
 }
