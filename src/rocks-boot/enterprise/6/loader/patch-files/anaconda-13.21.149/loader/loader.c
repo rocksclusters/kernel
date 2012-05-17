@@ -2715,10 +2715,6 @@ int main(int argc, char ** argv) {
         fprintf(stderr, "Anaconda died after receiving signal %d.\n", ret);
     }
 
-    //let's try to eject before rebooting
-    execl("/usr/bin/eject", "/usr/bin/eject", NULL);
-
-
     if ((rc == 0) && (FL_POWEROFF(flags) || FL_HALT(flags))) {
         if (!(pid = fork())) {
             char * cmd = (FL_POWEROFF(flags) ? strdup("/sbin/poweroff") :
