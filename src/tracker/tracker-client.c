@@ -1,10 +1,13 @@
 /*
- * $Id: tracker-client.c,v 1.22 2012/02/10 03:57:54 phil Exp $
+ * $Id: tracker-client.c,v 1.23 2012/05/18 19:07:30 clem Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.23  2012/05/18 19:07:30  clem
+ * escaping rpm file name before saving them
+ *
  * Revision 1.22  2012/02/10 03:57:54  phil
  * Fixup for tracker to keep it from making a circular soft link
  *
@@ -1239,6 +1242,14 @@ doit(int sockfd, uint16_t num_trackers, in_addr_t *trackers, uint16_t maxpeers,
 		senderror(500, "getargs():failed", errno);
 		return(0);
 	}
+
+	
+	//let's unescape filename
+        char * filename_unescaped;
+	filename_unescaped = curl_easy_unescape(curlhandle, filename , 0, NULL );
+	//filename_unescaped will be equal or shorter to filename
+	strcpy(filename, filename_unescaped);
+	curl_free(filename_unescaped);
 
 	/*
 	 * the time is 'epoch' time
