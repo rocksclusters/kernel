@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.29 2012/05/06 05:49:14 phil Exp $
+# $Id: Boot.mk,v 1.30 2012/05/19 00:24:42 clem Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -60,6 +60,12 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.30  2012/05/19 00:24:42  clem
+# merging into the trunk
+#
+# Revision 1.29.2.1  2012/05/17 16:11:47  clem
+# Geez... 1 day to figure out this dependecy hell!!
+#
 # Revision 1.29  2012/05/06 05:49:14  phil
 # Copyright Storm for Mamba
 #
@@ -298,7 +304,7 @@ initrd-%.iso: $(LOADER)/loader prep-initrd make-driver-disk
 	mkdir -p $@.new/tracker
 	cp rocks-tracker/opt/rocks/bin/tracker-client $@.new/tracker/
 	cp rocks-tracker/opt/rocks/bin/peer-done $@.new/tracker/
-	-for i in curl idn gssapi_krb5 krb5 k5crypto krb5support ; do \
+	-for i in curl idn gssapi_krb5 krb5 k5crypto krb5support rpmdb-4.4 rpmio-4.4 popt rpm-4.4 sqlite3 elf nss3 nssutil3 plc4 nspr4 bz2 elf-0.137 plds4 ; do \
 		cp -d /usr/lib/lib$$i.so* $@.new/lib ; \
 		cp -d /usr/lib64/lib$$i.so* $@.new/lib64 ; \
 	done

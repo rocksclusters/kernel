@@ -1,12 +1,21 @@
 /*
- * $Id: tracker-client.c,v 1.23 2012/05/18 19:07:30 clem Exp $
+ * $Id: tracker-client.c,v 1.24 2012/05/19 00:25:12 clem Exp $
  *
  * @COPYRIGHT@
  * @COPYRIGHT@
  *
  * $Log: tracker-client.c,v $
+ * Revision 1.24  2012/05/19 00:25:12  clem
+ * merging into the trunk
+ *
  * Revision 1.23  2012/05/18 19:07:30  clem
  * escaping rpm file name before saving them
+ *
+ * Revision 1.22.2.2  2012/05/15 02:46:06  clem
+ * first final version of the tracker without md5sum
+ *
+ * Revision 1.22.2.1  2012/05/14 17:03:50  clem
+ * first version of the checksumless tracker
  *
  * Revision 1.22  2012/02/10 03:57:54  phil
  * Fixup for tracker to keep it from making a circular soft link
@@ -120,6 +129,8 @@
 #include <arpa/inet.h>
 #include <libgen.h>
 #include <openssl/md5.h>
+#include <rpm/rpmcli.h>
+#include <rpm/rpmts.h>
 
 static char builton[] = { "Built on: " __DATE__ " " __TIME__ };
 
@@ -132,6 +143,7 @@ extern int send_msg(int, in_addr_t *, uint16_t);
 extern int check_md5(char *);
 
 int	status = HTTP_OK;
+int     isRpm = 0;
 MD5_CTX	context;
 
 
@@ -161,6 +173,59 @@ getargs(char *forminfo, char *filename)
 	return(0);
 }
 
+
+int 
+verifyRpmPackage(char *filename) 
+{
+    
+    int ret = 0;
+    rpmts ts; //rpm transaction
+    FD_t fd; //file descriptor
+    char error[1024];
+    QVA_t ka = malloc(sizeof(rpmQVKArgs));
+    memcpy(ka, &rpmQVKArgs, sizeof(rpmQVKArgs));
+
+
+    rpmcliConfigured();
+    //creating query set
+    rpmVerifyFlags verifyFlags =
+        (VERIFY_MD5|VERIFY_DIGEST);
+    verifyFlags &= ~ka->qva_flags;
+    ka->qva_flags = (rpmQueryFlags) verifyFlags;
+
+    //error is also used to pass the input file name
+    //dangerous
+    strcpy(error, filename);
+
+    //trasaction set
+    ts = rpmtsCreate();
+
+    //file descriptor
+    fd = Fopen(filename, "r.ufdio");
+    if (fd == NULL) {
+	logmsg("verifyRpmPackage:Error opening file %s\n", filename);
+	free(ka);
+	return -1;
+    }
+    ret = rpmVerifySignatures(ka, ts, fd, error);
+    if (ret != 0) {
+        //package is corrupted
+        logmsg("verifyRpmPackage:Package corrupted %s\n", error);
+	ts = rpmtsFree(ts);
+	Fclose(fd);
+	free(ka);
+	return -1;
+    }
+    //package is correct return 0
+    ts = rpmtsFree(ts);
+    Fclose(fd);
+    free(ka);
+    return 0;
+
+}
+
+
+
 size_t
 doheaders(void *ptr, size_t size, size_t nmemb, void *stream)
 {
@@ -184,9 +249,10 @@ dobody(void *ptr, size_t size, size_t nmemb, void *stream)
 {
 	if ((status >= HTTP_OK) && (status <= HTTP_MULTI_STATUS)) {
 		fwrite(ptr, size, nmemb, stream);
-
-		if (MD5_Update(&context, ptr, size * nmemb) != 1) {
-			logmsg("dobody:MD5_Update failed\n");
+		if ( isRpm == 0 ){
+			if (MD5_Update(&context, ptr, size * nmemb) != 1) {
+				logmsg("dobody:MD5_Update failed\n");
+			}
 		}
 	}
 
@@ -378,11 +444,14 @@ outputfile(char *filename, char *range)
 
 unsigned long long	curltime;
 
+/**
+ * downloadfile it downloads the file and checks for integrity
+ * if some errors are found it return -1 otherwise 0
+ */
 int
-downloadfile(CURL *curlhandle, char *url, char *range)
+downloadfile(CURL *curlhandle, char *url, char *filename, FILE * fp, char *realfilename)
 {
 	CURLcode		curlcode;
-	int			retval;
 #ifdef	TIMEIT
 	struct timeval		start_time, end_time;
 	unsigned long long	s, e;
@@ -395,27 +464,22 @@ downloadfile(CURL *curlhandle, char *url, char *range)
 		return(-1);
 	}
 
+	if ( isRpm == 0) {
+		if (MD5_Init(&context) != 1) {
+			fprintf(stderr, "MD5_Init failed\n");
+			exit(-1);
+		}
+	}
+
 #ifdef	DEBUG
 	logmsg("URL : ");
 	logmsg(url);
 	logmsg("\n");
 #endif
 
-	if ((curlcode = curl_easy_setopt(curlhandle, CURLOPT_RANGE,
-			range)) != CURLE_OK) {
-		logmsg("downloadfile:curl_easy_setopt():failed:(%d)\n",
-				curlcode);
-		return(-1);
-	}
-
 #ifdef	TIMEIT
 	gettimeofday(&start_time, NULL);
 #endif
-
-	if (MD5_Init(&context) != 1) {
-		fprintf(stderr, "MD5_Init failed\n");
-		exit(-1);
-	}
 
 	if ((curlcode = curl_easy_perform(curlhandle)) != CURLE_OK) {
 		logmsg("downloadfile:curl_easy_perform():failed:(%d)\n",
@@ -431,11 +495,15 @@ downloadfile(CURL *curlhandle, char *url, char *range)
 	curltime = e - s;
 #endif
 
-	/*
-	 * if this is not a range request, then do an MD5 checksum of the file
-	 */
-	if (range == NULL) {
-		retval = check_md5(url);
+	fclose(fp);
+	if ( isRpm ){
+		//this is not an rpm we can't do any checking
+		logmsg("downloadfile:isRpm:file %s is an rpm going to verify\n", filename);
+		return verifyRpmPackage(filename);
+	}
+	else{
+		//verify 'normal' file
+		// we need real file name to lookup it's name in /tmp/product/packages.md5
 
 		/*
 		 * check_md5 returns:
@@ -446,12 +514,13 @@ downloadfile(CURL *curlhandle, char *url, char *range)
 		 *
 		 *	-1 - checksum failed
 		 */
-		if (retval == -1) {
-			return(-1);
-		}
+		
+		if( check_md5(realfilename) == -1)
+			//return error
+			return -1;
+		else 
+			return 0;
 	}
-
-	return(0);
 }
 
 int
@@ -674,6 +743,28 @@ getremote(char *filename, peer_t *peer, char *range, CURL *curlhandle)
 	}
 	fromip = strdup(inet_ntoa(in));
 
+
+	/*
+	 * let's check if this is an rpm file or something else
+	 */
+	int skip = (int)strlen(filename);
+	char * suffix = filename + skip - 4 ;
+	if ( strcmp(suffix, ".rpm") != 0 ){
+	    //this is not an rpm we should calculate the md5sum
+	    isRpm = 0;
+#ifdef  DEBUG
+	    logmsg("getremote:file %s is not an rpm doing md5sum\n", filename);
+#endif
+	}
+	else{
+            isRpm = 1;
+#ifdef  DEBUG
+	    logmsg("getremote:file %s is an rpm\n", filename);
+#endif
+	}
+
+
+
 #ifdef	TIMEIT
 	gettimeofday(&end_time, NULL);
 	s = (start_time.tv_sec * 1000000) + start_time.tv_usec;
@@ -684,7 +775,7 @@ getremote(char *filename, peer_t *peer, char *range, CURL *curlhandle)
 	stall = 10000;
 
 	while (stall < 1000000) {
-		if (downloadfile(curlhandle, url, NULL) < 0) {
+		if (downloadfile(curlhandle, url, tempfilename, file, filename) < 0) {
 			status = HTTP_NOT_FOUND;
 		}
 #ifdef	DEBUG
@@ -714,7 +805,6 @@ getremote(char *filename, peer_t *peer, char *range, CURL *curlhandle)
 		}
 	}
 
-	fclose(file);
 
 #ifdef	TIMEIT
 	gettimeofday(&end_time, NULL);
@@ -1383,4 +1473,8 @@ main()
 
 	return(0);
 }
+
+
+
+
 

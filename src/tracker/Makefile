@@ -1,10 +1,19 @@
 #
-# $Id: Makefile,v 1.18 2012/02/29 23:04:10 phil Exp $
+# $Id: Makefile,v 1.19 2012/05/19 00:25:12 clem Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.19  2012/05/19 00:25:12  clem
+# merging into the trunk
+#
+# Revision 1.18.2.2  2012/05/15 02:46:06  clem
+# first final version of the tracker without md5sum
+#
+# Revision 1.18.2.1  2012/05/14 17:03:50  clem
+# first version of the checksumless tracker
+#
 # Revision 1.18  2012/02/29 23:04:10  phil
 # Make server2 to the default tracker-server.  Now has simple prediction
 #
@@ -85,13 +94,14 @@ include Rules.mk
 
 INCLUDE	= -I/usr/include/apr-1 -I/opt/rocks/fcgi/include -I/opt/sqlite/include
 SQLITELIBS = -ldl -lpthread /opt/sqlite/lib/libsqlite3.a
+RPMLIBS = -lrpm 
 #LIBS	= -L/opt/rocks/lib -lcurl
 #LIBS	= -lcurl -lssl -lidn -lgssapi_krb5 -lkrb5 -lk5crypto -lkrb5support -lpthread -lcrypto -lz -ldl -lcom_err -lkeyutils -lresolv -lselinux -lsepol
 #LIBS	= -L /opt/rocks/curl/lib/ -lcurl
-LIBS	= -lcurl $(SQLITELIBS)
+LIBS	= -lcurl $(SQLITELIBS) $(RPMLIBS)
 EXTRA	= -Wall `apr-1-config --cppflags --cflags`
-#EXTRA	+= -DTIMEIT 
-#EXTRA	+= -DDEBUG
+EXTRA	+= -DTIMEIT 
+EXTRA	+= -DDEBUG
 #EXTRA	+= -DDEBUG1
 EXTRA	+= -pg -g
 EXECS	= tracker-client unregister-file tracker-server peer-done stop-server dump-tables 
