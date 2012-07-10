@@ -1,10 +1,13 @@
 #
-# $Id: Makefile,v 1.19 2012/05/19 00:25:12 clem Exp $
+# $Id: Makefile,v 1.20 2012/07/10 18:40:19 phil Exp $
 #
 # @COPYRIGHT@
 # @COPYRIGHT@
 #
 # $Log: Makefile,v $
+# Revision 1.20  2012/07/10 18:40:19  phil
+# Update Anaconda for CentOS 6.3.  Add lsscsi and pyparted to os roll inventory
+#
 # Revision 1.19  2012/05/19 00:25:12  clem
 # merging into the trunk
 #
@@ -101,7 +104,7 @@ RPMLIBS = -lrpm
 LIBS	= -lcurl $(SQLITELIBS) $(RPMLIBS)
 EXTRA	= -Wall `apr-1-config --cppflags --cflags`
 EXTRA	+= -DTIMEIT 
-EXTRA	+= -DDEBUG
+#EXTRA	+= -DDEBUG
 #EXTRA	+= -DDEBUG1
 EXTRA	+= -pg -g
 EXECS	= tracker-client unregister-file tracker-server peer-done stop-server dump-tables 
