@@ -772,7 +772,29 @@ int getFileFromUrl(char * url, char * dest,
     }
 #endif
 
+
+#ifdef  ROCKS
+        /*
+         * try harder to get the kickstart file since the interface
+         * might take some more time to establish the link
+         */
+        {
+                int     i;
+
+                for (i = 0 ; i < 10 ; ++i) {
+                        rc = urlinstTransfer(loaderData, &ui, ehdrs, dest);
+
+                        if (rc == 0) {
+                                break;
+                        }
+			// wait a sec
+                        sleep(1);
+                }
+        }
+#else
     rc = urlinstTransfer(loaderData, &ui, ehdrs, dest);
+#endif
+
     if (rc) {
         logMessage(ERROR, "failed to retrieve %s", ui.url);
         return 1;
