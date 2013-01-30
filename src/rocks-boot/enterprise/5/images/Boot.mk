@@ -1,5 +1,5 @@
 #
-# $Id: Boot.mk,v 1.31 2012/11/27 00:49:06 phil Exp $
+# $Id: Boot.mk,v 1.32 2013/01/30 18:58:28 phil Exp $
 #
 # WARNING: You must be root to run this makefile.  We do a lot of
 # mounts (over loopback) and mknods (for initrd /dev entries) so you
@@ -60,6 +60,9 @@
 # @Copyright@
 #
 # $Log: Boot.mk,v $
+# Revision 1.32  2013/01/30 18:58:28  phil
+# New version of anaconda. Rocks 5.6 splash screen
+#
 # Revision 1.31  2012/11/27 00:49:06  phil
 # Copyright Storm for Emerald Boa
 #
@@ -390,9 +393,9 @@ initrd-%.iso: $(LOADER)/loader prep-initrd make-driver-disk
 initrd-%.iso.gz: initrd-%.iso
 	#gzip -9 -f $<
 
-isolinux: /usr/lib/syslinux/isolinux.bin initrd-boot.iso.gz initrd-xen.iso.gz $(SPLASH)/splash.lss
+isolinux: /usr/share/syslinux/isolinux.bin initrd-boot.iso.gz initrd-xen.iso.gz $(SPLASH)/splash.lss
 	if [ ! -x $@ ]; then mkdir $@; fi
-	cp /usr/lib/syslinux/isolinux.bin $@
+	cp /usr/share/syslinux/isolinux.bin $@
 	cp $(SPLASH)/{boot.msg,splash.lss} isolinux.cfg $@
 	cp initrd-boot.iso.gz   $@/initrd.img
 	cp rocks-dist/$(ARCH)/isolinux/vmlinuz $@/vmlinuz
