@@ -357,6 +357,10 @@ update-install-img:
 		cp -d /usr/lib64/lib$$i.so* $@.new/lib64 ; \
 	done
 	
+	# createrepo for 6.2 needs /usr/share/createrepo
+	-mkdir $@.new/usr/share/createrepo
+	cp -d /usr/share/createrepo/*.py $@.new/usr/share/createrepo
+
 	# unmount original, delete
 	echo "Size of Original install.img"
 	/bin/ls -l rocks-dist/$(ARCH)/images/install.img
