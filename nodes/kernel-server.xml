@@ -53,6 +53,7 @@ new XML node file to help support kernel roll rebuilding
 <package>fcgi</package>
 <package>rocks-tracker</package>
 <package>foundation-sqlite</package>
+<package>foundation-pysqlite</package>
 <package>sqlite.x86_64</package>
 <package>sqlite.i386</package>
 
