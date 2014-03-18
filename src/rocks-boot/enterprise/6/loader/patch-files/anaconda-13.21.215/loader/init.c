@@ -777,7 +777,11 @@ int main(int argc, char **argv) {
 
     printf("mounting /tmp as tmpfs... ");
     fflush(stdout);
+#ifdef ROCKS
+    if (mount("none", "/tmp", "tmpfs", 0, "size=280m"))
+#else
     if (mount("none", "/tmp", "tmpfs", 0, "size=250m"))
+#endif
         fatal_error(1);
     printf("done\n");
 
