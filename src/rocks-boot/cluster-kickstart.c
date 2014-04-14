@@ -15,10 +15,9 @@ static char rcsid[] = "$Id: cluster-kickstart.c,v 1.18 2012/11/27 00:49:05 phil 
  * 
  * 				Rocks(r)
  * 		         www.rocksclusters.org
- * 		         version 5.6 (Emerald Boa)
- * 		         version 6.1 (Emerald Boa)
+ * 		       version 6.1.1 (Sand Boa)
  * 
- * Copyright (c) 2000 - 2013 The Regents of the University of California.
+ * Copyright (c) 2000 - 2014 The Regents of the University of California.
  * All rights reserved.	
  * 
  * Redistribution and use in source and binary forms, with or without
