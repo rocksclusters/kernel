@@ -78,7 +78,7 @@
 # Tracker needs fcgi installed before it will build
 #
 
-. $ROLLSROOT/etc/bootstrap-functions.sh
+. $ROLLSROOT/etc/bootstrap-functions.sh || exit 1
 
 compile fastcgi
 install fcgi

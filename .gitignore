@@ -1,0 +1,54 @@
+
+# build directory
+BUILD/
+RPMS/
+SOURCES/
+SPECS/
+
+
+*.pyc
+
+_os
+_arch
+_distribution
+
+# ignore version.mk
+rocks-version.mk
+rocks-version-common.mk
+
+# ignore python.mk
+python.mk
+
+# ignore Rules files
+Rules-install.mk
+Rules-linux-centos.mk
+Rules-linux.mk
+Rules-rcfiles.mk
+Rules-scripts.mk
+Rules.mk
+Rolls.mk
+
+# --- BEGIN --- binaries files
+src/fastcgi/fcgi-2.4.0.tar.gz
+src/foundation-pysqlite/pysqlite-2.6.3.tar.gz
+src/keyutils/keyutils-1.2-1.el5.src.rpm
+src/lighttpd/lighttpd-1.4.26.tar.gz
+src/lighttpd/lighttpd-1.4.28.tar.gz
+src/rocks-boot/enterprise/5/images/drivers/ddiskit-0.9.9.tar.bz2
+src/rocks-boot/enterprise/5/images/drivers/qla2xxx/rpm/SOURCES/qla2xxx-8170.tar.bz2
+src/rocks-boot/enterprise/5/images/splash/chimi.psd
+src/rocks-boot/enterprise/5/images/splash/EmeraldBoa1-5.xcf
+src/rocks-boot/enterprise/5/images/splash/label.en_US.graffle
+src/rocks-boot/enterprise/5/images/splash/v1.psd
+src/rocks-boot/enterprise/5/loader/anaconda-11.1.2.195.tar.bz2
+src/rocks-boot/enterprise/5/loader/anaconda-11.1.2.209.tar.bz2
+src/rocks-boot/enterprise/5/loader/anaconda-11.1.2.224.tar.bz2
+src/rocks-boot/enterprise/5/loader/anaconda-11.1.2.242.tar.bz2
+src/rocks-boot/enterprise/5/loader/anaconda-11.1.2.259.tar.bz2
+src/rocks-boot/enterprise/6/images/splash/EmeraldBoa1.xcf
+src/rocks-boot/enterprise/6/images/splash/SideWinder.xcf
+src/rocks-boot/enterprise/6/loader/anaconda-13.21.149.tar.bz2
+src/rocks-boot/enterprise/6/loader/anaconda-13.21.176.tar.bz2
+src/rocks-boot/enterprise/6/loader/anaconda-13.21.215.tar.bz2
+src/sqlite/sqlite-autoconf-3071000.tar.gz
+# --- END ---
