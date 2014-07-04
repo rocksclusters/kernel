@@ -80,7 +80,6 @@
 
 import string
 import subprocess 
-import rocks.kickstart
 import os
 import os.path
 import sys

@@ -274,7 +274,6 @@
 
 import string
 import popen2
-import rocks.kickstart
 import os
 import os.path
 import sys
