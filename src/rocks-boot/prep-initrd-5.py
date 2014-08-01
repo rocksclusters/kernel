@@ -278,6 +278,7 @@ import os
 import os.path
 import sys
 import rocks.bootable
+import rocks.app
 from rocks.dist import DistError
 
 
