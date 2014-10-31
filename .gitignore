@@ -50,5 +50,6 @@ src/rocks-boot/enterprise/6/images/splash/SideWinder.xcf
 src/rocks-boot/enterprise/6/loader/anaconda-13.21.149.tar.bz2
 src/rocks-boot/enterprise/6/loader/anaconda-13.21.176.tar.bz2
 src/rocks-boot/enterprise/6/loader/anaconda-13.21.215.tar.bz2
+src/rocks-boot/enterprise/6/loader/anaconda-13.21.229.tar.bz2
 src/sqlite/sqlite-autoconf-3071000.tar.gz
 # --- END ---
