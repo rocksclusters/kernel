@@ -217,7 +217,7 @@ static int loadSingleUrlImage(struct loaderData_s *loaderData, struct iurlinfo *
 	}
 #else
     status = urlinstTransfer(loaderData, ui, ehdrs, dest);
-#endif ROCKS
+#endif
     if (status) {
         if (!silentErrors) {
             newtWinMessage(_("Error"), _("OK"),
@@ -796,7 +796,7 @@ int getFileFromUrl(char * url, char * dest,
         }
 #else
     rc = urlinstTransfer(loaderData, &ui, ehdrs, dest);
-#endif ROCKS
+#endif
     if (rc) {
         logMessage(ERROR, "failed to retrieve %s", ui.url);
         return 1;
@@ -823,7 +823,7 @@ int getFileFromUrl(char * url, char * dest,
 
     free(trackers);
     free(pkgservers);
-#endif ROCKS
+#endif
 
     return 0;
 }
