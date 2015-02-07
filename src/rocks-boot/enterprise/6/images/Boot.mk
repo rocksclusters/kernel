@@ -299,10 +299,6 @@ initrd-%.iso: $(LOADER)/loader prep-initrd update-install-img
 	cp /bin/basename $@.new/bin
 	cp /bin/pwd $@.new/bin
 
-	# for updated libnss (Security Update)
-	#
-	-cp -d /lib64/libfreeblpriv3.so $@.new/lib64
-
 
 	echo "TERM=vt100" >> $@.new/.profile
 	echo "export TERM" >> $@.new/.profile
@@ -363,6 +359,10 @@ update-install-img:
 	# createrepo for 6.2 needs /usr/share/createrepo
 	-mkdir $@.new/usr/share/createrepo
 	cp -d /usr/share/createrepo/*.py $@.new/usr/share/createrepo
+
+	# for updated libnss (Security Update)
+	#
+	-cp -d /lib64/libfreeblpriv3.so $@.new/lib64
 
 	# unmount original, delete
 	echo "Size of Original install.img"
