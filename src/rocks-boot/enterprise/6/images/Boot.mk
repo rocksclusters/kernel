@@ -299,6 +299,10 @@ initrd-%.iso: $(LOADER)/loader prep-initrd update-install-img
 	cp /bin/basename $@.new/bin
 	cp /bin/pwd $@.new/bin
 
+	# for updated libnss (Security Update)
+	#
+	-cp -d /lib64/libfreeblpriv3.so $@.new/lib64
+
 
 	echo "TERM=vt100" >> $@.new/.profile
 	echo "export TERM" >> $@.new/.profile
