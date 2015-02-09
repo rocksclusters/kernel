@@ -364,7 +364,7 @@ update-install-img:
 	#
 	-cp -d /lib64/libfreeblpriv3.so $@.new/lib64
 	-cp -d /lib64/libfreeblpriv3.chk $@.new/lib64
-	-cp -d usr/lib64/libnsssysinit.so $@.new/usr/lib64
+	-cp -d /usr/lib64/libnsssysinit.so $@.new/usr/lib64
 
 	# unmount original, delete
 	echo "Size of Original install.img"
