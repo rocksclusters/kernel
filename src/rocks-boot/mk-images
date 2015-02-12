@@ -25,7 +25,7 @@ IMAGEUUID=$(date +%Y%m%d%H%M).$(uname -i)
 TMPDIR=${TMPDIR:-/tmp}
 
 usage () {
-    echo "usage: mk-images <pkgsrc> <toplevel> <template> <imgdir> <buildarch> <productname> <version> [<productpath>]"
+    echo "usage: mk-images <pkgsrc> <toplevel> <template> <imgdir> <buildarch> <productname> <version> <final> [<productpath>]"
     exit 0
 }
 
@@ -58,6 +58,10 @@ while [ $# -gt 0 ]; do
         --version)
             VERSION=$2
             shift; shift
+        ;;
+        --final)
+            ISFINAL="yes"
+            shift
         ;;
         --bugurl)
             BUGURL=$2
@@ -97,18 +101,21 @@ TOPDIR=$(cd $TOPDIR; pwd)
 # modules that are needed.  this is the generic "needed for every arch" stuff
 COMMONMODS="fat vfat nfs sunrpc lockd floppy cramfs loop edd pcspkr squashfs ipv6 8021q virtio_pci netconsole"
 UMSMODS="ums-jumpshot ums-datafab ums-freecom ums-usbat ums-sddr55 ums-onetouch ums-alauda ums-karma ums-sddr09 ums-cypress"
-USBMODS="$UMSMODS xhci-hcd ohci-hcd uhci-hcd ehci-hcd usbhid mousedev usb-storage sd_mod sr_mod ub appletouch bcm5974"
+USBMODS="$UMSMODS ohci-hcd uhci-hcd ehci-hcd xhci-hcd usbhid mousedev usb-storage sd_mod sr_mod ub appletouch bcm5974"
 FIREWIREMODS="ohci1394 sbp2 fw-ohci fw-sbp2 firewire-sbp2 firewire-ohci"
 SDMODS="mmc-block sdhci sdhci-pci"
 IDEMODS="ide-cd ide-cd_mod"
 SCSIMODS="sr_mod sg st sd_mod scsi_mod iscsi_tcp iscsi_ibft scsi_wait_scan cxgb3i bnx2i be2iscsi"
 FSMODS="fat msdos vfat ext2 ext3 ext4 reiserfs jfs xfs gfs2 cifs fuse btrfs hfsplus xenfs"
-LVMMODS="dm-mod dm-zero dm-snapshot dm-mirror dm-multipath dm-round-robin dm-crypt"
+LVMMODS="dm-mod dm-zero dm-snapshot dm-mirror dm-multipath dm-round-robin dm-crypt dm-raid dm-raid45 dm-memcache"
 RAIDMODS="raid0 raid1 raid5 raid6 raid456 raid10 linear"
 CRYPTOMODS="sha256_generic cbc xts lrw aes_generic crypto_blkcipher crc32c ecb arc4"
 PCMCIASOCKMODS="yenta_socket i82365 tcic pcmcia"
 INFINIBANDMODS="ib_qib mlx4_ib"
-INITRDMODS="$USBMODS $FIREWIREMODS $IDEMODS $SCSIMODS $FSMODS $LVMMODS $RAIDMODS $CRYPTOMODS $COMMONMODS $PCMCIASOCKMODS $INFINIBANDMODS $SDMODS =scsi =net =drm"
+VMPVMODS="vmxnet3 vmware_balloon vmw_pvsci"
+MSPVMODS="hv_storvsc hid-hyperv hv_netvsc hv_vmbus hv_utils ata_piix"
+INITRDMODS="$USBMODS $FIREWIREMODS $IDEMODS $SCSIMODS $FSMODS $LVMMODS $RAIDMODS $CRYPTOMODS $COMMONMODS \
+            $PCMCIASOCKMODS $INFINIBANDMODS $SDMODS $VMPVMODS $MSPVMODS =scsi =net =drm"
 
 . $(dirname $0)/buildinstall.functions
 
@@ -339,10 +346,49 @@ EOF
 
     # Remove some modules and firmware on ppc64 so the ramdisk image
     # is <= 32MB (BZ #675685)
-    if [ "$BUILDARCH" = "ppc64" ]; then
+    if [ "$BUILDARCH" = "ppc" -o "$BUILDARCH" = "ppc64" ]; then
         for subdir in firewire pcmcia sound wireless ; do
             find -H $MMB_DIR/lib/modules -name $subdir | xargs rm -rf
         done
+
+        # Explicitly remove more (#1006043)
+        ( if [ -d $MBD_DIR/firmware/radeon ]; then
+              cd $MBD_DIR/firmware/radeon
+              for f in *.bin ; do
+                  if [ ! "$f" = "CEDAR_rlc.bin" -a ! "$f" = "CEDAR_pfp.bin" -a ! "$f" = "CEDAR_me.bin" ]; then
+                      rm "$f"
+                  fi
+              done
+          fi
+        )
+
+        rm -f $MBD_DIR/firmware/sun/cassini.bin
+        rm -f $MBD_DIR/firmware/brcm/bcm43xx_hdr-0.fw
+        rm -f $MBD_DIR/firmware/brcm/bcm43xx-0.fw
+        rm -f $MBD_DIR/firmware/carl9170-1.fw
+        rm -f $MBD_DIR/firmware/iwlwifi-2030-6.ucode
+        rm -f $MBD_DIR/firmware/htc_9271.fw
+        rm -f $MBD_DIR/firmware/iwlwifi-3160-7.ucode
+        rm -f $MBD_DIR/firmware/iwlwifi-7260-7.ucode
+        rm -f $MBD_DIR/firmware/adaptec/starfire_rx.bin
+        rm -f $MBD_DIR/firmware/adaptec/starfire_tx.bin
+        rm -f $MBD_DIR/firmware/ositech/Xilinx7OD.bin
+        rm -f $MBD_DIR/firmware/iwlwifi-2000-6.ucode
+        rm -f $MBD_DIR/firmware/iwlwifi-6000g2b-6.ucode
+        rm -f $MBD_DIR/firmware/iwlwifi-135-6.ucode
+        rm -f $MBD_DIR/firmware/htc_7010.fw
+        rm -f $MBD_DIR/firmware/iwlwifi-105-6.ucode
+        rm -rf $MBD_DIR/firmware/zd1211
+
+        # Remove drivers that are not usable during install (#1014719)
+        KDIR="$(ls -1 $MMB_DIR/lib/modules | grep -v "module-info")"
+        rm -rf $MMB_DIR/lib/modules/$KDIR/kernel/drivers/media
+        rm -rf $MMB_DIR/lib/modules/$KDIR/kernel/drivers/mac80211
+        rm -rf $MMB_DIR/lib/modules/$KDIR/kernel/drivers/isdn
+
+        # Remove more (#1098486)
+        rm -f $MMB_DIR/lib/modules/$KDIR/kernel/drivers/scsi/scsi_debug.ko
+        rm -rf $MMB_DIR/lib/modules/$KDIR/kernel/drivers/gpu/drm
     fi
 
     # clean up leftover cruft
@@ -368,6 +414,11 @@ makeproductfile() {
     echo $IMAGEUUID > $root/.buildstamp
     echo $PRODUCT >> $root/.buildstamp
     echo $VERSION >> $root/.buildstamp
+    if [ -n "$ISFINAL" ]; then
+        echo "FINAL=YES" >> $root/.buildstamp
+    else
+        echo "FINAL=NO" >> $root/.buildstamp
+    fi
     if [ -n "$BUGURL" ]; then
         echo $BUGURL >> $root/.buildstamp
     fi
@@ -463,10 +514,6 @@ EOF
         # key generation takes ages on s390, you really don't want this
         # for every installation attempt. These are NOT the keys of the
         # installed system!
-        echo -n "Generating SSH1 RSA host key: "
-        /usr/bin/ssh-keygen -q -t rsa1 -f $MBD_DIR/etc/ssh/ssh_host_key \
-                            -C '' -N '' >&/dev/null
-        echo
         echo -n "Generating SSH2 RSA host key: "
         /usr/bin/ssh-keygen -q -t rsa -f $MBD_DIR/etc/ssh/ssh_host_rsa_key \
                             -C '' -N '' >&/dev/null
@@ -482,7 +529,6 @@ EOF
 
     cat > $MBD_DIR/etc/ssh/sshd_config.anaconda <<EOF
 Port 22
-HostKey /etc/ssh/ssh_host_key
 HostKey /etc/ssh/ssh_host_rsa_key
 HostKey /etc/ssh/ssh_host_dsa_key
 PermitRootLogin yes
@@ -907,6 +953,7 @@ EOF
     instbin $IMGPATH /usr/sbin/blkid $MBD_DIR /sbin/blkid
     instbin $IMGPATH /usr/bin/uname $MBD_DIR /sbin/uname
     instbin $IMGPATH /sbin/killall5 $MBD_DIR /sbin/killall5
+    instbin $IMGPATH /usr/bin/ping $MBD_DIR /sbin/ping
     ln -sf killall5 $MBD_DIR/sbin/pidof
 
     # Indirect dependencies
@@ -1204,7 +1251,7 @@ for KERNELARCH in $arches; do
         # make the boot images
         makeBootImages
 
-        # makeEfiImages $yumconf
+        #makeEfiImages $yumconf
     done
 done
 
