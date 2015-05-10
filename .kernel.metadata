@@ -15,7 +15,8 @@ bd891618f9db67b995f17024fb123f5f6e9c6ded  src/rocks-boot/enterprise/5/loader/ana
 5291861225db9915bdbb08fd5b2053d11d6d970a  src/rocks-boot/enterprise/5/loader/anaconda-11.1.2.242.tar.bz2
 05eabcc50cedcd1b141e4d6de029549e1a811347  src/rocks-boot/enterprise/5/loader/anaconda-11.1.2.259.tar.bz2
 9a29618dc0f03201f2a15a3d992685c6a9893490  src/rocks-boot/enterprise/6/images/splash/EmeraldBoa1.xcf
-47f7e7506efdce353fa71bf1edb7a64c6626ac38  src/rocks-boot/enterprise/6/images/splash/SideWinder.xcf
+d036041e4b09a3601264729c37b886a7590e6b95  src/rocks-boot/enterprise/6/images/splash/SideWinder.png
+de0312fc1c783b60bc3e6b2fb0f878d98c30dd63  src/rocks-boot/enterprise/6/images/splash/SideWinder.xcf
 960b9d5be1bf702c2646b9bdf5eb8398e869f1b6  src/rocks-boot/enterprise/6/loader/anaconda-13.21.149.tar.bz2
 24be1005e4679641bd4113348e900d85c65083bb  src/rocks-boot/enterprise/6/loader/anaconda-13.21.176.tar.bz2
 23224c654a491c9bb693a47fdf3cfe9b72740809  src/rocks-boot/enterprise/6/loader/anaconda-13.21.215.tar.bz2
