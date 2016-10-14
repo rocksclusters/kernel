@@ -5,4 +5,4 @@ TARVERSION	= 3071000
 RELEASE		= 0
 SUBDIR		= sqlite-autoconf-$(TARVERSION)
 TARFILE		= $(SUBDIR).tar.gz
-
+RPM.FILES	= /opt/sqlite

@@ -97,11 +97,14 @@ include Rules.mk
 
 INCLUDE	= -I/usr/include/apr-1 -I/opt/rocks/fcgi/include -I/opt/sqlite/include
 SQLITELIBS = -ldl -lpthread /opt/sqlite/lib/libsqlite3.a
+CRYPTOLIBS = 
 RPMLIBS = -lrpm 
-#LIBS	= -L/opt/rocks/lib -lcurl
-#LIBS	= -lcurl -lssl -lidn -lgssapi_krb5 -lkrb5 -lk5crypto -lkrb5support -lpthread -lcrypto -lz -ldl -lcom_err -lkeyutils -lresolv -lselinux -lsepol
-#LIBS	= -L /opt/rocks/curl/lib/ -lcurl
-LIBS	= -lcurl $(SQLITELIBS) $(RPMLIBS)
+ifeq ($(strip $(VERSION.MAJOR)), 7)
+CRYPTOLIBS = -lcrypto
+RPMLIBS += -lrpmio 
+endif
+
+LIBS	= -lcurl $(SQLITELIBS) $(RPMLIBS) $(CRYPTOLIBS)
 EXTRA	= -Wall `apr-1-config --cppflags --cflags`
 EXTRA	+= -DTIMEIT 
 #EXTRA	+= -DDEBUG
