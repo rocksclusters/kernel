@@ -1,0 +1,17 @@
+Rocks-boot-7 uses lorax to do most of the work of creating product.img initrd
+and the live file system used by anaconda for installation. 
+
+rocks-boot-7 is built LAST when building the kernel roll. All other kernel roll
+rpms must already be compiled. 
+
+Lorax has an extensive templating system to add packages to bootable media. Typically, close to 700 packages are installed then unneeded items are removed to build a smaller LiveOS image.   Our goal is to use as much of the stock Lorax-based install as possible, while adding Rocks-required packages.
+
+Where This build finds packages.
+- Rolls installed in the build system. Required rolls are core and OS. 
+  -- Typically an updates roll is also added to get an updated kernel RPM
+- The RPMS directory of the kernel roll itself.
+  -- This enables various Rocks-created packages to be installed 
+
+Where are anaconda changes?
+ -- the anaconda-rocks rpm defined in this roll should handle the overlay
+    of anaconda files (using product.img).
