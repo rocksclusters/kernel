@@ -94,12 +94,21 @@ class RocksRollsGTK:
 			
 		self.listStore.clear()
 
-	def doPopup(self,a,b,c):
-		pass	
+	def doPopup(self,tview,path,c):
+		dialog = Gtk.Dialog("Remove Selected Roll?",
+			parent=self.window,flags=0,
+			buttons=(Gtk.STOCK_CANCEL,Gtk.ResponseType.CANCEL,
+			Gtk.STOCK_OK,Gtk.ResponseType.OK))
+		response = dialog.run()
+		if response == Gtk.ResponseType.OK:
+			iter = self.selectStore.get_iter(path)
+			self.selectStore.remove(iter)
+		dialog.destroy()
 	def removeSelected(self,a,b,c):
 		print a
 		print b
 		print c
+		self.dialog.destroy()
 
 	def selectRoll_toggle(self,toggle,idx):
 		row = self.listStore[idx]
