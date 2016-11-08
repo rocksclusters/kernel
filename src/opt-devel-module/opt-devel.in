@@ -1,0 +1,23 @@
+#%Module1.0#####################################################################
+##
+## opt-devel modulefile
+##
+## modulefiles/
+##
+proc ModulesHelp { } {
+	global opt-devel-version 
+
+	puts stderr "\t Use new/updated software in opt-devel"
+	puts stderr "\n\tVersion $opt-devel-version\n"
+}
+
+module-whatis	"use opt-devel tree for updated tools like glade,gtk+, and others"
+
+# for Tcl script use only
+set opt-devel-version @VERSION@
+
+set develHome /opt/devel
+prepend-path	PATH $develHome/bin	
+prepend-path	LD_LIBRARY_PATH $develHome/lib	
+prepend-path	PKG_CONFIG_PATH $develHome/lib/pkgconfig
+
