@@ -88,7 +88,18 @@ fi
 
 . $ROLLSROOT/etc/bootstrap-functions.sh || exit 1
 
+
 compile fastcgi
 install fcgi
 compile sqlite 
 install foundation-sqlite
+
+OSVERSION=$(lsb_release -rs | cut -d . -f 1)
+if [ $OSVERSION == "7" ]; then
+	BUILDPKGS="gtk3-devel-docs glib2-doc gobject-introspection-devel glade-devel \
+	libgnomekbd-devel libxklavier-devel python-nose libtimezonemap-devel" 
+	yum -y install $BUILDPKGS
+	compile_and_install opt-atk
+	compile_and_install opt-glib2
+	compile_and_install opt-gtk+
+fi
