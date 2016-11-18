@@ -20,3 +20,7 @@ de0312fc1c783b60bc3e6b2fb0f878d98c30dd63  src/rocks-boot/enterprise/6/images/spl
 a9730e5f56730075405e0b5823aca7ed40b343b6  src/rocks-boot/enterprise/6/loader/anaconda-13.21.229.tar.bz2 0B0LD0shfkvCRS29zRmZKRlRGSUU
 06446505f7bbddec2f1c645b79b2df5702adb6de  src/rocks-boot/enterprise/6/loader/anaconda-13.21.239.tar.bz2 0B0LD0shfkvCRaW9GWTZHTWNDY3M
 0442d5a1bff50153039951b09db649864d8af0bb  src/sqlite/sqlite-autoconf-3071000.tar.gz 0B0LD0shfkvCRTU1XU1BuRm94X0k
+d097c6cec71ffede77be9f13f4ceee9880c0a5d7  src/opt-atk/atk-2.16.0.tar.xz 0B0LD0shfkvCRNFJiNE1STy1IV3c
+88176375f97ecd9ff45e7b5fd5ab80d4b7db6b34  src/opt-glib2/glib-2.44.1.tar.xz 0B0LD0shfkvCRLWd0aUVVU2diVHM
+65a48c4665256f8633401d813a925b06cd6d2a26  src/opt-gtk+/gtk+-3.16.7.tar.xz 0B0LD0shfkvCRSE9NaTB3TUxldVk
+4cafedd173b64fc3898a39901a7c9c11ed75779c  src/opt-glade/glade-3.19.0.tar.xz 0B0LD0shfkvCRM2tRLUs2VW11MVU
