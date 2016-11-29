@@ -5,7 +5,9 @@ import sys
 import gi
 import urllib
 gi.require_version('Gtk','3.0')
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
+#from pyanaconda.ui.gui import GUIObject
+from pyanaconda.ui.gui.spokes import NormalSpoke
 
 ## Need to be able to get Rocks python includes
 sys.path.append('/opt/rocks/lib/python2.7/site-packages')
@@ -16,7 +18,7 @@ import rocks.roll
 NETWORK = 0
 CD = 1
 ##
-class RocksRollsGTK:
+class RocksRollsGTK():
 	"""This is an Hello World GTK application"""
 
 	def __init__(self):
@@ -31,6 +33,7 @@ class RocksRollsGTK:
 		#Set the Glade file
 		self.gladefile = "RocksRolls.glade"  
 		builder = Gtk.Builder()
+		# GObject.type_register(AnacondaSpokeWindow)
 		builder.add_from_file(self.gladefile)	
 		builder.connect_signals(self)
 

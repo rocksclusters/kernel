@@ -1,70 +1,329 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.19.0 -->
 <interface>
-  <!-- interface-requires gtk+ 3.6 -->
-  <object class="GtkWindow" id="RollsWindow">
+  <requires lib="gtk+" version="3.6"/>
+  <requires lib="AnacondaWidgets" version="3.1"/>
+  <object class="AnacondaSpokeWindow" id="RollsWindow">
+    <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="default_width">800</property>
-    <property name="default_height">600</property>
-    <child>
-      <object class="GtkBox" id="box2">
-        <property name="visible">True</property>
+    <property name="window_name" translatable="yes">ROLLS Selection</property>
+    <child internal-child="main_box">
+      <object class="GtkBox" id="AnacondaSpokeWindow-main_box1">
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
-        <child>
-          <object class="GtkImage" id="rocksHeader">
-            <property name="width_request">0</property>
-            <property name="visible">True</property>
+        <property name="spacing">6</property>
+        <child internal-child="nav_box">
+          <object class="GtkEventBox" id="AnacondaSpokeWindow-nav_box1">
+            <property name="name">nav-box</property>
             <property name="can_focus">False</property>
-            <property name="stock">gtk-cdrom</property>
+            <child internal-child="nav_area">
+              <object class="GtkGrid" id="AnacondaSpokeWindow-nav_area1">
+                <property name="can_focus">False</property>
+                <property name="margin_left">18</property>
+                <property name="margin_right">18</property>
+                <property name="margin_start">18</property>
+                <property name="margin_end">18</property>
+                <property name="margin_top">12</property>
+                <property name="margin_bottom">6</property>
+              </object>
+            </child>
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">True</property>
+            <property name="fill">False</property>
             <property name="position">0</property>
           </packing>
         </child>
-        <child>
-          <object class="GtkGrid" id="grid1">
-            <property name="visible">True</property>
+        <child internal-child="alignment">
+          <object class="GtkAlignment" id="AnacondaSpokeWindow-alignment1">
             <property name="can_focus">False</property>
-            <property name="column_spacing">2</property>
-            <property name="row_homogeneous">True</property>
-            <child>
-              <object class="GtkEntry" id="rollUrl">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="invisible_char">●</property>
-                <property name="width_chars">48</property>
-                <property name="shadow_type">etched-in</property>
-                <property name="placeholder_text">http://%rollserver%/install/rolls</property>
-                <signal name="activate" handler="listRolls" swapped="no"/>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">0</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkComboBoxText" id="rollSelectCombo">
-                <property name="visible">True</property>
+            <property name="yalign">0</property>
+            <child internal-child="action_area">
+              <object class="GtkBox" id="AnacondaSpokeWindow-action_area1">
                 <property name="can_focus">False</property>
-                <property name="active">0</property>
-                <property name="id_column">0</property>
-                <property name="active_id">0</property>
-                <items>
-                  <item translatable="yes">Network Roll</item>
-                  <item translatable="yes">CD/DVD Roll</item>
-                </items>
-                <signal name="changed" handler="selectCombo" swapped="no"/>
+                <property name="orientation">vertical</property>
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkBox" id="box2">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkGrid" id="grid1">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="column_spacing">2</property>
+                        <property name="row_homogeneous">True</property>
+                        <child>
+                          <object class="GtkEntry" id="rollUrl">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="invisible_char">●</property>
+                            <property name="width_chars">48</property>
+                            <property name="shadow_type">etched-in</property>
+                            <property name="placeholder_text">http://%rollserver%/install/rolls</property>
+                            <signal name="activate" handler="listRolls" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="left_attach">1</property>
+                            <property name="top_attach">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkComboBoxText" id="rollSelectCombo">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="active">0</property>
+                            <property name="active_id">0</property>
+                            <items>
+                              <item translatable="yes">Network Roll</item>
+                              <item translatable="yes">CD/DVD Roll</item>
+                            </items>
+                            <signal name="changed" handler="selectCombo" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="left_attach">0</property>
+                            <property name="top_attach">0</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButtonBox" id="buttonbox1">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="halign">center</property>
+                        <property name="layout_style">start</property>
+                        <child>
+                          <object class="GtkButton" id="listRolls">
+                            <property name="label" translatable="yes">List Available Rolls</property>
+                            <property name="width_request">25</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">This will list the available rolls on the Roll Server. </property>
+                            <property name="use_underline">True</property>
+                            <property name="always_show_image">True</property>
+                            <signal name="clicked" handler="listRolls" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="Select Rolls">
+                            <property name="label" translatable="yes">Add Selected Rolls</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <signal name="clicked" handler="selectRolls" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkScrolledWindow" id="scrolledwindow2">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="shadow_type">in</property>
+                        <property name="min_content_height">200</property>
+                        <child>
+                          <object class="GtkTreeView" id="listRollsView">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="model">listRoll</property>
+                            <property name="headers_clickable">False</property>
+                            <property name="reorderable">True</property>
+                            <property name="search_column">0</property>
+                            <property name="enable_grid_lines">vertical</property>
+                            <property name="tooltip_column">0</property>
+                            <child internal-child="selection">
+                              <object class="GtkTreeSelection" id="treeview-selection"/>
+                            </child>
+                            <child>
+                              <object class="GtkTreeViewColumn" id="ListRollSelect">
+                                <property name="title" translatable="yes">Select</property>
+                                <property name="clickable">True</property>
+                                <signal name="clicked" handler="selectAllRolls" swapped="no"/>
+                                <child>
+                                  <object class="GtkCellRendererToggle" id="selectRoll">
+                                    <signal name="toggled" handler="selectRoll_toggle" swapped="no"/>
+                                  </object>
+                                  <attributes>
+                                    <attribute name="active">0</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkTreeViewColumn" id="listRollName">
+                                <property name="title" translatable="yes">Roll Name</property>
+                                <property name="clickable">True</property>
+                                <property name="reorderable">True</property>
+                                <property name="sort_indicator">True</property>
+                                <property name="sort_column_id">1</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="cellrenderertext1"/>
+                                  <attributes>
+                                    <attribute name="text">1</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkTreeViewColumn" id="listRollVersion">
+                                <property name="title" translatable="yes">Version</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="cellrenderertext2"/>
+                                  <attributes>
+                                    <attribute name="text">2</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkTreeViewColumn" id="listRollArch">
+                                <property name="title" translatable="yes">Arch</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="cellrenderertext3"/>
+                                  <attributes>
+                                    <attribute name="text">3</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">4</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label1">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Selected Rolls</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">5</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkScrolledWindow" id="scrolledwindow1">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="shadow_type">in</property>
+                        <property name="min_content_height">200</property>
+                        <child>
+                          <object class="GtkTreeView" id="selectedView">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="tooltip_text" translatable="yes">These are the selected Rolls for your cluster. You may double click a roll to remove it.</property>
+                            <property name="model">selectedRolls</property>
+                            <property name="headers_clickable">False</property>
+                            <property name="rules_hint">True</property>
+                            <property name="search_column">1</property>
+                            <property name="fixed_height_mode">True</property>
+                            <property name="enable_grid_lines">horizontal</property>
+                            <signal name="row-activated" handler="doPopup" swapped="no"/>
+                            <child internal-child="selection">
+                              <object class="GtkTreeSelection" id="treeview-selection1"/>
+                            </child>
+                            <child>
+                              <object class="GtkTreeViewColumn" id="selectRollName">
+                                <property name="sizing">fixed</property>
+                                <property name="title" translatable="yes">Roll Name</property>
+                                <property name="clickable">True</property>
+                                <property name="reorderable">True</property>
+                                <property name="sort_indicator">True</property>
+                                <property name="sort_column_id">0</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="cellrenderertext4"/>
+                                  <attributes>
+                                    <attribute name="text">0</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkTreeViewColumn" id="selectRollVersion">
+                                <property name="sizing">fixed</property>
+                                <property name="title" translatable="yes">Version</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="cellrenderertext5"/>
+                                  <attributes>
+                                    <attribute name="text">1</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkTreeViewColumn" id="selectRollArch">
+                                <property name="sizing">fixed</property>
+                                <property name="title" translatable="yes">Arch</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="cellrenderertext6"/>
+                                  <attributes>
+                                    <attribute name="text">2</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkTreeViewColumn" id="selectRollUrl">
+                                <property name="sizing">fixed</property>
+                                <property name="title" translatable="yes">Location</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="cellrenderertext7"/>
+                                  <attributes>
+                                    <attribute name="text">3</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">7</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
               </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">0</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
-              </packing>
             </child>
           </object>
           <packing>
@@ -74,238 +333,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkButtonBox" id="buttonbox1">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="has_tooltip">True</property>
-            <property name="halign">center</property>
-            <property name="layout_style">start</property>
-            <child>
-              <object class="GtkButton" id="listRolls">
-                <property name="label" translatable="yes">List Available Rolls</property>
-                <property name="width_request">25</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="tooltip_text" translatable="yes">This will list the available rolls on the Roll Server. </property>
-                <property name="use_underline">True</property>
-                <property name="always_show_image">True</property>
-                <signal name="clicked" handler="listRolls" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="Select Rolls">
-                <property name="label" translatable="yes">Add Selected Rolls</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <signal name="clicked" handler="selectRolls" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
           <placeholder/>
-        </child>
-        <child>
-          <object class="GtkScrolledWindow" id="scrolledwindow2">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="shadow_type">in</property>
-            <property name="min_content_height">200</property>
-            <child>
-              <object class="GtkTreeView" id="listRollsView">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="model">listRoll</property>
-                <property name="headers_clickable">False</property>
-                <property name="reorderable">True</property>
-                <property name="search_column">0</property>
-                <property name="enable_grid_lines">vertical</property>
-                <property name="tooltip_column">0</property>
-                <child>
-                  <object class="GtkTreeViewColumn" id="ListRollSelect">
-                    <property name="title" translatable="yes">Select</property>
-                    <property name="clickable">True</property>
-                    <signal name="clicked" handler="selectAllRolls" swapped="no"/>
-                    <child>
-                      <object class="GtkCellRendererToggle" id="selectRoll">
-                        <signal name="toggled" handler="selectRoll_toggle" swapped="no"/>
-                      </object>
-                      <attributes>
-                        <attribute name="active">0</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="listRollName">
-                    <property name="title" translatable="yes">Roll Name</property>
-                    <property name="clickable">True</property>
-                    <property name="reorderable">True</property>
-                    <property name="sort_indicator">True</property>
-                    <property name="sort_column_id">1</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext1"/>
-                      <attributes>
-                        <attribute name="text">1</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="listRollVersion">
-                    <property name="title" translatable="yes">Version</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext2"/>
-                      <attributes>
-                        <attribute name="text">2</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="listRollArch">
-                    <property name="title" translatable="yes">Arch</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext3"/>
-                      <attributes>
-                        <attribute name="text">3</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">4</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="label1">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Selected Rolls</property>
-            <attributes>
-              <attribute name="weight" value="bold"/>
-            </attributes>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">5</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkScrolledWindow" id="scrolledwindow1">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="shadow_type">in</property>
-            <property name="min_content_height">200</property>
-            <child>
-              <object class="GtkTreeView" id="selectedView">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="tooltip_text" translatable="yes">These are the selected Rolls for your cluster. You may double click a roll to remove it.</property>
-                <property name="model">selectedRolls</property>
-                <property name="headers_clickable">False</property>
-                <property name="rules_hint">True</property>
-                <property name="search_column">1</property>
-                <property name="fixed_height_mode">True</property>
-                <property name="enable_grid_lines">horizontal</property>
-                <signal name="row-activated" handler="doPopup" swapped="no"/>
-                <child>
-                  <object class="GtkTreeViewColumn" id="selectRollName">
-                    <property name="sizing">fixed</property>
-                    <property name="title" translatable="yes">Roll Name</property>
-                    <property name="clickable">True</property>
-                    <property name="reorderable">True</property>
-                    <property name="sort_indicator">True</property>
-                    <property name="sort_column_id">0</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext4"/>
-                      <attributes>
-                        <attribute name="text">0</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="selectRollVersion">
-                    <property name="sizing">fixed</property>
-                    <property name="title" translatable="yes">Version</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext5"/>
-                      <attributes>
-                        <attribute name="text">1</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="selectRollArch">
-                    <property name="sizing">fixed</property>
-                    <property name="title" translatable="yes">Arch</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext6"/>
-                      <attributes>
-                        <attribute name="text">2</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="selectRollUrl">
-                    <property name="sizing">fixed</property>
-                    <property name="title" translatable="yes">Location</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="cellrenderertext7"/>
-                      <attributes>
-                        <attribute name="text">3</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">7</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkButton" id="Done">
-            <property name="label">gtk-apply</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
-            <property name="use_stock">True</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">8</property>
-          </packing>
         </child>
       </object>
     </child>
