@@ -58,18 +58,20 @@
 REDHAT.ROOT     = $(CURDIR)/../../
 -include $(ROCKSROOT)/etc/Rules.mk
 include Rules.mk
-SUBDIRS = product
 ADDON = org_rocks_rolls
 ANACONDA_USR = usr
 ANACONDA_SHARE = $(ANACONDA_USR)/share/anaconda/addons
+UPDATES	= updates
+PRODUCT = product
 UPDATES.IMG = updates.img
+SUBDIRS = $(PRODUCT) $(UPDATES)
 
 
 build:
 
 $(UPDATES.IMG): clean
 	mkdir -p $(ANACONDA_SHARE) 
-	$(TAR) cf - $(ADDON) | (cd $(ANACONDA_SHARE); $(TAR) xvf -)
+	(cd $(UPDATES); $(TAR) cf - $(ADDON)) | (cd $(ANACONDA_SHARE); $(TAR) xvf -)
 	find $(ANACONDA_USR) | cpio -c -o | gzip -9 > $(UPDATES.IMG) 
 
 install::
