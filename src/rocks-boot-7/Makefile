@@ -65,17 +65,16 @@ include Rules.mk
 LORAXBUILD = loraxtmp
 LORAXCONF = lorax.conf
 build:
+	## create a local rocks distribution
+	/opt/rocks/bin/rocks create distro
 	## Get the current lorax RPM and install the templates from it
-	yumdownloader --destdir . lorax
-	rpm2cpio lorax*rpm | cpio --extract -c --make-directories '*/usr/share/lorax/*'
+	rpm2cpio `find rocks-dist -name 'lorax*$(ARCH).rpm'` | cpio --extract -c --make-directories '*/usr/share/lorax/*'
 	## Apply Our patches to the template
 	(cd patch-files; $(TAR) cf - *) | $(TAR) xvf - 
 	echo "[lorax]" > $(LORAXCONF)
 	echo "sharedir=`pwd`/usr/share/lorax" >> $(LORAXCONF)
 	## Create a local repo of THIS roll's RPMS
 	$(MAKE) -C $(REDHAT.ROOT) createlocalrepo
-	## create a local rocks distribution
-	/opt/rocks/bin/rocks create distro
 	## Use Lorax to Build images
 	lorax -p Rocks -v $(ROCKS_VERSION) -r $(RELEASE) -s `pwd`/rocks-dist/$(ARCH) -s $(REDHAT.ROOT)/localrepo -c `pwd`/$(LORAXCONF) --noupgrade `pwd`/$(LORAXBUILD) 
 
