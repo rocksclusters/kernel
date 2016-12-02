@@ -27,7 +27,14 @@
 _ = lambda x: x
 N_ = lambda x: x
 
-# the path to addons is in sys.path so we can import things from org_fedora_hello_world
+import os
+import sys
+import gi
+import urllib
+gi.require_version('Gtk','3.0')
+from gi.repository import Gtk, GObject
+
+### the path to addons is in sys.path so we can import things from org_rocks_rolls
 from org_rocks_rolls.categories.RocksRolls import RocksRollsCategory
 from pyanaconda.ui.gui import GUIObject
 from pyanaconda.ui.gui.spokes import NormalSpoke
@@ -35,12 +42,16 @@ from pyanaconda.ui.common import FirstbootSpokeMixIn
 
 
 
+## Defines for Roll Source
+NETWORK = 0
+CD = 1
+
 # export only the spoke, no helper functions, classes or constants
 __all__ = ["RocksRollsSpoke"]
 
 class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
     """
-    Class for the Hello world spoke. This spoke will be in the Hello world
+    Class for the RocksRolls spoke. This spoke will be in the RocksRollsCategory 
     category and thus on the Summary hub. It is a very simple example of a unit
     for the Anaconda's graphical user interface. Since it is also inherited form
     the FirstbootSpokeMixIn, it will also appear in the Initial Setup (successor
@@ -59,13 +70,14 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
     # list all top-level objects from the .glade file that should be exposed
     # to the spoke or leave empty to extract everything
-    builderObjects = ["rocksRollsSpokeWindow", "buttonImage"]
+    # builderObjects = ["rocksRollsSpokeWindow", "buttonImage"]
+    # builderObjects = ["RollsWindow"]
 
     # the name of the main window widget
-    mainWidgetName = "rocksRollsSpokeWindow"
+    mainWidgetName = "RollsWindow"
 
     # name of the .glade file in the same directory as this source
-    uiFile = "rocks_rolls.glade"
+    uiFile = "RocksRolls.glade"
 
     # category this spoke belongs to
     category = RocksRollsCategory
@@ -75,7 +87,7 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
     icon = "face-cool-symbolic"
 
     # title of the spoke (will be displayed on the hub)
-    title = N_("_HELLO WORLD")
+    title = N_("_ROCKS ROLLS")
 
     ### methods defined by API ###
     def __init__(self, data, storage, payload, instclass):
@@ -96,6 +108,14 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         NormalSpoke.__init__(self, data, storage, payload, instclass)
 
+        self.defaultUrl ="http://central-6-2-x86-64.rocksclusters.org/install/rolls"
+        self.defaultCDPath = "/mnt/cdrom"
+
+        self.selectAll = True
+        self.rollSource = NETWORK
+        self.version = '7.0'
+
+
     def initialize(self):
         """
         The initialize method that is called after the instance is created.
@@ -107,7 +127,24 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         """
 
         NormalSpoke.initialize(self)
-        self._entry = self.builder.get_object("textEntry")
+
+	import logging as log
+	log.basicConfig(filename='/tmp/rocks.log',level=log.DEBUG)
+	log.info("Rocks was here")
+
+        #self.builder.connect_signals(self)
+
+        #Get the Main Window, and connect the "destroy" event
+        # self.window = self.builder.get_object("RollsWindow")
+        self.rollUrl = self.builder.get_object("rollUrl")
+        self.rollUrl.set_text(self.defaultUrl)
+
+        self.listStore = self.builder.get_object("listRoll")
+        self.selectStore = self.builder.get_object("selectedRolls")
+        self.rollSelectCombo = self.builder.get_object("rollSelectCombo")
+
+	## from template
+        # self._entry = self.builder.get_object("textEntry")
 
     def refresh(self):
         """
@@ -119,7 +156,7 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         """
 
-        self._entry.set_text(self.data.addons.org_rocks_rolls.text)
+        # self._entry.set_text(self.data.addons.org_rocks_rolls.text)
 
     def apply(self):
         """
@@ -128,7 +165,7 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         """
 
-        self.data.addons.org_rocks_rolls.text = self._entry.get_text()
+        self.data.addons.org_rocks_rolls.text = "Rocks Rolls Visited" 
 
     def execute(self):
         """
@@ -179,7 +216,7 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         """
 
         # this is an optional spoke that is not mandatory to be completed
-        return False
+        return True
 
     @property
     def status(self):
@@ -209,7 +246,8 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
     def on_entry_icon_clicked(self, entry, *args):
         """Handler for the textEntry's "icon-release" signal."""
 
-        entry.set_text("")
+	pass
+        # entry.set_text("")
 
     def on_main_button_clicked(self, *args):
         """Handler for the mainButton's "clicked" signal."""
@@ -220,6 +258,82 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         # show dialog above the lightbox
         with self.main_window.enlightbox(dialog.window):
             dialog.run()
+
+    ## Handlers for the RocksRolls 
+    def selectCombo(self,widget):
+        id = widget.get_active_id() 
+        if id.lower().startswith("network"):
+            self.rollSource = NETWORK
+            self.rollUrl.set_text(self.defaultUrl)    
+        if id.lower().startswith("cd"):
+            self.rollSource = CD 
+            self.rollUrl.set_text(self.defaultCDPath)    
+
+    def listRolls(self,widget):
+
+	###  Need to be able to get Rocks python includes
+	sys.path.append('/opt/rocks/lib/python2.7/site-packages/rocks')
+	import media
+        rollList=[]
+        self.media=media.Media()
+        url = self.rollUrl.get_text()
+
+        #
+        # if this is a CD-based roll, then mount the disk
+        #
+        if self.rollSource == CD:
+            self.media.mountCD(path=url)
+            diskid = self.media.getId(path=url)
+            for d,s,f in os.walk(url):
+                if d.endswith("RedHat"):
+                    (roll,version,arch) = d.split(os.path.sep)[-4:-1]
+                    rollList.append((roll, version, arch, diskid))
+                    
+        if self.rollSource == NETWORK:
+            self.media.listRolls(url, url, rollList)
+
+        ## Put the available rolls into the listStore
+        self.listStore.clear()
+        for roll in rollList:
+            (name,version,arch,url) = roll    
+            self.listStore.append(row=(False,name,version,arch,url))
+
+
+    def selectRolls(self,widget):
+        selected = filter(lambda x : x[0], self.listStore)
+        for r in selected:
+            name,version,arch,url = r[1],r[2],r[3],r[4]
+            for a in self.selectStore:
+                if (a[0],a[1],a[2]) == (name,version,arch):
+                    self.selectStore.remove(a.iter)
+            self.selectStore.append((name,version,arch,url))
+            
+        self.listStore.clear()
+
+    def doPopup(self,tview,path,c):
+        dialog = Gtk.Dialog("Remove Selected Roll?",
+            parent=self.main_window,flags=0,
+            buttons=(Gtk.STOCK_CANCEL,Gtk.ResponseType.CANCEL,
+            Gtk.STOCK_OK,Gtk.ResponseType.OK))
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            iter = self.selectStore.get_iter(path)
+            self.selectStore.remove(iter)
+        dialog.destroy()
+    def removeSelected(self,a,b,c):
+        print a
+        print b
+        print c
+        self.dialog.destroy()
+
+    def selectRoll_toggle(self,toggle,idx):
+        row = self.listStore[idx]
+        row[0] = not row[0]
+
+    def selectAllRolls(self,widget):
+        for row in self.listStore:
+            row [0] = self.selectAll
+        self.selectAll = not self.selectAll
 
 class RocksRollsDialog(GUIObject):
     """

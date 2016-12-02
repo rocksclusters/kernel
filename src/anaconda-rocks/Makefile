@@ -65,13 +65,17 @@ UPDATES	= updates
 PRODUCT = product
 UPDATES.IMG = updates.img
 SUBDIRS = $(PRODUCT) $(UPDATES)
-
+SYS.PYPATH = $(ANACONDA_USR)/lib/python2.7/site-packages
+ROCKS.PYPATH = /opt/rocks/lib/python2.7/site-packages
 
 build:
 
 $(UPDATES.IMG): clean
 	mkdir -p $(ANACONDA_SHARE) 
 	(cd $(UPDATES); $(TAR) cf - $(ADDON)) | (cd $(ANACONDA_SHARE); $(TAR) xvf -)
+	mkdir -p $(SYS.PYPATH)
+	(cd $(ROCKS.PYPATH); $(TAR) cf - _xmlplus rocks) | (cd $(SYS.PYPATH); $(TAR) xvf -)
+
 	find $(ANACONDA_USR) | cpio -c -o | gzip -9 > $(UPDATES.IMG) 
 
 install::
