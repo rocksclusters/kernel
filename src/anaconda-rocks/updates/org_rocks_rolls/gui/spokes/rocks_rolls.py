@@ -42,6 +42,7 @@ from pyanaconda.ui.common import FirstbootSpokeMixIn
 
 
 
+
 ## Defines for Roll Source
 NETWORK = 0
 CD = 1
@@ -84,7 +85,7 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
     # spoke icon (will be displayed on the hub)
     # preferred are the -symbolic icons as these are used in Anaconda's spokes
-    icon = "face-cool-symbolic"
+    icon = "emblem-system-symbolic"
 
     # title of the spoke (will be displayed on the hub)
     title = N_("_ROCKS ROLLS")
@@ -115,6 +116,8 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.rollSource = NETWORK
         self.version = '7.0'
 
+	self.requiredRolls = ('base','kernel')
+
 
     def initialize(self):
         """
@@ -128,9 +131,9 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         NormalSpoke.initialize(self)
 
-	import logging as log
-	log.basicConfig(filename='/tmp/rocks.log',level=log.DEBUG)
-	log.info("Rocks was here")
+	import logging
+	self.log = logging.getLogger('anaconda')
+	self.log.info("Rocks was here")
 
         #self.builder.connect_signals(self)
 
@@ -142,6 +145,12 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.listStore = self.builder.get_object("listRoll")
         self.selectStore = self.builder.get_object("selectedRolls")
         self.rollSelectCombo = self.builder.get_object("rollSelectCombo")
+
+        sys.path.append('/opt/rocks/lib/python2.7/site-packages')
+        import rocks.media
+        import rocks.installcgi
+        self.media=rocks.media.Media()	
+	self.install = rocks.installcgi.InstallCGI(rootdir="/tmp/rocks")
 
 	## from template
         # self._entry = self.builder.get_object("textEntry")
@@ -203,7 +212,12 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         """
 
         #return bool(self.data.addons.org_rocks_rolls.text)
-	return True
+	sel = map(lambda x: x[0], self.selectStore)
+	req = filter(lambda x: x in self.requiredRolls, sel)
+	if len(req) >= len(self.requiredRolls):
+		return True
+	else:
+		return False
 
     @property
     def mandatory(self):
@@ -230,17 +244,7 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         """
 
-        text = self.data.addons.org_rocks_rolls.text
-
-        # If --reverse was specified in the kickstart, reverse the text
-        if self.data.addons.org_rocks_rolls.reverse:
-            text = text[::-1]
-
-        if text:
-            return _("Text set: %s") % text
-        else:
-            return _("Text not set")
-
+	return "%d rolls selected" % len (self.selectStore)
 
     ### handlers ###
     def on_entry_icon_clicked(self, entry, *args):
@@ -272,10 +276,7 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
     def listRolls(self,widget):
 
 	###  Need to be able to get Rocks python includes
-	sys.path.append('/opt/rocks/lib/python2.7/site-packages/rocks')
-	import media
         rollList=[]
-        self.media=media.Media()
         url = self.rollUrl.get_text()
 
         #
@@ -287,27 +288,31 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
             for d,s,f in os.walk(url):
                 if d.endswith("RedHat"):
                     (roll,version,arch) = d.split(os.path.sep)[-4:-1]
-                    rollList.append((roll, version, arch, diskid))
+                    rollList.append((roll, version, arch, "file:%s" % url, diskid))
                     
         if self.rollSource == NETWORK:
-            self.media.listRolls(url, url, rollList)
+            netRoll = []
+            self.media.listRolls(url, url, netRoll) 
+            for (name,version,arch,url) in netRoll:
+                rollList.append((name, version, arch, url, None))
 
         ## Put the available rolls into the listStore
         self.listStore.clear()
         for roll in rollList:
-            (name,version,arch,url) = roll    
-            self.listStore.append(row=(False,name,version,arch,url))
+            (name,version,arch,url,diskid) = roll    
+            self.listStore.append(row=(False,name,version,arch,url,diskid))
 
 
     def selectRolls(self,widget):
         selected = filter(lambda x : x[0], self.listStore)
         for r in selected:
-            name,version,arch,url = r[1],r[2],r[3],r[4]
+            name,version,arch,url,diskid = r[1],r[2],r[3],r[4],r[5]
             for a in self.selectStore:
                 if (a[0],a[1],a[2]) == (name,version,arch):
                     self.selectStore.remove(a.iter)
-            self.selectStore.append((name,version,arch,url))
-            
+            self.selectStore.append((name,version,arch,url,diskid))      
+            self.log.info("ROCKS - Select Rolls %s" % (name,version,arch,url,diskid).__str__()) 
+            self.install.getKickstartFiles((name,version,arch,"%s/" % url,diskid))
         self.listStore.clear()
 
     def doPopup(self,tview,path,c):
