@@ -131,3 +131,12 @@ remove etc/lvm/lvm.conf
 append etc/lvm/lvm.conf "global {\n\tuse_lvmetad = 1\n}\n"
 
 ## TODO: we could run prelink here if we wanted?
+
+## ROCKS
+## set up "rocksdb" user account so that we can bring up a database in the 
+## installer environment
+mkdir var/opt/rocks/mysql
+append etc/passwd "rocksdb:x:403:403::/var/opt/rocks/mysql:/bin/false"
+append etc/shadow "rocksdb:!!:16290:0:99999:7:::"
+append etc/group "rocksdb:x:403:"
+
