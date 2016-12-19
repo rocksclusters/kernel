@@ -349,6 +349,8 @@
       <column type="gchararray"/>
       <!-- column-name arch -->
       <column type="gchararray"/>
+      <!-- column-name url -->
+      <column type="gchararray"/>
       <!-- column-name diskid -->
       <column type="gchararray"/>
     </columns>
@@ -371,6 +373,8 @@
       <!-- column-name arch -->
       <column type="gchararray"/>
       <!-- column-name url -->
+      <column type="gchararray"/>
+      <!-- column-name diskid -->
       <column type="gchararray"/>
     </columns>
   </object>

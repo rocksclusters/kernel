@@ -175,6 +175,16 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         """
 
         self.data.addons.org_rocks_rolls.text = "Rocks Rolls Visited" 
+	# need to create a copy of selectStore entries, otherwise deepcopy
+        # used in other anaconda widgets won't work
+	rolls = []
+	for r in self.selectStore:
+		rolls.append((r[:]))
+	self.data.addons.org_rocks_rolls.rolls = rolls 
+	self.log.info("ROCKS: data %s" % dir(self.data))
+	self.log.info("ROCKS: data %s" % dir(self.data.addons))
+	self.log.info("ROCKS: data %s" % dir(self.data.addons.org_rocks_rolls))
+	self.log.info("ROCKS: data %s" % self.data.addons.org_rocks_rolls.rolls.__str__())
 
     def execute(self):
         """
@@ -183,9 +193,10 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         the values set in the GUI elements.
 
         """
-
-        # nothing to do here
-        pass
+	
+        if self.completed:
+            self.writeRollsXML()
+            self.builddb()
 
     @property
     def ready(self):
@@ -340,6 +351,35 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
             row [0] = self.selectAll
         self.selectAll = not self.selectAll
 
+
+    ### Helper Methods
+
+    def writeRollsXML(self):
+        fname = "/tmp/rolls.xml"
+        f = open(fname,"w")
+        f.write('<rolls>\n')
+        for roll in self.selectStore:
+            #
+            # rewrite rolls.xml
+            #
+            (rollname, rollver, rollarch, rollurl, diskid) = roll
+
+            str = '<roll\n'
+            str += '\tname="%s"\n' % (rollname)
+            str += '\tversion="%s"\n' % (rollver)
+            str += '\tarch="%s"\n' % (rollarch)
+            str += '\turl="%s"\n' % (rollurl)
+            str += '\tdiskid="%s"\n' % (diskid)
+            str += '/>'
+
+            f.write('%s\n' % (str))
+
+        f.write('</rolls>\n')
+        f.close()
+    def builddb(self):
+        cmd = "/opt/rocks/bin/builddb.sh /tmp/rocks"
+        os.system(cmd)
+
 class RocksRollsDialog(GUIObject):
     """
     Class for the sample dialog.
@@ -380,3 +420,4 @@ if __name__ == "__main__":
 	rr.refresh()
         Gtk.main()
 
+# vim:sw=4:ts=4:et

@@ -21,6 +21,7 @@
 """Module with the RocksRollsData class."""
 
 import os.path
+import logging
 
 from pyanaconda.addons import AddonData
 from pyanaconda.iutil import getSysroot
@@ -131,7 +132,7 @@ class RocksRollsData(AddonData):
         # no actions needed in this addon
         pass
 
-    def setup(self, storage, ksdata, instclass, payload):
+    def setup(self, storage, ksdata, instclass):
         """
         The setup method that should make changes to the runtime environment
         according to the data stored in this object.
@@ -144,16 +145,13 @@ class RocksRollsData(AddonData):
         :type ksdata: pykickstart.base.BaseHandler instance
         :param instclass: distribution-specific information
         :type instclass: pyanaconda.installclass.BaseInstallClass
-        :param payload: object managing packages and environment groups
-                        for the installation
-        :type payload: any class inherited from the pyanaconda.packaging.Payload
-                       class
         """
 
         # no actions needed in this addon
-        pass
+	log = logging.getLogger("anaconda")
+	log.info("ROCKS KS SETUP: %s" % ksdata.__str__()) 
 
-    def execute(self, storage, ksdata, instclass, users, payload):
+    def execute(self, storage, ksdata, instclass, users):
         """
         The execute method that should make changes to the installed system. It
         is called only once in the post-install setup phase.
