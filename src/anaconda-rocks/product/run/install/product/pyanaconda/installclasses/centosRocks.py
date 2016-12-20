@@ -37,7 +37,7 @@ class RHELBaseInstallClass(BaseInstallClass):
 
     bootloaderTimeoutDefault = 5
 
-    ignoredPackages = ["ntfsprogs", "reiserfs-utils", "hfsplus-tools"]
+    ignoredPackages = ["ntfsprogs", "reiserfs-utils", "hfsplus-tools", "dracut-config-rescue"]
 
     installUpdates = False
 
@@ -95,4 +95,4 @@ class RocksYumPayload(YumPayload):
         """ Perform pre-installation tasks. """ 
         log = logging.getLogger("packaging")
         log.info("RocksYumPayload preInstallHook")
-        super(YumPayload, self).preInstall(packages, groups)
+        super(RocksYumPayload, self).preInstall(packages, groups)
