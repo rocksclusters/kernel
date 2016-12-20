@@ -26,6 +26,7 @@ from blivet.partspec import PartSpec
 from blivet.platform import platform
 from blivet.devicelibs import swap
 from blivet.size import Size
+import logging
 
 class RHELBaseInstallClass(BaseInstallClass):
     name = "Rocks CentOS-based Linux"
@@ -65,6 +66,33 @@ class RHELBaseInstallClass(BaseInstallClass):
             return
         network.update_onboot_value(dev, "yes", ksdata)
 
+    def getBackend(self):
+        """Use the Rocks-defined version of yumpayload"""
+        return RocksYumPayload
+        
     def __init__(self):
         BaseInstallClass.__init__(self)
 
+
+from pyanaconda.packaging.yumpayload import YumPayload
+class RocksYumPayload(YumPayload):
+    """ A YumPayload installs packages onto the target system using yum.
+
+        User-defined (aka: addon) repos exist both in ksdata and in yum. They
+        are the only repos in ksdata.repo. The repos we find in the yum config
+        only exist in yum. Lastly, the base repo exists in yum and in
+        ksdata.method.
+
+       This is where we selectively overwrite some of yumpayload.py in present
+       in the packaging/ directory
+    """
+
+
+    def __init__(self, data):
+        super(RocksYumPayload,self).__init__(data)
+
+    def preInstall(self, packages=None, groups=None):
+        """ Perform pre-installation tasks. """ 
+        log = logging.getLogger("packaging")
+        log.info("RocksYumPayload preInstallHook")
+        super(YumPayload, self).preInstall(packages, groups)
