@@ -63,10 +63,14 @@ ANACONDA_USR = usr
 ANACONDA_SHARE = $(ANACONDA_USR)/share/anaconda/addons
 UPDATES	= updates
 PRODUCT = product
+PRODUCT.SRC  = $(PRODUCT)
 UPDATES.IMG = updates.img
 SUBDIRS = $(PRODUCT) $(UPDATES)
 SYS.PYPATH = $(ANACONDA_USR)/lib/python2.7/site-packages
 ROCKS.PYPATH = /opt/rocks/lib/python2.7/site-packages
+UPDATES_DIRS = opt
+PRODUCT_DIR = run 
+
 
 build:
 
@@ -74,9 +78,12 @@ $(UPDATES.IMG): clean
 	mkdir -p $(ANACONDA_SHARE) 
 	(cd $(UPDATES); $(TAR) cf - $(ADDON)) | (cd $(ANACONDA_SHARE); $(TAR) xvf -)
 	mkdir -p $(SYS.PYPATH)
-	(cd $(ROCKS.PYPATH); $(TAR) cf - _xmlplus rocks) | (cd $(SYS.PYPATH); $(TAR) xvf -)
+	(cd $(ROCKS.PYPATH); $(TAR) cf - _xmlplus) | (cd $(SYS.PYPATH); $(TAR) xvf -)
 
-	find $(ANACONDA_USR) | cpio -c -o | gzip -9 > $(UPDATES.IMG) 
+	(cd $(UPDATES); $(TAR) cf - $(UPDATES_DIRS)) | $(TAR) xvf - 	
+	-mkdir -p $(PRODUCT_DIR)
+	(cd $(PRODUCT.SRC); $(TAR) cf - *) | $(TAR) xvf -
+	find $(ANACONDA_USR) $(UPDATES_DIRS) $(PRODUCT_DIR) | cpio -c -o | gzip -9 > $(UPDATES.IMG) 
 
 install::
 	mkdir -p $(ROOT)/$(PKGROOT)
@@ -87,6 +94,6 @@ install::
 clean::
 	rm -rf $(NAME)-$(VERSION)
 	rm -f $(NAME).spec.in
-	-rm -rf $(ANACONDA_USR) 
+	-rm -rf $(ANACONDA_USR) $(UPDATES_DIRS) $(PRODUCT_DIR)
 	-rm $(UPDATES.IMG) 
 

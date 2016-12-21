@@ -31,6 +31,7 @@ import os
 import sys
 import gi
 import urllib
+import subprocess
 gi.require_version('Gtk','3.0')
 from gi.repository import Gtk, GObject
 
@@ -39,6 +40,7 @@ from org_rocks_rolls.categories.RocksRolls import RocksRollsCategory
 from pyanaconda.ui.gui import GUIObject
 from pyanaconda.ui.gui.spokes import NormalSpoke
 from pyanaconda.ui.common import FirstbootSpokeMixIn
+import thread
 
 
 
@@ -115,6 +117,7 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.selectAll = True
         self.rollSource = NETWORK
         self.version = '7.0'
+        self.requireDB = True
 
 	self.requiredRolls = ('base','kernel')
 
@@ -196,7 +199,9 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 	
         if self.completed:
             self.writeRollsXML()
-            self.builddb()
+            if self.requireDB:
+                self.builddb()
+                self.requireDB = False
 
     @property
     def ready(self):
@@ -377,8 +382,23 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         f.write('</rolls>\n')
         f.close()
     def builddb(self):
-        cmd = "/opt/rocks/bin/builddb.sh /tmp/rocks"
-        os.system(cmd)
+        dialog = Gtk.Dialog("Build Database", parent=self.main_window, flags=0,
+            buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+             Gtk.STOCK_OK, Gtk.ResponseType.OK))
+        dialog.set_default_size(150, 100)
+
+        label = Gtk.Label("Building Rocks Database. Please Wait")
+        box = dialog.get_content_area()
+        box.add(label)
+        dialog.show_all()
+        thread.start_new_thread(self.buildit,(dialog,))
+        #self.buildit(dialog)
+
+    def buildit(self,dialog):
+        cmd = ["/opt/rocks/bin/builddb.sh", "/tmp/rocks"]
+        p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        p1.communicate() 
+        dialog.destroy()
 
 class RocksRollsDialog(GUIObject):
     """

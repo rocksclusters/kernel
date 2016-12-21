@@ -75,6 +75,7 @@ class RHELBaseInstallClass(BaseInstallClass):
 
 
 from pyanaconda.packaging.yumpayload import YumPayload
+from rocks_getrolls import RocksGetRolls
 class RocksYumPayload(YumPayload):
     """ A YumPayload installs packages onto the target system using yum.
 
@@ -94,5 +95,7 @@ class RocksYumPayload(YumPayload):
     def preInstall(self, packages=None, groups=None):
         """ Perform pre-installation tasks. """ 
         log = logging.getLogger("packaging")
-        log.info("RocksYumPayload preInstallHook")
+        log.info("RocksYumPayload preInstallHook  - downloading rolls")
+        RocksGetRolls()
+        log.info("RocksYumPayload preInstallHook  - rolls downloaded")
         super(RocksYumPayload, self).preInstall(packages, groups)
