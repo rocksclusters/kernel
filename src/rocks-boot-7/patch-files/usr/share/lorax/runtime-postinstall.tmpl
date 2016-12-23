@@ -140,3 +140,7 @@ append etc/passwd "rocksdb:x:403:403::/var/opt/rocks/mysql:/bin/false"
 append etc/shadow "rocksdb:!!:16290:0:99999:7:::"
 append etc/group "rocksdb:x:403:"
 
+## Adjustments for tracker for the install environment
+mkdir tracker
+move opt/rocks/bin/tracker-client tracker
+move opt/rocks/bin/peer-done tracker
