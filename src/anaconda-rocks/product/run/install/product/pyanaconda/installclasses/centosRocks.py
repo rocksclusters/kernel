@@ -74,8 +74,28 @@ class RHELBaseInstallClass(BaseInstallClass):
         BaseInstallClass.__init__(self)
 
 
+###  Rocks Extensions to the YumPayLoad Class ###
+##
+# Responsibilities:
+#        1. For all nodes
+#           a. bring up lighttpd  
+#        2. For frontend installs
+#           a. download rolls
+#           b. rebuild distro
+#        3. Frontend ? (don't use tracker) 
+#             - set yum repo 
+#               http://localhost/mnt/sysimage/export/rocks/install/rocks-dist/x86_64
+#           else
+#             - set yum repo (use tracker)
+#               http://127.0.0.1/install/rocks-dist/x86_64
+#        
+## Nearly all of this work is done in preInstall.
+
 from pyanaconda.packaging.yumpayload import YumPayload
 from rocks_getrolls import RocksGetRolls
+import subprocess
+import os
+
 class RocksYumPayload(YumPayload):
     """ A YumPayload installs packages onto the target system using yum.
 
@@ -91,11 +111,36 @@ class RocksYumPayload(YumPayload):
 
     def __init__(self, data):
         super(RocksYumPayload,self).__init__(data)
+        self.lighttpdProc = None
 
     def preInstall(self, packages=None, groups=None):
         """ Perform pre-installation tasks. """ 
         log = logging.getLogger("packaging")
+
+        ## XXX - not complete. Just works for Frontend install
+        self.lighttpd(log)
         log.info("RocksYumPayload preInstallHook  - downloading rolls")
         RocksGetRolls()
         log.info("RocksYumPayload preInstallHook  - rolls downloaded")
+        ## Now tell YumPayload that our repo has changed
+        self.useRocksLocalRepo(log)
+        
         super(RocksYumPayload, self).preInstall(packages, groups)
+
+    def lighttpd(self,log):
+        log.info("ROCKS: Starting up lighttpd")
+        lhome = "/lighttpd"
+        exe = os.path.join(lhome,"sbin","lighttpd")
+        conf = os.path.join(lhome,"conf","lighttpd.conf") 
+        cmd = [exe,"-f",conf]
+        self.lighttpdProc = subprocess.Popen(cmd)
+        log.info("ROCKS: Lighttpd started with pid %d" % self.lighttpdProc.pid)
+        
+    def useRocksLocalRepo(self,log): 
+        log.info("ROCKS: base repo is %s" % self.baseRepo.__str__())
+        self.data.method.url = "file:/mnt/sysimage/export/rocks/install/rocks-dist/x86_64"
+        self.updateBaseRepo()
+       
+
+         
+        

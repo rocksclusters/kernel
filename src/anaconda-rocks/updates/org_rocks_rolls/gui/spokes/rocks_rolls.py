@@ -119,7 +119,7 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.version = '7.0'
         self.requireDB = True
 
-	self.requiredRolls = ('base','kernel')
+	self.requiredRolls = ('core',)
 
 
     def initialize(self):

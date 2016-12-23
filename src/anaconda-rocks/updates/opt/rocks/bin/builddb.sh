@@ -11,7 +11,9 @@ MYNAME=$(hostname -s)
 # Get the nodes/graphs files from the roll itself. These  will be put under
 # $CURDIR/export/profile
 cd $WHERE
-$RPM2CPIO contrib/*/*/*/roll-*-kickstart-*.noarch.rpm | cpio -id 
+for roll in contrib/*/*/*/roll-*-kickstart-*.noarch.rpm; do 
+    $RPM2CPIO $roll | cpio -id 
+done
 
 # Now bootstrap the database
 if [ ! -d /var/opt/rocks/mysql ]; then
