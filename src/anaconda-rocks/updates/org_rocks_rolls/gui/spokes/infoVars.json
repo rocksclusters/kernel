@@ -82,7 +82,7 @@
     }, 
     {
         "required": true, 
-        "value": "", 
+        "value": "replaceme", 
         "varname": "Kickstart_PrivateHostname", 
         "infoHelp": "", 
         "param": "Private Hostname", 
@@ -136,7 +136,7 @@
     }, 
     {
         "required": true, 
-        "value": "", 
+        "value": "replaceme", 
         "varname": "Kickstart_PublicDNSDomain", 
         "infoHelp": "DNS Name for Public Cluster Interface", 
         "param": "Public DNS Domain", 
