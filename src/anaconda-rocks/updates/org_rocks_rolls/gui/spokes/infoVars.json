@@ -1,0 +1,173 @@
+[
+    {
+        "required": true, 
+        "value": "", 
+        "varname": "Kickstart_PublicHostname", 
+        "infoHelp": "This must be the fully-qualified domain name of your cluster head node(e.g, abc.university.edu", 
+        "param": "Fully-Qualified Domain Name", 
+        "validate": null, 
+        "display": true
+    }, 
+    {
+        "required": true, 
+        "value": "", 
+        "varname": "Info_ClusterName", 
+        "infoHelp": "The name of the cluster (used on web pages and reports)", 
+        "param": "Cluster Name", 
+        "validate": null, 
+        "display": true
+    }, 
+    {
+        "required": true, 
+        "value": "admin@place.org", 
+        "varname": "Info_ClusterContact", 
+        "infoHelp": "email of contact for this cluster. Will be used for reports and notification", 
+        "param": "Contact", 
+        "validate": null, 
+        "display": true
+    }, 
+    {
+        "required": false, 
+        "value": "http://www.place.org", 
+        "varname": "Info_ClusterURL", 
+        "infoHelp": "URL for the project that this cluster supports", 
+        "param": "Project URL", 
+        "validate": null, 
+        "display": true
+    }, 
+    {
+        "required": false, 
+        "value": "N32.86 W117.22", 
+        "varname": "Info_ClusterLatLong", 
+        "infoHelp": "Physical Location of this cluster", 
+        "param": "Latitude/Longitude", 
+        "validate": null, 
+        "display": true
+    }, 
+    {
+        "required": false, 
+        "value": "SDSC", 
+        "varname": "Info_CertificateOrganization", 
+        "infoHelp": "The Name of your organization, used when building a certificate for this host", 
+        "param": "Certificate Organization", 
+        "validate": null, 
+        "display": true
+    }, 
+    {
+        "required": false, 
+        "value": "San Diego", 
+        "varname": "Info_CertificateLocality", 
+        "infoHelp": "Your City for the certificate", 
+        "param": "Certificate Locality", 
+        "validate": null, 
+        "display": true
+    }, 
+    {
+        "required": false, 
+        "value": "California", 
+        "varname": "Info_CertificateState", 
+        "infoHelp": "Your State", 
+        "param": "Certificate State", 
+        "validate": null, 
+        "display": true
+    }, 
+    {
+        "required": false, 
+        "value": "US", 
+        "varname": "Info_CertificateCountry", 
+        "infoHelp": "Your Country", 
+        "param": "Certificate Country", 
+        "validate": null, 
+        "display": true
+    }, 
+    {
+        "required": true, 
+        "value": "", 
+        "varname": "Kickstart_PrivateHostname", 
+        "infoHelp": "", 
+        "param": "Private Hostname", 
+        "validate": null, 
+        "display": false
+    }, 
+    {
+        "required": true, 
+        "value": "sbin/kickstart.cgi", 
+        "varname": "Kickstart_PrivateKickstartCGI", 
+        "infoHelp": "", 
+        "param": "Private Kickstart CGI", 
+        "validate": null, 
+        "display": false
+    }, 
+    {
+        "required": true, 
+        "value": "/export/rocks", 
+        "varname": "Kickstart_DistroDir", 
+        "infoHelp": "", 
+        "param": "Kickstart Distribution", 
+        "validate": null, 
+        "display": false
+    }, 
+    {
+        "required": true, 
+        "value": "install", 
+        "varname": "KickStart_PrivateKickstartBasedir", 
+        "infoHelp": "", 
+        "param": "Kickstart Base Dir", 
+        "validate": null, 
+        "display": false
+    }, 
+    {
+        "required": true, 
+        "value": "central.rocksclusters.org", 
+        "varname": "Kickstart_PublicKickstartHost", 
+        "infoHelp": "", 
+        "param": "Public Kickstart Host", 
+        "validate": null, 
+        "display": false
+    }, 
+    {
+        "required": true, 
+        "value": "local", 
+        "varname": "Kickstart_PrivateDNSDomain", 
+        "infoHelp": "DNS Name for Private Cluster Interface", 
+        "param": "Private DNS Domain", 
+        "validate": null, 
+        "display": false
+    }, 
+    {
+        "required": true, 
+        "value": "", 
+        "varname": "Kickstart_PublicDNSDomain", 
+        "infoHelp": "DNS Name for Public Cluster Interface", 
+        "param": "Public DNS Domain", 
+        "validate": null, 
+        "display": false
+    }, 
+    {
+        "required": true, 
+        "value": "en_US", 
+        "varname": "Kickstart_Lang", 
+        "infoHelp": "Language Setting", 
+        "param": "Language", 
+        "validate": null, 
+        "display": false
+    }, 
+    {
+        "required": true, 
+        "value": "en_US", 
+        "varname": "Kickstart_Langsupport", 
+        "infoHelp": "Language Support", 
+        "param": "Language Support", 
+        "validate": null, 
+        "display": false
+    }, 
+    {
+        "required": true, 
+        "value": "us", 
+        "varname": "Kickstart_Keyboard", 
+        "infoHelp": "Keyboard Definition", 
+        "param": "Keyboard", 
+        "validate": null, 
+        "display": false
+    }
+]

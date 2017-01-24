@@ -37,4 +37,4 @@ class RocksRollsCategory(SpokeCategory):
 
     displayOnHubGUI = "SummaryHub"
     displayOnHubTUI = "SummaryHub"
-    title = N_("ROCKS ROLLS")
+    title = N_("ROCKS CLUSTER CONFIG")
