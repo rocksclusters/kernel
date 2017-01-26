@@ -40,6 +40,7 @@ from org_rocks_rolls.categories.RocksRolls import RocksRollsCategory
 from pyanaconda.ui.gui import GUIObject
 from pyanaconda.ui.gui.spokes import NormalSpoke
 from pyanaconda.ui.common import FirstbootSpokeMixIn
+from pyanaconda import network
 import thread
 import json
 import inspect
@@ -48,8 +49,11 @@ import inspect
 __all__ = ["RocksConfigSpoke"]
 
 # File that holds JSON of clusterInfo variables.
-InfoFile = "infoVars.json"
-FieldNames = ['param','value','varname','infoHelp','required','display','validate' ]
+INFOFILE = "infoVars.json"
+FIELDNAMES = ['param','value','varname','infoHelp','required','display','validate' ]
+VARIDX = FIELDNAMES.index("varname")
+VALIDX = FIELDNAMES.index("value")
+
 # Field names are:
 #        param: String. Displayed Parameter Text 
 #        value: String. initial value of this parameter 
@@ -246,15 +250,24 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
     def populate(self):
         """Populate the infoStore with this initial settings. Note, this
            should be generalized"""
-        p = os.path.join(os.path.dirname(inspect.getfile(self.__class__)),InfoFile)
+        p = os.path.join(os.path.dirname(inspect.getfile(self.__class__)),INFOFILE)
         f = open(p)
         allInfo = json.load(f)
-        initialParams = [[z[idx] for idx in FieldNames ] for z in allInfo] 
+        initialParams = [[z[idx] for idx in FIELDNAMES ] for z in allInfo] 
         for r in initialParams:
             self.addInfo(r)
+        self.mapAnacondaValues()
+
+    def mapAnacondaValues(self):
+        self.setValue("Kickstart_PublicHostname",network.getHostname())
    
     def addInfo(self,record):
        self.infoStore.append(record)
+
+    def setValue(self,varname,value):
+        for row in self.infoStore:
+            if row[VARIDX] == varname:
+                row[VALIDX] = value
 
 if __name__ == "__main__":
     from gi.repository import Gtk

@@ -119,7 +119,7 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.version = '7.0'
         self.requireDB = True
 
-	self.requiredRolls = ('core',)
+        self.requiredRolls = ('core',)
 
 
     def initialize(self):
@@ -134,9 +134,9 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         NormalSpoke.initialize(self)
 
-	import logging
-	self.log = logging.getLogger('anaconda')
-	self.log.info("Rocks was here")
+        import logging
+        self.log = logging.getLogger('anaconda')
+        self.log.info("Rocks was here")
 
         #self.builder.connect_signals(self)
 
@@ -152,10 +152,9 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         sys.path.append('/opt/rocks/lib/python2.7/site-packages')
         import rocks.media
         import rocks.installcgi
-        self.media=rocks.media.Media()	
-	self.install = rocks.installcgi.InstallCGI(rootdir="/tmp/rocks")
-
-	## from template
+        self.media=rocks.media.Media()
+        self.install = rocks.installcgi.InstallCGI(rootdir="/tmp/rocks")
+        ## from template
         # self._entry = self.builder.get_object("textEntry")
 
     def refresh(self):
@@ -178,16 +177,16 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         """
 
         self.data.addons.org_rocks_rolls.text = "Rocks Rolls Visited" 
-	# need to create a copy of selectStore entries, otherwise deepcopy
+        # need to create a copy of selectStore entries, otherwise deepcopy
         # used in other anaconda widgets won't work
-	rolls = []
-	for r in self.selectStore:
-		rolls.append((r[:]))
-	self.data.addons.org_rocks_rolls.rolls = rolls 
-	self.log.info("ROCKS: data %s" % dir(self.data))
-	self.log.info("ROCKS: data %s" % dir(self.data.addons))
-	self.log.info("ROCKS: data %s" % dir(self.data.addons.org_rocks_rolls))
-	self.log.info("ROCKS: data %s" % self.data.addons.org_rocks_rolls.rolls.__str__())
+        rolls = []
+        for r in self.selectStore:
+            rolls.append((r[:]))
+        self.data.addons.org_rocks_rolls.rolls = rolls 
+        self.log.info("ROCKS: data %s" % dir(self.data))
+        self.log.info("ROCKS: data %s" % dir(self.data.addons))
+        self.log.info("ROCKS: data %s" % dir(self.data.addons.org_rocks_rolls))
+        self.log.info("ROCKS: data %s" % self.data.addons.org_rocks_rolls.rolls.__str__())
 
     def execute(self):
         """
@@ -196,7 +195,7 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         the values set in the GUI elements.
 
         """
-	
+
         if self.completed:
             self.writeRollsXML()
             if self.requireDB:
@@ -228,12 +227,12 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         """
 
         #return bool(self.data.addons.org_rocks_rolls.text)
-	sel = map(lambda x: x[0], self.selectStore)
-	req = filter(lambda x: x in self.requiredRolls, sel)
-	if len(req) >= len(self.requiredRolls):
-		return True
-	else:
-		return False
+        sel = map(lambda x: x[0], self.selectStore)
+        req = filter(lambda x: x in self.requiredRolls, sel)
+        if len(req) >= len(self.requiredRolls):
+            return True
+        else:
+            return False
 
     @property
     def mandatory(self):
@@ -260,13 +259,13 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         """
 
-	return "%d rolls selected" % len (self.selectStore)
+        return "%d rolls selected" % len (self.selectStore)
 
     ### handlers ###
     def on_entry_icon_clicked(self, entry, *args):
         """Handler for the textEntry's "icon-release" signal."""
 
-	pass
+        pass
         # entry.set_text("")
 
     def on_main_button_clicked(self, *args):
@@ -291,7 +290,7 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
     def listRolls(self,widget):
 
-	###  Need to be able to get Rocks python includes
+        ###  Need to be able to get Rocks python includes
         rollList=[]
         url = self.rollUrl.get_text()
 
@@ -434,10 +433,10 @@ class RocksRollsDialog(GUIObject):
         return ret
 
 if __name__ == "__main__":
-	from gi.repository import Gtk
-        rr = RocksRollsSpoke(None,None,None,None)
-	rr.initialize()
-	rr.refresh()
-        Gtk.main()
+    from gi.repository import Gtk
+    rr = RocksRollsSpoke(None,None,None,None)
+    rr.initialize()
+    rr.refresh()
+    Gtk.main()
 
 # vim:sw=4:ts=4:et

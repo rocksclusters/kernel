@@ -89,6 +89,9 @@
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="model">ClusterInfoStore</property>
+            <property name="search_column">0</property>
+            <property name="hover_selection">True</property>
+            <property name="enable_grid_lines">both</property>
             <property name="tooltip_column">3</property>
             <child internal-child="selection">
               <object class="GtkTreeSelection" id="treeview-selection1"/>
@@ -114,6 +117,7 @@
             </child>
             <child>
               <object class="GtkTreeViewColumn" id="treeviewcolumn2">
+                <property name="resizable">True</property>
                 <property name="title" translatable="yes">value</property>
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext2">
@@ -130,6 +134,8 @@
             </child>
             <child>
               <object class="GtkTreeViewColumn" id="treeviewcolumn3">
+                <property name="min_width">40</property>
+                <property name="max_width">40</property>
                 <property name="title" translatable="yes">required</property>
                 <child>
                   <object class="GtkCellRendererToggle" id="cellrenderertoggle1">
@@ -137,8 +143,8 @@
                     <property name="activatable">False</property>
                   </object>
                   <attributes>
-                    <attribute name="active">4</attribute>
                     <attribute name="visible">5</attribute>
+                    <attribute name="active">4</attribute>
                   </attributes>
                 </child>
               </object>

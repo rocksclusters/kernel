@@ -22,6 +22,7 @@
 
 import os.path
 import logging
+import subprocess
 
 from pyanaconda.addons import AddonData
 from pyanaconda.iutil import getSysroot
@@ -148,8 +149,51 @@ class RocksRollsData(AddonData):
         """
 
         # no actions needed in this addon
-	log = logging.getLogger("anaconda")
-	log.info("ROCKS KS SETUP: %s" % ksdata.__str__()) 
+        log = logging.getLogger("anaconda")
+        log.info("ROCKS KS SETUP: %s" % ksdata.__str__()) 
+
+        ## At this point rolls have been selected, the in-memory rocks database
+        ## is set up and cluster information has been added by the user. now
+        ## need to
+        ##   A. add the attributes from ksdata.addons.org_rocks_rolls.info
+        ##      into the in-memory database
+        ##   B. rolls are in  ksdata.addons.org_rocks_rolls.rolls 
+        ##      process the xml files for the rolls specified, then generate
+        ##      packages
+
+        if ksdata.addons.org_rocks_rolls.info is None:
+            return
+        for row in ksdata.addons.org_rocks_rolls.info:
+            log.info("ROCKS ADD ATTR %s=%s" % (row[2],row[1]))
+            self.addAttr(row[2],row[1])
+        cmd = ["/opt/rocks/bin/rocks","report","host","attr","pydict=true"]
+        p = subprocess.Popen(cmd,stdout=subprocess.PIPE)
+        attrs = p.stdout.readlines()[0].strip()
+
+        cmd = ["/opt/rocks/bin/rocks","list","node", "xml", \
+           "attrs=%s" % attrs, "basedir=/tmp/rocks/export/profile", "server"]
+        p = subprocess.Popen(cmd,stdout=subprocess.PIPE)
+        nodexml = p.stdout.readlines()
+
+        cmd = ["/opt/rocks/sbin/kgen","--section=packages"]
+        p = subprocess.Popen(cmd,stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        out,err = p.communicate(input="".join(nodexml))
+        pkgs = filter(lambda x: len(x) > 0, out.split("\n")) 
+
+        for pkg in pkgs:
+            if "%" in pkg or "#" in pkg:
+                continue
+            if not pkg in ksdata.packages.packageList:
+                ksdata.packages.packageList.append(pkg)
+        
+        
+  
+    def addAttr(self,attr,value):
+        if value is None or attr is None:
+            return
+        cmd=["/opt/rocks/bin/rocks","add","attr",attr,value]
+        p1 = subprocess.Popen(cmd,stdout=subprocess.PIPE)
+        p1.communicate() 
 
     def execute(self, storage, ksdata, instclass, users):
         """
