@@ -26,6 +26,7 @@ import subprocess
 
 from pyanaconda.addons import AddonData
 from pyanaconda.iutil import getSysroot
+from pyanaconda import kickstart
 
 from pykickstart.options import KSOptionParser
 from pykickstart.errors import KickstartParseError, formatErrorMsg
@@ -55,6 +56,7 @@ class RocksRollsData(AddonData):
         AddonData.__init__(self, name)
         self.text = ""
         self.reverse = False
+        self.postscripts = None
 
     def __str__(self):
         """
@@ -69,6 +71,10 @@ class RocksRollsData(AddonData):
             addon_str += " --reverse"
 
         addon_str += "\n%s\n%%end\n" % self.text
+
+        if self.postscripts is not None:
+            addon_str += self.postscripts
+
         return addon_str
 
     def handle_header(self, lineno, args):
@@ -148,7 +154,6 @@ class RocksRollsData(AddonData):
         :type instclass: pyanaconda.installclass.BaseInstallClass
         """
 
-        # no actions needed in this addon
         log = logging.getLogger("anaconda")
         log.info("ROCKS KS SETUP: %s" % ksdata.__str__()) 
 
@@ -169,6 +174,12 @@ class RocksRollsData(AddonData):
         cmd = ["/opt/rocks/bin/rocks","report","host","attr","pydict=true"]
         p = subprocess.Popen(cmd,stdout=subprocess.PIPE)
         attrs = p.stdout.readlines()[0].strip()
+        
+        f = open("/tmp/site.attrs","w")
+        atdict = eval(attrs)
+        for key in atdict.keys():
+            f.write( "%s:%s\n" % (key,atdict[key]) )
+        f.close()
 
         cmd = ["/opt/rocks/bin/rocks","list","node", "xml", \
            "attrs=%s" % attrs, "basedir=/tmp/rocks/export/profile", "server"]
@@ -185,9 +196,17 @@ class RocksRollsData(AddonData):
                 continue
             if not pkg in ksdata.packages.packageList:
                 ksdata.packages.packageList.append(pkg)
-        
-        
-  
+
+        ## Genereate the post scripts section
+        log.info("ROCKS GENERATING POST SCRIPTS")
+        cmd = ["/opt/rocks/sbin/kgen","--section=post"]
+        p = subprocess.Popen(cmd,stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        self.postscripts,err = p.communicate(input="".join(nodexml))
+        log.info("ROCKS POST SCRIPTS GENERATED")
+
+        ksparser = kickstart.AnacondaKSParser(ksdata)
+        ksparser.readKickstartFromString(self.postscripts, reset=False)
+
     def addAttr(self,attr,value):
         if value is None or attr is None:
             return

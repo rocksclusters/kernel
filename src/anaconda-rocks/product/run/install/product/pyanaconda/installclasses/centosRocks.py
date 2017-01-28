@@ -124,7 +124,7 @@ class RocksYumPayload(YumPayload):
         log.info("RocksYumPayload preInstallHook  - rolls downloaded")
         ## Now tell YumPayload that our repo has changed
         self.useRocksLocalRepo(log)
-        
+        self.shutdownRocksDB(log) 
         super(RocksYumPayload, self).preInstall(packages, groups)
 
     def lighttpd(self,log):
@@ -141,6 +141,9 @@ class RocksYumPayload(YumPayload):
         self.data.method.url = "file:/mnt/sysimage/export/rocks/install/rocks-dist/x86_64"
         self.updateBaseRepo()
        
-
-         
-        
+    def shutdownRocksDB(self,log):
+        ## We are done with the in-memory rocks database. Shut it down
+        cmd = ["/etc/init.d/foundation-mysql","stop"]
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        fmysql,err = p.communicate()
+        log.info("ROCKS DATABASE SHUTDOWN (%s) -- errors( %s)" % (fmysql,err))
