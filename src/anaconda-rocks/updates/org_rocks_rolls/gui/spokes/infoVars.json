@@ -169,5 +169,68 @@
         "param": "Keyboard", 
         "validate": null, 
         "display": false
+    },
+    {
+        "required": true, 
+        "value": "America/Los_Angeles", 
+        "varname": "Kickstart_Timezone", 
+        "infoHelp": "Timezone", 
+        "param": "Timezone", 
+        "validate": null, 
+        "display": true
+    },
+    {
+        "required": true, 
+        "value": "pool.ntp.org", 
+        "varname": "Kickstart_PublicNTPHost", 
+        "infoHelp": "Network Time Protocol Servers", 
+        "param": "NTP Servers", 
+        "validate": null, 
+        "display": true
+    },
+    {
+        "required": true, 
+        "value": "", 
+        "varname": "Kickstart_PublicInterface", 
+        "infoHelp": "Physical Interface for Public Network", 
+        "param": "Public Interface", 
+        "validate": null, 
+        "display": true
+    },
+    {
+        "required": true, 
+        "value": "", 
+        "varname": "Kickstart_PublicNetwork", 
+        "infoHelp": "IPv4 Network for the Public Interface", 
+        "param": "Public IPv4 Network", 
+        "validate": null, 
+        "display": true
+    },
+    {
+        "required": true, 
+        "value": "", 
+        "varname": "Kickstart_PublicNetmask", 
+        "infoHelp": "IPv4 Netmask for the Public Interface", 
+        "param": "Public IPv4 Netmask", 
+        "validate": null, 
+        "display": true
+    },
+    {
+        "required": true, 
+        "value": "", 
+        "varname": "Kickstart_PublicMTU", 
+        "infoHelp": "MTU for Public Interface", 
+        "param": "Public Interface MTU", 
+        "validate": null, 
+        "display": true
+    },
+    {
+        "required": true, 
+        "value": "", 
+        "varname": "Kickstart_PublicNetmaskCIDR", 
+        "infoHelp": "IPv4 Prefix for the Public Interface", 
+        "param": "Public IPv4 Prefix (CIDR)", 
+        "validate": null, 
+        "display": true
     }
 ]

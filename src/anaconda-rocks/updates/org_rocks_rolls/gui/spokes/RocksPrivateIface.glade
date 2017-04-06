@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.19.0 -->
+<interface>
+  <requires lib="gtk+" version="3.14"/>
+  <requires lib="AnacondaWidgets" version="3.1"/>
+  <object class="GtkListStore" id="MTUstore">
+    <columns>
+      <!-- column-name MTU -->
+      <column type="gint"/>
+      <!-- column-name Description -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0">1500</col>
+        <col id="1" translatable="yes">1500 Bytes</col>
+      </row>
+      <row>
+        <col id="0">4092</col>
+        <col id="1" translatable="yes">4092 Bytes</col>
+      </row>
+      <row>
+        <col id="0">9000</col>
+        <col id="1" translatable="yes">9000 Bytes</col>
+      </row>
+    </data>
+  </object>
+  <object class="GtkListStore" id="deviceStore">
+    <columns>
+      <!-- column-name label -->
+      <column type="gchararray"/>
+      <!-- column-name device -->
+      <column type="gchararray"/>
+      <!-- column-name type -->
+      <column type="gchararray"/>
+      <!-- column-name mac -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="AnacondaSpokeWindow" id="RocksPrivateIfaceWindow">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="window_name" translatable="yes">CLUSTER NETWORK</property>
+    <signal name="button-clicked" handler="on_back_clicked" swapped="no"/>
+    <child internal-child="main_box">
+      <object class="GtkBox" id="AnacondaSpokeWindow-main_box1">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">6</property>
+        <child internal-child="nav_box">
+          <object class="GtkEventBox" id="AnacondaSpokeWindow-nav_box1">
+            <property name="name">nav-box</property>
+            <property name="can_focus">False</property>
+            <child internal-child="nav_area">
+              <object class="GtkGrid" id="AnacondaSpokeWindow-nav_area1">
+                <property name="can_focus">False</property>
+                <property name="margin_left">18</property>
+                <property name="margin_right">18</property>
+                <property name="margin_start">18</property>
+                <property name="margin_end">18</property>
+                <property name="margin_top">12</property>
+                <property name="margin_bottom">6</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child internal-child="alignment">
+          <object class="GtkAlignment" id="AnacondaSpokeWindow-alignment1">
+            <property name="can_focus">False</property>
+            <property name="yalign">0</property>
+            <child internal-child="action_area">
+              <object class="GtkBox" id="AnacondaSpokeWindow-action_area1">
+                <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkLabel" id="label4">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Select the network device you want to use for your private cluster interface. If your hardware has only one physical port, you will not be able to kickstart other nodes</property>
+                    <property name="wrap">True</property>
+                    <property name="xalign">0.51999998092651367</property>
+                    <attributes>
+                      <attribute name="weight" value="bold"/>
+                      <attribute name="variant" value="small-caps"/>
+                      <attribute name="stretch" value="normal"/>
+                      <attribute name="scale" value="1.1000000000000001"/>
+                    </attributes>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkGrid" id="grid1">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkLabel" id="label1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Private Cluster Interface</property>
+                <property name="angle">0.029999999999999999</property>
+                <property name="xalign">0.05000000074505806</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label2">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Private Domain  Name</property>
+                <property name="xalign">0.05000000074505806</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label3">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">MTU</property>
+                <property name="xalign">0.05000000074505806</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkComboBox" id="ifaceCombo">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="model">deviceStore</property>
+                <property name="active">0</property>
+                <property name="id_column">0</property>
+                <signal name="changed" handler="ifaceCombo_handler" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry" id="privateDNS">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="text" translatable="yes">local</property>
+                <property name="shadow_type">etched-in</property>
+                <signal name="activate" handler="privateDNS_handler" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkComboBox" id="MTUBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="model">MTUstore</property>
+                <property name="active">0</property>
+                <property name="id_column">1</property>
+                <signal name="changed" handler="selectMTU_handler" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label5">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">IPv4 Address</property>
+                <property name="xalign">0.05000000074505806</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label6">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">IPv4 Netmask</property>
+                <property name="ellipsize">end</property>
+                <property name="xalign">0.05000000074505806</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">4</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry" id="IPv4_Address">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="text" translatable="yes">10.1.1.1</property>
+                <signal name="activate" handler="IPv4_Address_handler" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry" id="IPv4_Netmask">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="max_length">3</property>
+                <property name="width_chars">2</property>
+                <property name="text" translatable="yes">255.255.255.0</property>
+                <signal name="activate" handler="IPv4_Netmask_handler" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">4</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkEntryBuffer" id="privateDomain">
+    <property name="text" translatable="yes">local</property>
+  </object>
+</interface>

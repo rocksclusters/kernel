@@ -41,6 +41,7 @@ from pyanaconda.ui.gui import GUIObject
 from pyanaconda.ui.gui.spokes import NormalSpoke
 from pyanaconda.ui.common import FirstbootSpokeMixIn
 from pyanaconda import network
+from pyanaconda import nm
 import thread
 import json
 import inspect
@@ -63,10 +64,49 @@ VALIDX = FIELDNAMES.index("value")
 #        display: Boolean. Display on the UI 
 #        validate: String.  Validation Method 
 # 
-# These field are mapped into gui's ClusterInfoStore (in RocksInfo.glade).
+# These fields are mapped into gui's ClusterInfoStore (in RocksInfo.glade).
 # ClusterInfoStore only has indices, so must keep the map of these dictionary 
 # values consistent with their indices in the UI
 
+
+def addRecord(ksdata, varname, value, \
+        param='',infoHelp='',required=False,display=False,validate=None):
+    tuple = FIELDNAMES
+    tuple[FIELDNAMES.index("param")]=param
+    tuple[FIELDNAMES.index("varname")]=varname
+    tuple[FIELDNAMES.index("value")]=value
+    tuple[FIELDNAMES.index("infoHelp")]=infoHelp
+    tuple[FIELDNAMES.index("required")]=required
+    tuple[FIELDNAMES.index("display")]=display
+    tuple[FIELDNAMES.index("validate")]=validate
+
+    try:
+        vars = map(lambda x: x[VARIDX],ksdata.addons.org_rocks_rolls.info)
+    except:
+        ## info didn't exist
+        vars=[]
+        ksdata.addons.org_rocks_rolls.info = []
+    
+    if varname in vars:
+        idx = vars.index(varname)
+        ksdata.addons.org_rocks_rolls.info[idx] = tuple 
+    else:
+        ksdata.addons.org_rocks_rolls.info.append(tuple) 
+        
+def getValue(ksdata,varname):
+    ## don't fail if info hasn't been initialized
+    try:
+        info = ksdata.addons.org_rocks_rolls.info
+    except:
+        info=[]
+
+    for row in info:
+        if row[VARIDX] == varname:
+            return row[VALIDX]
+    ## Not found
+    return None 
+
+    
 class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
     """
     Class for the RocksConfig spoke. This spoke will be in the RocksRollsCategory 
@@ -138,7 +178,14 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.log.info("Initialize Cluster Config")
 
         self.infoStore = self.builder.get_object("ClusterInfoStore")
-        self.populate()
+        self.infoFilter = self.builder.get_object("ClusterInfoFilter")
+        self.infoFilter.set_visible_column(FIELDNAMES.index("display"))
+        
+        jsoninfo = self.populate()
+        self.mapAnacondaValues(jsoninfo)
+        # merge entries into self.data.addons.org_rocks_rolls.info 
+        self.merge(jsoninfo)
+        
 
     def refresh(self):
         """
@@ -149,7 +196,15 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         :see: pyanaconda.ui.common.UIObject.refresh
 
         """
-        pass
+        ### Master of information is rocks_rolls.info structure.
+        self.mapAnacondaValues(self.data.addons.org_rocks_rolls.info)
+        self.infoStore.clear()
+        for infoEntry in self.data.addons.org_rocks_rolls.info:
+            if type(infoEntry[1]) is list:
+                infoEntry[1] = ",".join(infoEntry[1])
+            if type(infoEntry[1]) is not str:
+                infoEntry[1] = infoEntry[1].__str__()
+            self.infoStore.append(infoEntry)
 
     def apply(self):
         """
@@ -254,24 +309,79 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         f = open(p)
         allInfo = json.load(f)
         initialParams = [[z[idx] for idx in FIELDNAMES ] for z in allInfo] 
-        for r in initialParams:
-            self.addInfo(r)
-        self.mapAnacondaValues()
+        return initialParams
 
-    def mapAnacondaValues(self):
-        self.setValue("Kickstart_PublicHostname",network.getHostname())
+    def merge(self, defaultinfo):
+        """ merge data from defaultinfo into org_rocks_rolls.info 
+            data struct """
+
+        try:
+            ivars = \
+                map(lambda x: x[VARIDX],self.data.addons.org_rocks_rolls.info)
+        except:
+            ivars = []
+            self.data.addons.org_rocks_rolls.info=[]
+        for row in defaultinfo:
+            if row[VARIDX] not in ivars:
+                self.data.addons.org_rocks_rolls.info.append(row)
+
+    def mapAnacondaValues(self,info):
+        """ Should be called only after json file has loaded 
+            These are variables read directly from anaconda objects or 
+            derived from them.  
+            XXX: This really should be a file of mappings"""
+        ## This method basically has to reverse engineer what 
+        ## other parts of anaconda is doing       
+        ksdata = self.data
+        mapping = {} 
+        mapping["Kickstart_Lang"]="ksdata.lang.lang"
+        mapping["Kickstart_Langsupport"]=mapping["Kickstart_Lang"]
+        mapping["Kickstart_PublicHostname"]="network.getHostname()"
+        mapping["Kickstart_Timezone"] = "ksdata.timezone.timezone"
+        mapping["Kickstart_PublicNTPHost"] = "ksdata.timezone.ntpservers"
+        mapping["Kickstart_PublicInterface"] = "network.default_route_device()"
+        mapping["Kickstart_PublicAddress"] = "network.get_default_device_ip()"
+        
+        ## get the public networking values
+        pubif = eval(mapping["Kickstart_PublicInterface"])
+        pubaddr = eval(mapping["Kickstart_PublicAddress"])
+        cidr = nm.nm_device_ip_config(pubif)[0][0][1]
+        netmask = network.prefix2netmask(cidr) 
+        nparts = map(lambda x: int(x),netmask.split('.'))
+        aparts = map(lambda x: int(x),pubaddr.split('.'))
+        netaddr = map(lambda x: nparts[x] & aparts[x], range(0,len(nparts)))
+        pubnetwork=".".join(map(lambda x: x.__str__(),netaddr))
+        mapping["Kickstart_PublicNetwork"] = "pubnetwork"
+        mapping["Kickstart_PublicNetmask"] = "netmask"
+        mapping["Kickstart_PublicNetmaskCIDR"] = "cidr"
+        #cmd = ["/sbin/ip","link","show",pubif]
+        #smtu = subprocess.check_output(cmd)
+        #mtu=smtu.split('mtu')[1].strip().split()[0] 
+        mtu = nm.nm_device_property(pubif,'mtu')
+        mapping["Kickstart_PublicMTU"] = mtu.__str__()
+        
+        ## set the values in our own info structure
+        for var in mapping.keys():
+            self.setValue(info, var,eval(mapping[var]))
+        
+        
    
-    def addInfo(self,record):
-       self.infoStore.append(record)
-
-    def setValue(self,varname,value):
-        for row in self.infoStore:
+    def setValue(self,info, varname,value):
+        for row in info:
             if row[VARIDX] == varname:
-                row[VALIDX] = value
+                row[VALIDX] = value.__str__()
+                break 
+
+class Foo():
+    def __init__(self):
+        pass
 
 if __name__ == "__main__":
     from gi.repository import Gtk
-    rr = RocksInfoSpoke(None,None,None,None)
+    data = Foo()
+    data.addons = Foo()
+    data.addons.org_rocks_rolls = Foo()
+    rr = RocksConfigSpoke(data,None,None,None)
     rr.initialize()
     rr.refresh()
     Gtk.main()
