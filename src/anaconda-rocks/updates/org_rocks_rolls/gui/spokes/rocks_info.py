@@ -93,6 +93,7 @@ def addRecord(ksdata, varname, value, \
     else:
         ksdata.addons.org_rocks_rolls.info.append(tuple) 
         
+## get the value in the info store
 def getValue(ksdata,varname):
     ## don't fail if info hasn't been initialized
     try:
@@ -105,6 +106,13 @@ def getValue(ksdata,varname):
             return row[VALIDX]
     ## Not found
     return None 
+
+## Set the value in info store
+def setValue(info, varname,value):
+    for row in info:
+        if row[VARIDX] == varname:
+            row[VALIDX] = value.__str__()
+            break 
 
     
 class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
@@ -238,9 +246,10 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         :rtype: bool
 
         """
-
-        # this spoke is always ready
-        return True
+        if self.data.addons.org_rocks_rolls.haverolls is None:
+            return False
+        return self.data.addons.org_rocks_rolls.haverolls
+        
 
     @property
     def completed(self):
@@ -285,8 +294,10 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         :rtype: str
 
         """
-        if (self.completed):
-            return "Required Config Entered"
+        if not self.ready:
+            return "Please Select Rolls First"
+        if  self.completed:
+            return "All Configuration Entered"
         else:
             return "Configure Your Cluster" 
 
@@ -362,16 +373,8 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         
         ## set the values in our own info structure
         for var in mapping.keys():
-            self.setValue(info, var,eval(mapping[var]))
-        
-        
+            setValue(info, var,eval(mapping[var]))
    
-    def setValue(self,info, varname,value):
-        for row in info:
-            if row[VARIDX] == varname:
-                row[VALIDX] = value.__str__()
-                break 
-
 class Foo():
     def __init__(self):
         pass

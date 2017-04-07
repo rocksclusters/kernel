@@ -230,8 +230,10 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         sel = map(lambda x: x[0], self.selectStore)
         req = filter(lambda x: x in self.requiredRolls, sel)
         if len(req) >= len(self.requiredRolls):
+            self.data.addons.org_rocks_rolls.haverolls = True 
             return True
         else:
+            self.data.addons.org_rocks_rolls.haverolls = False 
             return False
 
     @property

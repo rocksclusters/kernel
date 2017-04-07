@@ -57,6 +57,7 @@ class RocksRollsData(AddonData):
         self.text = ""
         self.reverse = False
         self.postscripts = None
+        self.haverolls = None
 
     def __str__(self):
         """

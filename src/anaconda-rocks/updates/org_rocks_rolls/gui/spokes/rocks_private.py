@@ -49,13 +49,16 @@ import inspect
 # export only the spoke, no helper functions, classes or constants
 __all__ = ["RocksPrivateIfaceSpoke"]
 
-# dictionary of GUI interface objects to the addon.rocks.info parameter space
+# map of local variable to  addon.rocks.info parameter space
+# That info space is where we keep information, GUIs can only
+# update/change
 #
 infoMap = {}
-infoMap['MTUBox']=['Kickstart_PrivateMTU',]
-infoMap['PrivateDNS']=['Kickstart_PrivateDNSDomain',]
-
-
+infoMap['MTU'] = 'Kickstart_PrivateMTU'
+infoMap['PrivateDNS']= 'Kickstart_PrivateDNSDomain'
+infoMap['PrivateIP']= 'Kickstart_PrivateAddress'
+infoMap['PrivateNetmask']='Kickstart_PrivateNetmask'
+infoMap['ifaceSelected'] ='Kickstart_PrivateDevice' 
 
 FIELDNAMES=["label","device","type","mac"]
 LABELIDX = FIELDNAMES.index("label")
@@ -111,7 +114,7 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.MTUComboBox = self.builder.get_object("MTUBox")
         self.deviceStore = self.builder.get_object("deviceStore")
         self.ifaceCombo = self.builder.get_object("ifaceCombo")
-        self.privateDNS = self.builder.get_object("privateDNS")
+        self.privateDNS_Entry = self.builder.get_object("privateDNS")
         self.IPv4_Address = self.builder.get_object("IPv4_Address")
         self.IPv4_Netmask = self.builder.get_object("IPv4_Netmask")
         # Populate the private interface combo
@@ -119,6 +122,17 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.refresh()
         self.ifaceCombo.set_active(0)
         self.ifaceSelected = self.ifaceCombo.get_active_id()
+        # intialize DNS,IPV4 addr/netmask
+        self.MTU = self.MTUComboBox.get_active_id()
+        self.privateIP = self.IPv4_Address.get_text() 
+        self.privateNetmask = self.IPv4_Netmask.get_text()
+        self.privateDNS = self.privateDNS_Entry.get_text()
+        
+        
+
+    def privateDNS_handler(self,widget):
+        self.privateDNS = widget.get_active_id()
+        widget.set_text(self.privateDNS)
 
     def refresh(self):
         """
@@ -187,9 +201,9 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         :rtype: bool
 
         """
-
-        # this spoke is always ready
-        return True
+        if self.data.addons.org_rocks_rolls.haverolls is None:
+            return False
+        return self.data.addons.org_rocks_rolls.haverolls 
 
     @property
     def completed(self):
@@ -226,8 +240,10 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         :rtype: str
 
         """
-        if (self.completed):
-            return "Required Config Entered"
+        if  not self.ready:
+            return "Please Select Rolls First"
+        if self.completed:
+            return "All Required Configuration Entered"
         else:
             return "Configure Your Cluster" 
 
@@ -235,17 +251,20 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
     def ifaceCombo_handler(self,widget):
         self.ifaceSelected = widget.get_active_id()
 
-    def selectMTU_handler(self,cr,path,text):
-        pass 
+    def selectMTU_handler(self,widget):
+        self.MTU = widget.get_active_id()
 
-    def IPv4_Address_handler(self,cr,path,text):
-        pass 
+    def IPv4_Address_handler(self,widget):
+        self.privateIP = widget.get_text()
+        widget.set_text(self.privateIP)
 
-    def IPv4_Netmask_handler(self,cr,path,text):
-        pass 
+    def IPv4_Netmask_handler(self,widget):
+        self.privateNetmask = widget.get_text()
+        widget.set_text(self.privateNetmask)
 
-    def privateDNS_handler(self,cr,path,text):
-        pass 
+    def privateDNS_handler(self,widget):
+        self.privateDNS = widget.get_text()
+        widget.set_text(self.privateDNS)
 
     def on_entry_icon_clicked(self, entry, *args):
         """Handler for the textEntry's "icon-release" signal."""
