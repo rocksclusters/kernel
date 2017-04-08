@@ -193,6 +193,7 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.mapAnacondaValues(jsoninfo)
         # merge entries into self.data.addons.org_rocks_rolls.info 
         self.merge(jsoninfo)
+        self.visited = False
         
 
     def refresh(self):
@@ -228,6 +229,7 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
             infoParams.append((r[:]))
         self.data.addons.org_rocks_rolls.info = infoParams 
         self.log.info("ROCKS: info %s" % self.data.addons.org_rocks_rolls.info.__str__())
+        self.visited = True
 
     def execute(self):
         """
@@ -262,11 +264,13 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         """
 
+        ### XXX FIX THIS
+        return True
         if self.infoStore is None:
             return False
         required = filter(lambda x: x[4] ,self.infoStore)
         completed = filter(lambda x: x[1] is not None and len(x[1]) > 0, required) 
-        if len(required) == len(completed):
+        if self.visited and len(required) == len(completed):
             return True
         else:
             return False
