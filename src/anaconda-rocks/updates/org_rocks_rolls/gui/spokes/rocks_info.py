@@ -107,6 +107,13 @@ def getValue(ksdata,varname):
     return None 
 
     
+def setValue(info, varname,value):
+    for row in info:
+        if row[VARIDX] == varname:
+            row[VALIDX] = value.__str__()
+            break 
+
+
 class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
     """
     Class for the RocksConfig spoke. This spoke will be in the RocksRollsCategory 
@@ -366,15 +373,10 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         
         ## set the values in our own info structure
         for var in mapping.keys():
-            self.setValue(info, var,eval(mapping[var]))
+            setValue(info, var,eval(mapping[var]))
         
         
    
-    def setValue(self,info, varname,value):
-        for row in info:
-            if row[VARIDX] == varname:
-                row[VALIDX] = value.__str__()
-                break 
 
 class Foo():
     def __init__(self):
