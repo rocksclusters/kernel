@@ -128,6 +128,42 @@
     {
         "required": true, 
         "value": "local", 
+        "varname": "Kickstart_PrivateDevice", 
+        "infoHelp": "Device Use for Private Cluster Interface", 
+        "param": "Network Device for Private Network", 
+        "validate": null, 
+        "display": true
+    }, 
+    {
+        "required": true, 
+        "value": "10.1.1.1", 
+        "varname": "Kickstart_PrivateAddress", 
+        "infoHelp": "IP Address for Private Cluster Interface", 
+        "param": "Private Cluster IPv4 Address", 
+        "validate": null, 
+        "display":true 
+    }, 
+    {
+        "required": true, 
+        "value": "255.255.255.0", 
+        "varname": "Kickstart_PrivateNetmask", 
+        "infoHelp": "Netmask for Private Cluster Interface", 
+        "param": "Private Cluster Netmask", 
+        "validate": null, 
+        "display":true 
+    }, 
+    {
+        "required": true, 
+        "value": "1500", 
+        "varname": "Kickstart_PrivateMTU", 
+        "infoHelp": "MTU for Private Cluster Interface", 
+        "param": "Private Cluster Interface MTU", 
+        "validate": null, 
+        "display":true 
+    }, 
+    {
+        "required": true, 
+        "value": "local", 
         "varname": "Kickstart_PrivateDNSDomain", 
         "infoHelp": "DNS Name for Private Cluster Interface", 
         "param": "Private DNS Domain", 
