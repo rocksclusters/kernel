@@ -227,6 +227,15 @@
     {
         "required": true, 
         "value": "", 
+        "varname": "Kickstart_PublicAddress", 
+        "infoHelp": "IPv4 Address for Public Interface ", 
+        "param": "Public IPv4 Address", 
+        "validate": null, 
+        "display": true
+    },
+    {
+        "required": true, 
+        "value": "", 
         "varname": "Kickstart_PublicInterface", 
         "infoHelp": "Physical Interface for Public Network", 
         "param": "Public Interface", 

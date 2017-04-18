@@ -359,7 +359,8 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         mapping = {} 
         mapping["Kickstart_Lang"]="ksdata.lang.lang"
         mapping["Kickstart_Langsupport"]=mapping["Kickstart_Lang"]
-        mapping["Kickstart_PublicHostname"]="network.getHostname()"
+        mapping["Kickstart_PublicHostname"]="network.getHostname().split('.',1)[0]"
+        mapping["Kickstart_PublicDNSDomain"]="network.getHostname().split('.',1)[1]"
         mapping["Kickstart_Timezone"] = "ksdata.timezone.timezone"
         mapping["Kickstart_PublicNTPHost"] = "ksdata.timezone.ntpservers"
         mapping["Kickstart_PublicInterface"] = "network.default_route_device()"

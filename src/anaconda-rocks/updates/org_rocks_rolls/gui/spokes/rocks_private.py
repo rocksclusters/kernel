@@ -122,9 +122,9 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.ifaceSelected=''
         self.refresh()
         self.ifaceCombo.set_active(0)
-        self.ifaceSelected = self.ifaceCombo.get_active_id()
+        self.ifaceSelected = self.ifaceCombo.get_active_id().split(';')[0]
         # intialize DNS,IPV4 addr/netmask
-        self.MTU = self.MTUComboBox.get_active_id()
+        self.MTU = self.MTUComboBox.get_active_id().split()[0]
         self.privateIP = self.IPv4_Address.get_text()
         self.privateNetmask = self.IPv4_Netmask.get_text()
         self.privateDNS = self.privateDNS_Entry.get_text()
@@ -246,10 +246,10 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
     ### handlers ###
     def ifaceCombo_handler(self,widget):
-        self.ifaceSelected = widget.get_active_id()
+        self.ifaceSelected = widget.get_active_id().split(';')[0]
 
     def selectMTU_handler(self,widget):
-        self.MTU = widget.get_active_id()
+        self.MTU = widget.get_active_id().split()[]
 
     def IPv4_Address_handler(self,widget):
         self.privateAddress = widget.get_text() 
