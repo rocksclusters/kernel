@@ -230,6 +230,8 @@
               <object class="GtkEntry" id="IPv4_Netmask">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="max_length">16</property>
+                <property name="width_chars">16</property>
                 <property name="text" translatable="yes">255.255.255.0</property>
                 <signal name="activate" handler="IPv4_Netmask_handler" swapped="no"/>
               </object>

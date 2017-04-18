@@ -115,6 +115,13 @@ def setValue(info, varname,value):
             break 
 
     
+def setValue(info, varname,value):
+    for row in info:
+        if row[VARIDX] == varname:
+            row[VALIDX] = value.__str__()
+            break 
+
+
 class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
     """
     Class for the RocksConfig spoke. This spoke will be in the RocksRollsCategory 
@@ -248,9 +255,10 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         :rtype: bool
 
         """
-        if self.data.addons.org_rocks_rolls.haverolls is None:
-            return False
-        return self.data.addons.org_rocks_rolls.haverolls
+        return True
+        #if self.data.addons.org_rocks_rolls.haverolls is None:
+        #    return False
+        #return self.data.addons.org_rocks_rolls.haverolls
         
 
     @property
@@ -378,7 +386,7 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         ## set the values in our own info structure
         for var in mapping.keys():
             setValue(info, var,eval(mapping[var]))
-   
+
 class Foo():
     def __init__(self):
         pass

@@ -59,7 +59,7 @@ infoMap['MTU'] = 'Kickstart_PrivateMTU'
 infoMap['privateDNS']= 'Kickstart_PrivateDNSDomain'
 infoMap['privateIP']= 'Kickstart_PrivateAddress'
 infoMap['privateNetmask']='Kickstart_PrivateNetmask'
-infoMap['ifaceSelected'] ='Kickstart_PrivateDevice' 
+infoMap['ifaceSelected'] ='Kickstart_PrivateDevice'
 
 FIELDNAMES=["label","device","type","mac"]
 LABELIDX = FIELDNAMES.index("label")
@@ -125,16 +125,10 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.ifaceSelected = self.ifaceCombo.get_active_id()
         # intialize DNS,IPV4 addr/netmask
         self.MTU = self.MTUComboBox.get_active_id()
-        self.privateIP = self.IPv4_Address.get_text() 
+        self.privateIP = self.IPv4_Address.get_text()
         self.privateNetmask = self.IPv4_Netmask.get_text()
         self.privateDNS = self.privateDNS_Entry.get_text()
         self.visited = False
-        
-        
-
-    def privateDNS_handler(self,widget):
-        self.privateDNS = widget.get_active_id()
-        widget.set_text(self.privateDNS)
 
     def refresh(self):
         """
@@ -202,9 +196,10 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         :rtype: bool
 
         """
-        if self.data.addons.org_rocks_rolls.haverolls is None:
-            return False
-        return self.data.addons.org_rocks_rolls.haverolls 
+        return True
+        #if self.data.addons.org_rocks_rolls.haverolls is None:
+        #    return False
+        # return self.data.addons.org_rocks_rolls.haverolls 
 
     @property
     def completed(self):
@@ -216,8 +211,8 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         :rtype: bool
 
         """
-        return True
-        #return self.visited 
+        # return True
+        return self.visited 
 
     @property
     def mandatory(self):
@@ -257,8 +252,8 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.MTU = widget.get_active_id()
 
     def IPv4_Address_handler(self,widget):
-        self.privateIP = widget.get_text()
-        widget.set_text(self.privateIP)
+        self.privateAddress = widget.get_text() 
+        widget.set_text(self.privateAddress)
 
     def IPv4_Netmask_handler(self,widget):
         self.privateNetmask = widget.get_text()
