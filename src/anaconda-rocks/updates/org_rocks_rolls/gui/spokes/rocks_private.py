@@ -37,6 +37,7 @@ from gi.repository import Gtk, GObject
 
 ### the path to addons is in sys.path so we can import things from org_rocks_rolls
 from org_rocks_rolls.categories.RocksRolls import RocksRollsCategory
+from org_rocks_rolls.gui.spokes import rocks_info 
 from pyanaconda.ui.gui import GUIObject
 from pyanaconda.ui.gui.spokes import NormalSpoke
 from pyanaconda.ui.common import FirstbootSpokeMixIn
@@ -55,10 +56,10 @@ __all__ = ["RocksPrivateIfaceSpoke"]
 #
 infoMap = {}
 infoMap['MTU'] = 'Kickstart_PrivateMTU'
-infoMap['PrivateDNS']= 'Kickstart_PrivateDNSDomain'
-infoMap['PrivateIP']= 'Kickstart_PrivateAddress'
-infoMap['PrivateNetmask']='Kickstart_PrivateNetmask'
-infoMap['ifaceSelected'] ='Kickstart_PrivateDevice' 
+infoMap['privateDNS']= 'Kickstart_PrivateDNSDomain'
+infoMap['privateIP']= 'Kickstart_PrivateAddress'
+infoMap['privateNetmask']='Kickstart_PrivateNetmask'
+infoMap['ifaceSelected'] ='Kickstart_PrivateDevice'
 
 FIELDNAMES=["label","device","type","mac"]
 LABELIDX = FIELDNAMES.index("label")
@@ -124,15 +125,10 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.ifaceSelected = self.ifaceCombo.get_active_id()
         # intialize DNS,IPV4 addr/netmask
         self.MTU = self.MTUComboBox.get_active_id()
-        self.privateIP = self.IPv4_Address.get_text() 
+        self.privateIP = self.IPv4_Address.get_text()
         self.privateNetmask = self.IPv4_Netmask.get_text()
         self.privateDNS = self.privateDNS_Entry.get_text()
-        
-        
-
-    def privateDNS_handler(self,widget):
-        self.privateDNS = widget.get_active_id()
-        widget.set_text(self.privateDNS)
+        self.visited = False
 
     def refresh(self):
         """
@@ -176,13 +172,12 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         """
 
-        # need to create a copy of selectStore entries, otherwise deepcopy
-        # used in other anaconda widgets won't work
-        #infoParams = []
-        #for r in self.infoStore:
-        #    infoParams.append((r[:]))
-        #self.data.addons.org_rocks_rolls.info = infoParams 
-        #self.log.info("ROCKS: info %s" % self.data.addons.org_rocks_rolls.info.__str__())
+        # This is all about setting variables in the 
+        # self.data.addons.org_rocks_rolls.info 
+        for var in infoMap.keys(): 
+            rocks_info.setValue(self.data.addons.org_rocks_rolls.info, \
+                infoMap[var], eval("self.%s"%var))
+        self.visited = True
 
     def execute(self):
         """
@@ -201,9 +196,10 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         :rtype: bool
 
         """
-        if self.data.addons.org_rocks_rolls.haverolls is None:
-            return False
-        return self.data.addons.org_rocks_rolls.haverolls 
+        return True
+        #if self.data.addons.org_rocks_rolls.haverolls is None:
+        #    return False
+        # return self.data.addons.org_rocks_rolls.haverolls 
 
     @property
     def completed(self):
@@ -215,7 +211,8 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         :rtype: bool
 
         """
-        return True
+        # return True
+        return self.visited 
 
     @property
     def mandatory(self):
@@ -245,7 +242,7 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         if self.completed:
             return "All Required Configuration Entered"
         else:
-            return "Configure Your Cluster" 
+            return "Configure Private Network" 
 
     ### handlers ###
     def ifaceCombo_handler(self,widget):
@@ -255,8 +252,8 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.MTU = widget.get_active_id()
 
     def IPv4_Address_handler(self,widget):
-        self.privateIP = widget.get_text()
-        widget.set_text(self.privateIP)
+        self.privateAddress = widget.get_text() 
+        widget.set_text(self.privateAddress)
 
     def IPv4_Netmask_handler(self,widget):
         self.privateNetmask = widget.get_text()

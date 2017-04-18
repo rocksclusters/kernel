@@ -115,6 +115,13 @@ def setValue(info, varname,value):
             break 
 
     
+def setValue(info, varname,value):
+    for row in info:
+        if row[VARIDX] == varname:
+            row[VALIDX] = value.__str__()
+            break 
+
+
 class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
     """
     Class for the RocksConfig spoke. This spoke will be in the RocksRollsCategory 
@@ -193,6 +200,7 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.mapAnacondaValues(jsoninfo)
         # merge entries into self.data.addons.org_rocks_rolls.info 
         self.merge(jsoninfo)
+        self.visited = False
         
 
     def refresh(self):
@@ -228,6 +236,7 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
             infoParams.append((r[:]))
         self.data.addons.org_rocks_rolls.info = infoParams 
         self.log.info("ROCKS: info %s" % self.data.addons.org_rocks_rolls.info.__str__())
+        self.visited = True
 
     def execute(self):
         """
@@ -246,9 +255,10 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         :rtype: bool
 
         """
-        if self.data.addons.org_rocks_rolls.haverolls is None:
-            return False
-        return self.data.addons.org_rocks_rolls.haverolls
+        return True
+        #if self.data.addons.org_rocks_rolls.haverolls is None:
+        #    return False
+        #return self.data.addons.org_rocks_rolls.haverolls
         
 
     @property
@@ -262,11 +272,13 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         """
 
+        ### XXX FIX THIS
+        return True
         if self.infoStore is None:
             return False
         required = filter(lambda x: x[4] ,self.infoStore)
         completed = filter(lambda x: x[1] is not None and len(x[1]) > 0, required) 
-        if len(required) == len(completed):
+        if self.visited and len(required) == len(completed):
             return True
         else:
             return False
@@ -374,7 +386,7 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         ## set the values in our own info structure
         for var in mapping.keys():
             setValue(info, var,eval(mapping[var]))
-   
+
 class Foo():
     def __init__(self):
         pass
