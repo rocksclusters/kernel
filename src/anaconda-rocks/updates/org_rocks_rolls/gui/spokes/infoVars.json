@@ -128,8 +128,8 @@
     {
         "required": true, 
         "value": "local", 
-        "varname": "Kickstart_PrivateDevice", 
-        "infoHelp": "Device Use for Private Cluster Interface", 
+        "varname": "Kickstart_PrivateInterface", 
+        "infoHelp": "Interface to  use for Private Cluster Interface", 
         "param": "Network Device for Private Network", 
         "validate": null, 
         "display": true
@@ -149,6 +149,15 @@
         "varname": "Kickstart_PrivateNetmask", 
         "infoHelp": "Netmask for Private Cluster Interface", 
         "param": "Private Cluster Netmask", 
+        "validate": null, 
+        "display":true 
+    }, 
+    {
+        "required": true, 
+        "value": "10.1.1.0", 
+        "varname": "Kickstart_PrivateNetwork", 
+        "infoHelp": "Network for the private interface", 
+        "param": "Private Cluster Network", 
         "validate": null, 
         "display":true 
     }, 

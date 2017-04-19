@@ -56,10 +56,12 @@ __all__ = ["RocksPrivateIfaceSpoke"]
 #
 infoMap = {}
 infoMap['MTU'] = 'Kickstart_PrivateMTU'
+infoMap['privateHostname']= 'Kickstart_PrivateHostname'
 infoMap['privateDNS']= 'Kickstart_PrivateDNSDomain'
 infoMap['privateIP']= 'Kickstart_PrivateAddress'
 infoMap['privateNetmask']='Kickstart_PrivateNetmask'
-infoMap['ifaceSelected'] ='Kickstart_PrivateDevice'
+infoMap['privateNetwork']='Kickstart_PrivateNetwork'
+infoMap['ifaceSelected'] ='Kickstart_PrivateInterface'
 
 FIELDNAMES=["label","device","type","mac"]
 LABELIDX = FIELDNAMES.index("label")
@@ -125,10 +127,18 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.ifaceSelected = self.ifaceCombo.get_active_id().split(';')[0]
         # intialize DNS,IPV4 addr/netmask
         self.MTU = self.MTUComboBox.get_active_id().split()[0]
+        self.privateHostname = network.getHostname().split('.',1)[0]
         self.privateIP = self.IPv4_Address.get_text()
         self.privateNetmask = self.IPv4_Netmask.get_text()
         self.privateDNS = self.privateDNS_Entry.get_text()
         self.visited = False
+
+    @property
+    def privateNetwork(self):
+        nparts = map(lambda x: int(x),self.privateNetmask.split('.'))
+        aparts = map(lambda x: int(x),self.privateIP.split('.'))
+        netaddr = map(lambda x: nparts[x] & aparts[x], range(0,len(nparts)))
+        return ".".join(map(lambda x: x.__str__(),netaddr))
 
     def refresh(self):
         """
@@ -152,12 +162,12 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
             entry[DEVICEIDX] = x
             entry[TYPEIDX] = "ethernet"
             entry[MACIDX] = nm.nm_device_perm_hwaddress(x)
-            entry[LABELIDX] = "%s,%s" % (x,entry[MACIDX])
+            entry[LABELIDX] = "%s;%s" % (x,entry[MACIDX])
             self.deviceStore.append(entry)
         if len(privates) == 0:
             entry=[None,None,None,None]
             entry[DEVICEIDX] = "%s:0" % pubif
-            entry[LABELIDX] = "%s,virtual interface" % entry[DEVICEIDX] 
+            entry[LABELIDX] = "%s;virtual interface" % entry[DEVICEIDX] 
             entry[TYPEIDX] = "virtual"
             entry[MACIDX] = ""
             self.deviceStore.append(entry)
@@ -246,10 +256,12 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
     ### handlers ###
     def ifaceCombo_handler(self,widget):
-        self.ifaceSelected = widget.get_active_id().split(';')[0]
+        id = widget.get_active_id();
+        if id is not None:
+            self.ifaceSelected = id.split(';')[0]
 
     def selectMTU_handler(self,widget):
-        self.MTU = widget.get_active_id().split()[]
+        self.MTU = widget.get_active_id().split()[0]
 
     def IPv4_Address_handler(self,widget):
         self.privateAddress = widget.get_text() 
