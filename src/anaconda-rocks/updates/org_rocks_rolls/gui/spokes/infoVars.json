@@ -110,7 +110,7 @@
     {
         "required": true, 
         "value": "install", 
-        "varname": "KickStart_PrivateKickstartBasedir", 
+        "varname": "Kickstart_PrivateKickstartBasedir", 
         "infoHelp": "", 
         "param": "Kickstart Base Dir", 
         "validate": null, 
