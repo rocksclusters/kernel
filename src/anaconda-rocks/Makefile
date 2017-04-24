@@ -68,7 +68,7 @@ UPDATES.IMG = updates.img
 SUBDIRS = $(PRODUCT) $(UPDATES)
 SYS.PYPATH = $(ANACONDA_USR)/lib/python2.7/site-packages
 ROCKS.PYPATH = /opt/rocks/lib/python2.7/site-packages
-UPDATES_DIRS = opt
+UPDATES_DIRS = opt usr
 PRODUCT_DIR = run 
 
 
