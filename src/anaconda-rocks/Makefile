@@ -58,6 +58,7 @@
 REDHAT.ROOT     = $(CURDIR)/../../
 -include $(ROCKSROOT)/etc/Rules.mk
 include Rules.mk
+IMGDIR=imgroot
 ADDON = org_rocks_rolls
 ANACONDA_USR = usr
 ANACONDA_SHARE = $(ANACONDA_USR)/share/anaconda/addons
@@ -71,29 +72,35 @@ ROCKS.PYPATH = /opt/rocks/lib/python2.7/site-packages
 UPDATES_DIRS = opt usr
 PRODUCT_DIR = run 
 
+.PHONY: $(IMGDIR)
+
 
 build:
 
-$(UPDATES.IMG): clean
-	mkdir -p $(ANACONDA_SHARE) 
-	(cd $(UPDATES); $(TAR) cf - $(ADDON)) | (cd $(ANACONDA_SHARE); $(TAR) xvf -)
-	mkdir -p $(SYS.PYPATH)
-	(cd $(ROCKS.PYPATH); $(TAR) cf - _xmlplus) | (cd $(SYS.PYPATH); $(TAR) xvf -)
+$(UPDATES.IMG): $(IMGDIR) 
+	(cd $(IMGDIR); find . | tail --lines=+2 | cpio -c -o | gzip -9 > ../$(UPDATES.IMG)) 
 
-	(cd $(UPDATES); $(TAR) cf - $(UPDATES_DIRS)) | $(TAR) xvf - 	
-	-mkdir -p $(PRODUCT_DIR)
-	(cd $(PRODUCT.SRC); $(TAR) cf - *) | $(TAR) xvf -
-	find $(ANACONDA_USR) $(UPDATES_DIRS) $(PRODUCT_DIR) | cpio -c -o | gzip -9 > $(UPDATES.IMG) 
+$(IMGDIR): clean 
+	- mkdir $(IMGDIR)
+	mkdir -p $(IMGDIR)/$(ANACONDA_SHARE) 
+	(cd $(UPDATES); $(TAR) cf - $(ADDON)) | (cd $(IMGDIR)/$(ANACONDA_SHARE); $(TAR) xvf -)
+	mkdir -p $(IMGDIR)/$(SYS.PYPATH)
+	(cd $(ROCKS.PYPATH); $(TAR) cf - _xmlplus) | (cd $(IMGDIR)/$(SYS.PYPATH); $(TAR) xvf -)
 
-install::
+	(cd $(UPDATES); $(TAR) cf - $(UPDATES_DIRS)) | (cd $(IMGDIR); $(TAR) xvf -) 	
+	-mkdir -p $(IMGDIR)/$(PRODUCT_DIR)
+	(cd $(PRODUCT.SRC); $(TAR) cf - *) | (cd $(IMGDIR);$(TAR) xvf -)
+
+install:: $(IMGDIR)
 	mkdir -p $(ROOT)/$(PKGROOT)
-	for i in $(SUBDIRS); do 					 \
-		$(TAR) cf - $$i | (cd $(ROOT)/$(PKGROOT); $(TAR) xvf -); \
-	done
+	mkdir -p $(ROOT)/$(PKGROOT)/$(UPDATES)
+	mkdir -p $(ROOT)/$(PKGROOT)/$(PRODUCT)
+	(cd $(IMGDIR); $(TAR) cf - $(UPDATES_DIRS)) | (cd $(ROOT)/$(PKGROOT)/$(UPDATES); $(TAR) xvf -)
+	(cd $(IMGDIR); $(TAR) cf - $(PRODUCT_DIR)) | (cd $(ROOT)/$(PKGROOT)/$(PRODUCT); $(TAR) xvf -)
 	
 clean::
 	rm -rf $(NAME)-$(VERSION)
 	rm -f $(NAME).spec.in
 	-rm -rf $(ANACONDA_USR) $(UPDATES_DIRS) $(PRODUCT_DIR)
 	-rm $(UPDATES.IMG) 
-
+	-rm -rf $(IMGDIR)
