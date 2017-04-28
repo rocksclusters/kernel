@@ -255,7 +255,12 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         :rtype: bool
 
         """
-        return True
+        ## Let's see if we have a network default route set 
+        try:
+            device = network.default_route_device()
+            return True
+        except:
+            return False
         #if self.data.addons.org_rocks_rolls.haverolls is None:
         #    return False
         #return self.data.addons.org_rocks_rolls.haverolls
@@ -307,7 +312,7 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         """
         if not self.ready:
-            return "Please Select Rolls First"
+            return "Please Configure your Public Network"
         if  self.completed:
             return "All Configuration Entered"
         else:
@@ -359,30 +364,33 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         mapping = {} 
         mapping["Kickstart_Lang"]="ksdata.lang.lang"
         mapping["Kickstart_Langsupport"]=mapping["Kickstart_Lang"]
-        mapping["Kickstart_PublicHostname"]="network.getHostname().split('.',1)[0]"
-        mapping["Kickstart_PublicDNSDomain"]="network.getHostname().split('.',1)[1]"
         mapping["Kickstart_Timezone"] = "ksdata.timezone.timezone"
         mapping["Kickstart_PublicNTPHost"] = "ksdata.timezone.ntpservers"
-        mapping["Kickstart_PublicInterface"] = "network.default_route_device()"
-        mapping["Kickstart_PublicAddress"] = "network.get_default_device_ip()"
+        ## Network may not be up, so these may fail
+        try:
+            mapping["Kickstart_PublicInterface"] = "network.default_route_device()"
+            mapping["Kickstart_PublicAddress"] = "network.get_default_device_ip()"
+            mapping["Kickstart_PublicHostname"]="network.getHostname().split('.',1)[0]"
+            mapping["Kickstart_PublicDNSDomain"]="network.getHostname().split('.',1)[1]"
+            ## get the public networking values
+            pubif = eval(mapping["Kickstart_PublicInterface"])
+            pubaddr = eval(mapping["Kickstart_PublicAddress"])
+            cidr = nm.nm_device_ip_config(pubif)[0][0][1]
+            gateway = nm.nm_device_ip_config(pubif)[0][0][2]
+            netmask = network.prefix2netmask(cidr) 
+            nparts = map(lambda x: int(x),netmask.split('.'))
+            aparts = map(lambda x: int(x),pubaddr.split('.'))
+            netaddr = map(lambda x: nparts[x] & aparts[x], range(0,len(nparts)))
+            pubnetwork=".".join(map(lambda x: x.__str__(),netaddr))
+            mapping["Kickstart_PublicNetwork"] = "pubnetwork"
+            mapping["Kickstart_PublicNetmask"] = "netmask"
+            mapping["Kickstart_PublicNetmaskCIDR"] = "cidr"
+            mapping["Kickstart_PublicGateway"] = "gateway"
+            mtu = nm.nm_device_property(pubif,'mtu')
+            mapping["Kickstart_PublicMTU"] = mtu.__str__()
+        except:
+            pass
         
-        ## get the public networking values
-        pubif = eval(mapping["Kickstart_PublicInterface"])
-        pubaddr = eval(mapping["Kickstart_PublicAddress"])
-        cidr = nm.nm_device_ip_config(pubif)[0][0][1]
-        netmask = network.prefix2netmask(cidr) 
-        nparts = map(lambda x: int(x),netmask.split('.'))
-        aparts = map(lambda x: int(x),pubaddr.split('.'))
-        netaddr = map(lambda x: nparts[x] & aparts[x], range(0,len(nparts)))
-        pubnetwork=".".join(map(lambda x: x.__str__(),netaddr))
-        mapping["Kickstart_PublicNetwork"] = "pubnetwork"
-        mapping["Kickstart_PublicNetmask"] = "netmask"
-        mapping["Kickstart_PublicNetmaskCIDR"] = "cidr"
-        #cmd = ["/sbin/ip","link","show",pubif]
-        #smtu = subprocess.check_output(cmd)
-        #mtu=smtu.split('mtu')[1].strip().split()[0] 
-        mtu = nm.nm_device_property(pubif,'mtu')
-        mapping["Kickstart_PublicMTU"] = mtu.__str__()
         
         ## set the values in our own info structure
         for var in mapping.keys():

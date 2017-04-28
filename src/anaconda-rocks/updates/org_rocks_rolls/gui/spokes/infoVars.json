@@ -281,9 +281,9 @@
     {
         "required": true, 
         "value": "", 
-        "varname": "Kickstart_PublicNetmaskCIDR", 
-        "infoHelp": "IPv4 Prefix for the Public Interface", 
-        "param": "Public IPv4 Prefix (CIDR)", 
+        "varname": "Kickstart_PublicGateway", 
+        "infoHelp": "Gateway for the Public Interface", 
+        "param": "Default Router for Public IPv4 Network", 
         "validate": null, 
         "display": true
     }
