@@ -282,7 +282,7 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
     ## Handlers for the RocksRolls 
     def selectCombo(self,widget):
-        id = widget.get_active_id() 
+        id = widget.get_active_text() 
         if id.lower().startswith("network"):
             self.rollSource = NETWORK
             self.rollUrl.set_text(self.defaultUrl)    
