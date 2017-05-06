@@ -80,9 +80,9 @@ build:
 
 
 install::
-	mkdir -p $(ROOT)/$(PKGROOT)/default
+	mkdir -p $(ROOT)/$(PKGROOT)
 	(cd $(LORAXBUILD); $(TAR) cf - --exclude=boot.iso * ) | \
-	(cd $(ROOT)/$(PKGROOT)/default; $(TAR) xvf - )	
+	(cd $(ROOT)/$(PKGROOT); $(TAR) xvf - )	
 
 clean::
 	- /bin/rm -rf rocks-dist usr

@@ -277,8 +277,6 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         """
 
-        ### XXX FIX THIS
-        return True
         if self.infoStore is None:
             return False
         required = filter(lambda x: x[4] ,self.infoStore)

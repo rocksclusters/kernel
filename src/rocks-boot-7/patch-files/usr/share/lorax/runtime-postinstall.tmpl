@@ -4,6 +4,7 @@
 <%page args="root, basearch, libdir, configdir"/>
 <%
 PYTHONDIR = glob("usr/"+libdir+"/python?.?")[0]
+ROCKSPYTHONDIR = glob("opt/rocks/lib/python?.?")[0]
 stubs = ("list-harddrives", "raidstart", "raidstop")
 configdir = configdir + "/common"
 %>
@@ -18,7 +19,7 @@ move ${PYTHONDIR}/site-packages/pyanaconda/sitecustomize.py ${PYTHONDIR}/site-pa
 ## move_repos()
 move etc/yum.repos.d etc/anaconda.repos.d
 
-## Configure systemd to start anaconda
+# Configure systemd to start anaconda
 remove etc/systemd/system/default.target
 symlink /lib/systemd/system/anaconda.target etc/systemd/system/default.target
 
@@ -144,3 +145,5 @@ append etc/group "rocksdb:x:403:"
 mkdir tracker
 move opt/rocks/bin/tracker-client tracker
 move opt/rocks/bin/peer-done tracker
+## link foundation-python-xml python package into system version, too
+symlink /${ROCKSPYTHONDIR}/site-packages/_xmlplus ${PYTHONDIR}/site-packages/_xmlplus

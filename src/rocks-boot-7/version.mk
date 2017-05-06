@@ -1,4 +1,4 @@
 NAME		= rocks-boot
-PKGROOT		= /boot/kickstart
+PKGROOT		= /boot/kickstart/default
 RELEASE		= 0
-RPM.FILES	= "/boot/kickstart/*"
+RPM.PREFIX	= $(PKGROOT)
