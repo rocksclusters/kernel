@@ -149,13 +149,32 @@ SRCDIRS = `find . -type d -maxdepth 1 \
 	-not -name kernel.org \
 	-not -name keyutils \
 	-not -name rocks-boot \
+	-not -name rocks-boot-7 \
 	-not -name .` 
 
 ifeq ($(strip $(ROCKS.OS.VERSION.MAJOR)), 5)
 SRCDIRS += keyutils
 endif
 
+ifeq ($(strip $(ROCKS.OS.VERSION.MAJOR)), 6)
 SRCDIRS += rocks-boot
+endif
+
+ifeq ($(strip $(ROCKS.OS.VERSION.MAJOR)), 7)
+SRCDIRS += rocks-boot-7
+endif
+
+
+default:	pkg
+
+foo:
+	echo $(SRCDIRS)
+	echo $(ROCKS.OS.VERSION.MAJOR)
+
+copyright rpm pkg clean::
+	for i in $(SRCDIRS) ; do \
+		(cd $$i; make $@) ; \
+	done
 
 default:	pkg
 
