@@ -384,7 +384,7 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
             mapping["Kickstart_PublicNetmask"] = "netmask"
             mapping["Kickstart_PublicNetmaskCIDR"] = "cidr"
             mapping["Kickstart_PublicGateway"] = "gateway"
-            mtu = nm.nm_device_property(pubif,'mtu')
+            mtu = nm.nm_device_property(pubif,'Mtu')
             mapping["Kickstart_PublicMTU"] = mtu.__str__()
         except:
             pass
