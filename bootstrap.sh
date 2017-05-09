@@ -97,7 +97,7 @@ install foundation-sqlite
 OSVERSION=$(lsb_release -rs | cut -d . -f 1)
 if [ $OSVERSION == "7" ]; then
 	BUILDPKGS="gtk3-devel-docs glib2-doc gobject-introspection-devel glade-devel \
-	libgnomekbd-devel libxklavier-devel python-nose libtimezonemap-devel libepoxy-devel" 
+	libgnomekbd-devel libxklavier-devel python-nose libtimezonemap-devel libepoxy-devel lorax" 
 	yum -y install $BUILDPKGS
 	compile_and_install opt-atk
 	compile_and_install opt-glib2
