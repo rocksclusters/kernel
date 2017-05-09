@@ -6,12 +6,14 @@ remove usr/share/i18n
 
 ## not required packages installed as dependencies
 ## no perl besides s390x
-## ROCKS -- commented out the next 3 lines
+## ROCKS -- Commented out the next 3 lines
 #%if basearch != "s390x":
-#    removepkg perl*
+#     removepkg perl*
 #%endif
+## ROCKS
 ## no sound support, thanks
-removepkg alsa* flac gstreamer-tools libsndfile pulseaudio* sound-theme-freedesktop
+## ...except alsa-libs, which are needed by spice-vdagent
+removepkg alsa-*firmware* flac gstreamer-tools libsndfile pulseaudio* sound-theme-freedesktop
 removepkg midisport-firmware
 ## no fancy video, either
 removepkg libcrystalhd crystalhd-firmware ivtv-firmware cx18-firmware
@@ -26,6 +28,11 @@ removefrom dracut --allbut /usr/lib/dracut/modules.d/30convertfs/convertfs.sh \
                   /usr/lib/dracut/dracut-initramfs-restore
 ## we don't run SELinux (not in enforcing, anyway)
 removepkg checkpolicy selinux-policy libselinux-utils
+
+## selinux checks for the /etc/selinux/config file's existance
+## The removepkg above removes it, create an empty one. See rhbz#1243168
+append etc/selinux/config ""
+
 ## anaconda has its own repo files
 removefrom fedora-release --allbut /etc/os-release
 removepkg fedora-release-rawhide
@@ -62,10 +69,10 @@ removepkg tigervnc-license ttmkfdir xml-common xorg-x11-font-utils
 removepkg xorg-x11-server-common yum-utils
 
 ## other removals
-# ROCKS
+## ROCKS - needs sw in opt
 # remove /boot /home /media /opt /srv /tmp/*
 remove /boot /home /media /srv /tmp/*
-# ROCKS
+## ROCKS
 remove /usr/etc /usr/games /usr/local /usr/tmp
 remove /usr/share/doc /usr/share/info /usr/share/man /usr/share/gnome
 remove /usr/share/mime/application /usr/share/mime/audio /usr/share/mime/image
@@ -83,7 +90,7 @@ remove /usr/share/icons/*/icon-theme.cache
 removekmod sound drivers/media drivers/hwmon \
            net/atm net/bluetooth net/sched net/sctp \
            net/rds net/l2tp net/decnet net/netfilter net/ipv4 net/ipv6 \
-           drivers/watchdog drivers/target drivers/rtc drivers/input/joystick \
+           drivers/watchdog drivers/rtc drivers/input/joystick \
            drivers/bluetooth drivers/hid drivers/edac \
            drivers/usb/serial drivers/usb/host drivers/usb/misc \
            fs/ocfs2 fs/ceph fs/nfsd fs/ubifs fs/nilfs2 \
@@ -94,7 +101,7 @@ removekmod sound drivers/media drivers/hwmon \
 removekmod drivers/char --allbut virtio_console hw_random \
                                   virtio-rng ipmi
 removekmod drivers/staging --allbut zram
-removekmod drivers/video --allbut hyperv_fb
+removekmod drivers/video --allbut hyperv_fb syscopyarea sysfillrect sysimgblt fb_sys_fops
 remove lib/modules/*/{build,source,*.map}
 ## NOTE: depmod gets re-run after cleanup finishes
 
@@ -152,7 +159,7 @@ removefrom coreutils /usr/bin/expand /usr/bin/factor
 removefrom coreutils /usr/bin/fold /usr/bin/groups /usr/bin/hostid
 removefrom coreutils /usr/bin/install /usr/bin/join /usr/bin/logname
 removefrom coreutils /usr/bin/mkfifo /usr/bin/nl /usr/bin/nohup /usr/bin/nproc
-removefrom coreutils /usr/bin/paste /usr/bin/pathchk
+removefrom coreutils /usr/bin/pathchk
 removefrom coreutils /usr/bin/pinky /usr/bin/pr /usr/bin/printenv
 removefrom coreutils /usr/bin/printf /usr/bin/ptx /usr/bin/runcon
 removefrom coreutils /usr/bin/sha224sum /usr/bin/sha384sum
@@ -196,7 +203,7 @@ removefrom glibc /${libdir}/libSegFault* /${libdir}/libanl*
 removefrom glibc /${libdir}/libcidn* /${libdir}/libnss_compat*
 removefrom glibc /${libdir}/libnss_hesiod* /${libdir}/libnss_nis*
 # python-pyudev uses ctypes.util.find_library, which uses /sbin/ldconfig
-removefrom glibc /${libdir}/libthread* /${libdir}/rtkaio* /sbin/sln
+removefrom glibc /${libdir}/rtkaio* /sbin/sln
 removefrom glibc /usr/libexec/* /usr/sbin/*
 removefrom glibc-common /etc/* /usr/bin/catchsegv /usr/bin/gencat
 removefrom glibc-common /usr/bin/getent
@@ -212,7 +219,6 @@ removefrom gnome-keyring /usr/share/glib-2.0/* /usr/share/gnome-keyring*
 removefrom gnome-keyring /usr/share/locale/*
 removefrom gnome-python2-gconf /usr/share/pygtk/*
 removefrom gnutls /usr/share/locale/*
-removefrom gpgme /usr/${libdir}/libgpgme-*
 removefrom grep /etc/* /usr/share/locale/*
 removefrom gstreamer /usr/bin/* /usr/${libdir}/gstreamer-0.10/*
 removefrom gstreamer /usr/${libdir}/libgst* /usr/libexec/* /usr/share/locale/*
@@ -249,10 +255,11 @@ removefrom libsemanage /etc/selinux/*
 removefrom libstdc++ /usr/share/*
 removefrom libuser /usr/bin/* /usr/sbin/* /usr/share/locale/*
 removefrom libvorbis /usr/${libdir}/libvorbisenc.*
-## ROCKS Commented out the next 3 lines
+## ROCKS commented out the next 3 lines
 #removefrom libxml2 /usr/bin/*
 #removefrom libxml2-python /usr/${libdir}/python?.?/site-packages/libxml2mod.a
 #removefrom libxml2-python /usr/${libdir}/python?.?/site-packages/libxml2mod.la
+## ROCKS
 removefrom lldpad /etc/*
 removefrom lua /usr/bin/*
 removefrom madan-fonts /usr/share/fonts/madan/*
@@ -290,7 +297,6 @@ removefrom openssh-clients /usr/libexec/*
 removefrom openssh-server /etc/ssh/* /usr/libexec/*
 removefrom openssl /etc/pki/* /usr/bin/* /usr/${libdir}/openssl/*
 removefrom pam /usr/sbin/* /usr/share/locale/*
-removefrom pciutils /usr/sbin/*
 removefrom policycoreutils /etc/* /usr/bin/* /usr/share/locale/*
 removefrom polkit /usr/bin/*
 removefrom polkit-desktop-policy /var/lib/*

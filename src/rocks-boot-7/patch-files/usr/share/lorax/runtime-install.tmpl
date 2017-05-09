@@ -20,7 +20,7 @@ installpkg kernel
 
 ## arch-specific packages (bootloaders etc.)
 %if basearch == "aarch64":
-    installpkg efibootmgr grub2-efi grubby shim shim-unsigned
+    installpkg efibootmgr grub2-efi grub2-efi-modules grubby shim shim-unsigned
 %endif
 %if basearch in ("arm", "armhfp"):
     installpkg kernel-lpae kernel-tegra
@@ -31,7 +31,7 @@ installpkg kernel
 %endif
 %if basearch in ("i386", "x86_64"):
     installpkg grub2 grub2-tools biosdevname memtest86+ syslinux
-    installpkg efibootmgr grub2-efi shim shim-unsigned
+    installpkg efibootmgr grub2-efi grub2-efi-modules shim shim-unsigned
 %endif
 %if basearch in ("ppc", "ppc64", "ppc64le"):
     installpkg grub2 grub2-tools fbset hfsutils kernel-bootwrapper ppc64-utils
@@ -107,6 +107,7 @@ installpkg mt-st smartmontools
 installpkg hdparm
 %endif
 installpkg libmlx4 rdma
+installpkg rng-tools
 
 ## translations & language packs
 installpkg yum-langpacks
@@ -151,6 +152,7 @@ installpkg subscription-manager
 installpkg kexec-tools-anaconda-addon
 installpkg oscap-anaconda-addon
 
+
 ## ROCKS PACKAGES
 #
 installpkg rocks-sql
@@ -179,4 +181,5 @@ installpkg filesystem
 installpkg perl
 installpkg libxml2 
 ## END ROCKS
+## actually install all the requested packages
 run_pkg_transaction
