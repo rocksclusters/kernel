@@ -83,8 +83,10 @@ install::
 	mkdir -p $(ROOT)/$(PKGROOT)
 	(cd $(LORAXBUILD); $(TAR) cf - --exclude=boot.iso * ) | \
 	(cd $(ROOT)/$(PKGROOT); $(TAR) xvf - )	
+	(cd $(LORAXBUILD)/images; mv boot.iso $(REDHAT.ROOT)$(INSTALLERISO))
 
 clean::
 	- /bin/rm -rf rocks-dist usr
 	- /bin/rm *rpm 
+	- /bin/rm  $(INSTALLERISO) 
 
