@@ -258,13 +258,12 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         ## Let's see if we have a network default route set 
         try:
             device = network.default_route_device()
-            return True
+            if device is None:
+                return False 
         except:
             return False
-        #if self.data.addons.org_rocks_rolls.haverolls is None:
-        #    return False
-        #return self.data.addons.org_rocks_rolls.haverolls
-        
+
+        return True
 
     @property
     def completed(self):
@@ -369,7 +368,7 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
             mapping["Kickstart_PublicInterface"] = "network.default_route_device()"
             mapping["Kickstart_PublicAddress"] = "network.get_default_device_ip()"
             mapping["Kickstart_PublicHostname"]="network.getHostname().split('.',1)[0]"
-            mapping["Kickstart_PublicDNSDomain"]="network.getHostname().split('.',1)[1]"
+            mapping["Kickstart_PublicDNSDomain"]="subprocess.check_output(['hostname','--fqdn']).strip().split('.',1)[1]"
             ## get the public networking values
             pubif = eval(mapping["Kickstart_PublicInterface"])
             pubaddr = eval(mapping["Kickstart_PublicAddress"])
@@ -392,7 +391,10 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         
         ## set the values in our own info structure
         for var in mapping.keys():
-            setValue(info, var,eval(mapping[var]))
+            try: 
+                setValue(info, var,eval(mapping[var]))
+            except Exception as e:
+                self.log.info("ROCKS: Exception(%s) setting var (%s)" % (e,var))              
 
 class Foo():
     def __init__(self):

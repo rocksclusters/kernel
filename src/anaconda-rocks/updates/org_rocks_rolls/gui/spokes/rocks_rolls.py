@@ -111,15 +111,15 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         NormalSpoke.__init__(self, data, storage, payload, instclass)
 
-        self.defaultUrl ="http://central-6-2-x86-64.rocksclusters.org/install/rolls"
-        self.defaultCDPath = "/mnt/cdrom"
+        self.defaultUrl ="http://beta6.rocksclusters.org/install/rolls"
+        self.defaultCDPath = "/run/install/repo"
 
         self.selectAll = True
         self.rollSource = NETWORK
         self.version = '7.0'
         self.requireDB = True
 
-        self.requiredRolls = ('core',)
+        self.requiredRolls = ('core','base','kernel')
 
 
     def initialize(self):
@@ -298,10 +298,13 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         #
         # if this is a CD-based roll, then mount the disk
+	# just read from a local path
         #
         if self.rollSource == CD:
-            self.media.mountCD(path=url)
-            diskid = self.media.getId(path=url)
+            # XXX Fix this to really do mounting in 7 XXX
+            #self.media.mountCD(path=url)
+            #diskid = self.media.getId(path=url)
+            diskid = "repo" 
             for d,s,f in os.walk(url):
                 if d.endswith("RedHat"):
                     (roll,version,arch) = d.split(os.path.sep)[-4:-1]
