@@ -128,7 +128,6 @@
 	<package os='linux'>redhat-rpm-config</package>
 	<package os='linux'>glibc-devel</package>
 	<package os='linux'>gcc</package>
-	<package os='linux'>libdhcp-devel</package>
 	<package os='linux'>audit-libs-devel</package>
 
 
