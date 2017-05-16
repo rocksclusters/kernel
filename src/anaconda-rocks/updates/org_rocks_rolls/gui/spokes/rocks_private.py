@@ -58,10 +58,12 @@ infoMap = {}
 infoMap['MTU'] = 'Kickstart_PrivateMTU'
 infoMap['privateHostname']= 'Kickstart_PrivateHostname'
 infoMap['privateDNS']= 'Kickstart_PrivateDNSDomain'
-infoMap['privateIP']= 'Kickstart_PrivateAddress'
+infoMap['privateAddress']= 'Kickstart_PrivateAddress'
 infoMap['privateNetmask']='Kickstart_PrivateNetmask'
 infoMap['privateNetwork']='Kickstart_PrivateNetwork'
 infoMap['ifaceSelected'] ='Kickstart_PrivateInterface'
+infoMap['privateSyslogHost'] = 'Kickstart_PrivateSyslogHost'
+infoMap['privateKickstartHost'] = 'Kickstart_PrivateKickstartHost'
 
 FIELDNAMES=["label","device","type","mac"]
 LABELIDX = FIELDNAMES.index("label")
@@ -128,7 +130,10 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         # intialize DNS,IPV4 addr/netmask
         self.MTU = self.MTUComboBox.get_active_id().split()[0]
         self.privateHostname = network.getHostname().split('.',1)[0]
-        self.privateIP = self.IPv4_Address.get_text()
+        self.privateAddress = self.IPv4_Address.get_text()
+	self.privateSyslogHost = self.privateAddress
+	self.privateKickstartHost = self.privateAddress
+
         self.privateNetmask = self.IPv4_Netmask.get_text()
         self.privateDNS = self.privateDNS_Entry.get_text()
         self.visited = False
@@ -136,7 +141,7 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
     @property
     def privateNetwork(self):
         nparts = map(lambda x: int(x),self.privateNetmask.split('.'))
-        aparts = map(lambda x: int(x),self.privateIP.split('.'))
+        aparts = map(lambda x: int(x),self.privateAddress.split('.'))
         netaddr = map(lambda x: nparts[x] & aparts[x], range(0,len(nparts)))
         return ".".join(map(lambda x: x.__str__(),netaddr))
 
@@ -265,6 +270,8 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
     def IPv4_Address_handler(self,widget):
         self.privateAddress = widget.get_text() 
+	self.privateSyslogHost = self.privateAddress
+	self.privateKickstartHost = self.privateAddress
         widget.set_text(self.privateAddress)
 
     def IPv4_Netmask_handler(self,widget):

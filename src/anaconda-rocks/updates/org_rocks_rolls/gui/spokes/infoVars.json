@@ -118,6 +118,24 @@
     }, 
     {
         "required": true, 
+        "value": "10.1.1.1", 
+        "varname": "Kickstart_PrivateKickstartHost", 
+        "infoHelp": "", 
+        "param": "IP of kickstart host", 
+        "validate": null, 
+        "display": false
+    }, 
+    {
+        "required": true, 
+        "value": "10.1.1.1", 
+        "varname": "Kickstart_PrivateSyslogHost", 
+        "infoHelp": "", 
+        "param": "IP of Syslog Host on Private Side", 
+        "validate": null, 
+        "display": false
+    }, 
+    {
+        "required": true, 
         "value": "central.rocksclusters.org", 
         "varname": "Kickstart_PublicKickstartHost", 
         "infoHelp": "", 
