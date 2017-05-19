@@ -27,6 +27,7 @@ import subprocess
 from pyanaconda.addons import AddonData
 from pyanaconda.iutil import getSysroot
 from pyanaconda import kickstart
+from org_rocks_rolls import RocksEnv
 
 from pykickstart.options import KSOptionParser
 from pykickstart.errors import KickstartParseError, formatErrorMsg
@@ -58,6 +59,7 @@ class RocksRollsData(AddonData):
         self.reverse = False
         self.postscripts = None
         self.haverolls = None
+        self.clientInstall = RocksEnv.RocksEnv().clientInstall
 
     def __str__(self):
         """
@@ -167,7 +169,8 @@ class RocksRollsData(AddonData):
         ##      process the xml files for the rolls specified, then generate
         ##      packages
 
-        if ksdata.addons.org_rocks_rolls.info is None:
+        ## We don't have "rolls" if we are a clientInstall
+        if self.clientInstall or ksdata.addons.org_rocks_rolls.info is None:
             return
         for row in ksdata.addons.org_rocks_rolls.info:
             log.info("ROCKS ADD ATTR %s=%s" % (row[2],row[1]))

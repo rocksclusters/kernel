@@ -48,6 +48,7 @@ class RHELBaseInstallClass(BaseInstallClass):
     help_placeholder = "CentOSPlaceholder.html"
     help_placeholder_with_links = "CentOSPlaceholder.html"
 
+
     def configure(self, anaconda):
         BaseInstallClass.configure(self, anaconda)
         self.setDefaultPartitioning(anaconda.storage)
@@ -74,6 +75,7 @@ class RHELBaseInstallClass(BaseInstallClass):
         BaseInstallClass.__init__(self)
 
 
+
 ###  Rocks Extensions to the YumPayLoad Class ###
 ##
 # Responsibilities:
@@ -93,6 +95,7 @@ class RHELBaseInstallClass(BaseInstallClass):
 
 from pyanaconda.packaging.yumpayload import YumPayload
 from rocks_getrolls import RocksGetRolls
+from org_rocks_rolls import RocksEnv
 import subprocess
 import os
 
@@ -112,19 +115,22 @@ class RocksYumPayload(YumPayload):
     def __init__(self, data):
         super(RocksYumPayload,self).__init__(data)
         self.lighttpdProc = None
+        self.clientInstall = RocksEnv.RocksEnv().clientInstall
 
     def preInstall(self, packages=None, groups=None):
         """ Perform pre-installation tasks. """ 
         log = logging.getLogger("packaging")
 
         ## XXX - not complete. Just works for Frontend install
-        self.lighttpd(log)
-        log.info("RocksYumPayload preInstallHook  - downloading rolls")
-        RocksGetRolls()
-        log.info("RocksYumPayload preInstallHook  - rolls downloaded")
-        ## Now tell YumPayload that our repo has changed
-        self.useRocksLocalRepo(log)
-        self.shutdownRocksDB(log) 
+	if not self.clientInstall:
+        	self.lighttpd(log)
+        	log.info("RocksYumPayload preInstallHook  - downloading rolls")
+        	RocksGetRolls()
+        	log.info("RocksYumPayload preInstallHook  - rolls downloaded")
+        	## Now tell YumPayload that our repo has changed
+        	self.useRocksLocalRepo(log)
+        	self.shutdownRocksDB(log) 
+
         super(RocksYumPayload, self).preInstall(packages, groups)
 
     def lighttpd(self,log):

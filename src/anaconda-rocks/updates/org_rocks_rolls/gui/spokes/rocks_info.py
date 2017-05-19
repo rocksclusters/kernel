@@ -37,6 +37,7 @@ from gi.repository import Gtk, GObject
 
 ### the path to addons is in sys.path so we can import things from org_rocks_rolls
 from org_rocks_rolls.categories.RocksRolls import RocksRollsCategory
+from org_rocks_rolls import RocksEnv
 from pyanaconda.ui.gui import GUIObject
 from pyanaconda.ui.gui.spokes import NormalSpoke
 from pyanaconda.ui.common import FirstbootSpokeMixIn
@@ -175,7 +176,7 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         """
 
         NormalSpoke.__init__(self, data, storage, payload, instclass)
-
+        self.clientInstall = RocksEnv.RocksEnv().clientInstall
     def initialize(self):
         """
         The initialize method that is called after the instance is created.
@@ -276,6 +277,8 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         """
 
+        if self.clientInstall:
+            return True
         if self.infoStore is None:
             return False
         required = filter(lambda x: x[4] ,self.infoStore)
@@ -308,6 +311,8 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         :rtype: str
 
         """
+        if self.clientInstall:
+            return "Configuration Defined By Kickstart"
         if not self.ready:
             return "Please Configure your Public Network"
         if  self.completed:

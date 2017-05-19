@@ -37,6 +37,7 @@ from gi.repository import Gtk, GObject
 
 ### the path to addons is in sys.path so we can import things from org_rocks_rolls
 from org_rocks_rolls.categories.RocksRolls import RocksRollsCategory
+from org_rocks_rolls import RocksEnv
 from pyanaconda.ui.gui import GUIObject
 from pyanaconda.ui.gui.spokes import NormalSpoke
 from pyanaconda.ui.common import FirstbootSpokeMixIn
@@ -110,6 +111,7 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         """
 
         NormalSpoke.__init__(self, data, storage, payload, instclass)
+        self.clientInstall = RocksEnv.RocksEnv().clientInstall
 
         self.defaultUrl ="http://beta6.rocksclusters.org/install/rolls"
         self.defaultCDPath = "/run/install/repo"
@@ -196,7 +198,7 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         """
 
-        if self.completed:
+        if self.completed and not self.clientInstall:
             self.writeRollsXML()
             if self.requireDB:
                 self.builddb()
@@ -226,6 +228,8 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         """
 
+        if self.clientInstall:
+            return True
         #return bool(self.data.addons.org_rocks_rolls.text)
         sel = map(lambda x: x[0], self.selectStore)
         req = filter(lambda x: x in self.requiredRolls, sel)

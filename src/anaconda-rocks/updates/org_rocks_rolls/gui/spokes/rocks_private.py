@@ -1,4 +1,4 @@
-#
+
 # Copyright (C) 2013  Red Hat, Inc.
 #
 # This copyrighted material is made available to anyone wishing to use,
@@ -38,6 +38,7 @@ from gi.repository import Gtk, GObject
 ### the path to addons is in sys.path so we can import things from org_rocks_rolls
 from org_rocks_rolls.categories.RocksRolls import RocksRollsCategory
 from org_rocks_rolls.gui.spokes import rocks_info 
+from org_rocks_rolls import RocksEnv
 from pyanaconda.ui.gui import GUIObject
 from pyanaconda.ui.gui.spokes import NormalSpoke
 from pyanaconda.ui.common import FirstbootSpokeMixIn
@@ -98,7 +99,7 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
     ### methods defined by API ###
     def __init__(self, data, storage, payload, instclass):
         NormalSpoke.__init__(self, data, storage, payload, instclass)
-
+        self.clientInstall = RocksEnv.RocksEnv().clientInstall
     def initialize(self):
         """
         The initialize method that is called after the instance is created.
@@ -227,6 +228,8 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         """
         # return True
+        if self.clientInstall:
+            return True
         return self.visited 
 
     @property
