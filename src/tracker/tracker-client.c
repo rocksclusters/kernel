@@ -146,6 +146,7 @@ int	status = HTTP_OK;
 int     isRpm = 0;
 MD5_CTX	context;
 
+#define DEFAULTADDR "127.0.0.1"
 
 int
 getargs(char *forminfo, char *filename)
@@ -1401,17 +1402,23 @@ main()
 	 * get the IP addresses of the tracker(s) and package server(s)
 	 */
 	if ((file = fopen("/tmp/rocks.conf", "r")) == NULL) {
-		fprintf(stderr, "main:fopen\n");
-		return(-1);
+		
+		fprintf(stderr, "main:fopen. using defaults\n");
+		trackers_url[PATH_MAX-1]='\0';
+		pkg_servers_url[PATH_MAX-1]='\0';
+		strncpy(trackers_url,DEFAULTADDR,PATH_MAX-1);
+		strncpy(pkg_servers_url,DEFAULTADDR,PATH_MAX-1);
 	}
+	else
+	{
+		fgets(buf, sizeof(buf), file);
+		sscanf(buf, "var.trackers = \"%[^\"]", trackers_url);
 
-	fgets(buf, sizeof(buf), file);
-	sscanf(buf, "var.trackers = \"%[^\"]", trackers_url);
+		fgets(buf, sizeof(buf), file);
+		sscanf(buf, "var.pkgservers = \"%[^\"]", pkg_servers_url);
 
-	fgets(buf, sizeof(buf), file);
-	sscanf(buf, "var.pkgservers = \"%[^\"]", pkg_servers_url);
-
-	fclose(file);
+		fclose(file);
+	}
 
 	fprintf(stderr, "main:trackers_url (%s)\n", trackers_url);
 	fprintf(stderr, "main:pkg_servers_url (%s)\n", pkg_servers_url);
