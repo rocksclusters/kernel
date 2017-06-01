@@ -299,6 +299,60 @@
     {
         "required": true, 
         "value": "", 
+        "varname": "Kickstart_PrivateSyslogHost", 
+        "infoHelp": "Syslog Host for nodes on Private Network", 
+        "param": "Syslog Host for nodes on Private Network",
+        "validate": null, 
+        "display": false
+    },
+    {
+        "required": true, 
+        "value": "", 
+        "varname": "Kickstart_PrivateKickstartHost", 
+        "infoHelp": "Private Address for the Kickstart Host", 
+        "param": "Private Address for the Kickstart Host", 
+        "validate": null, 
+        "display": false
+    },
+    {
+        "required": true, 
+        "value": "8.8.8.8", 
+        "varname": "Kickstart_PublicDNSServers", 
+        "infoHelp": "Addresses for Public DNS Servers", 
+        "param": "Addresses for Public DNS Servers", 
+        "validate": null, 
+        "display": false
+    },
+    {
+        "required": true, 
+        "value": "", 
+        "varname": "Kickstart_PrivateGateway", 
+        "infoHelp": "Gateway for Private Network Nodes", 
+        "param": "Gateway for Private Network Nodes", 
+        "validate": null, 
+        "display": false
+    },
+    {
+        "required": true, 
+        "value": "", 
+        "varname": "Kickstart_PrivateDNSServers", 
+        "infoHelp": "DNS Servers for Private Network Nodes", 
+        "param": "DNS Servers for Private Network Nodes",
+        "validate": null, 
+        "display": false
+    },
+    {
+        "required": true, 
+        "value": "", 
+        "varname": "Kickstart_PrivateNetmaskCIDR", 
+        "infoHelp": "CIDR for Private Network", 
+        "param": "CIDR for Private Network", 
+        "validate": null, 
+        "display": false
+    },
+    {
+        "required": true, 
+        "value": "", 
         "varname": "Kickstart_PublicGateway", 
         "infoHelp": "Gateway for the Public Interface", 
         "param": "Default Router for Public IPv4 Network", 

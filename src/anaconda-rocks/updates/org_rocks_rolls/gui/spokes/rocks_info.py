@@ -368,6 +368,7 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         mapping["Kickstart_Langsupport"]=mapping["Kickstart_Lang"]
         mapping["Kickstart_Timezone"] = "ksdata.timezone.timezone"
         mapping["Kickstart_PublicNTPHost"] = "ksdata.timezone.ntpservers"
+        mapping["Kickstart_PublicDNSServers"] = "self.readDNSConfig()" 
         ## Network may not be up, so these may fail
         try:
             mapping["Kickstart_PublicInterface"] = "network.default_route_device()"
@@ -400,6 +401,21 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
                 setValue(info, var,eval(mapping[var]))
             except Exception as e:
                 self.log.info("ROCKS: Exception(%s) setting var (%s)" % (e,var))              
+
+        def readDNSConfig(self):
+            """ Read resolv.conf and return a comma-delimited list of 
+                of servers. Empty string if resolv.conf isn't written yet"""
+            servers = []
+            try:
+                with open("/etc/resolv.conf") as f:
+                    for line in f.readlines():
+                        if "nameserver" in line:
+                                servers.append(line.split()[1])
+            except:
+                pass
+
+            return  ",".join(servers)
+
 
 class Foo():
     def __init__(self):

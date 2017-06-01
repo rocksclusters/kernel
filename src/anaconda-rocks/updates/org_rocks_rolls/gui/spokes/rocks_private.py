@@ -65,6 +65,9 @@ infoMap['privateNetwork']='Kickstart_PrivateNetwork'
 infoMap['ifaceSelected'] ='Kickstart_PrivateInterface'
 infoMap['privateSyslogHost'] = 'Kickstart_PrivateSyslogHost'
 infoMap['privateKickstartHost'] = 'Kickstart_PrivateKickstartHost'
+infoMap['privateGateway'] = 'Kickstart_PrivateGateway'
+infoMap['privateDNSServers'] = 'Kickstart_PrivateDNSServers'
+infoMap['privateNetmaskCIDR'] = 'Kickstart_PrivateNetmaskCIDR'
 
 FIELDNAMES=["label","device","type","mac"]
 LABELIDX = FIELDNAMES.index("label")
@@ -132,9 +135,7 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.MTU = self.MTUComboBox.get_active_id().split()[0]
         self.privateHostname = network.getHostname().split('.',1)[0]
         self.privateAddress = self.IPv4_Address.get_text()
-	self.privateSyslogHost = self.privateAddress
-	self.privateKickstartHost = self.privateAddress
-
+        self.derivedValues()
         self.privateNetmask = self.IPv4_Netmask.get_text()
         self.privateDNS = self.privateDNS_Entry.get_text()
         self.visited = False
@@ -146,6 +147,16 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         netaddr = map(lambda x: nparts[x] & aparts[x], range(0,len(nparts)))
         return ".".join(map(lambda x: x.__str__(),netaddr))
 
+    def derivedValues(self):
+        """ these are values in the Rocks DB that can be changed 
+            after installation for customized. But in general, they 
+            are simply replicas """
+        self.privateSyslogHost = self.privateAddress
+        self.privateKickstartHost = self.privateAddress
+        self.privateGateway = self.privateAddress
+        self.privateDNSServers = self.privateAddress 
+        self.privateNetmaskCIDR = network.netmask2prefix(self.privateNetmask)
+        
     def refresh(self):
         """
         The refresh method that is called every time the spoke is displayed.
@@ -190,6 +201,7 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         # This is all about setting variables in the 
         # self.data.addons.org_rocks_rolls.info 
+        self.derivedValues()
         for var in infoMap.keys(): 
             rocks_info.setValue(self.data.addons.org_rocks_rolls.info, \
                 infoMap[var], eval("self.%s"%var))
@@ -273,12 +285,12 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
     def IPv4_Address_handler(self,widget):
         self.privateAddress = widget.get_text() 
-	self.privateSyslogHost = self.privateAddress
-	self.privateKickstartHost = self.privateAddress
         widget.set_text(self.privateAddress)
 
     def IPv4_Netmask_handler(self,widget):
-        self.privateNetmask = widget.get_text()
+        """ guard against masks that look like 255.255.255.000"""
+        mask = widget.get_text()
+        self.privateNetmask = ".".join(map(lambda x: str(int(x) & 255), mask.split('.')))
         widget.set_text(self.privateNetmask)
 
     def privateDNS_handler(self,widget):
