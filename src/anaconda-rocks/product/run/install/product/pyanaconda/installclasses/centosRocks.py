@@ -144,6 +144,7 @@ class RocksYumPayload(YumPayload):
         
     def useRocksLocalRepo(self,log): 
         log.info("ROCKS: base repo is %s" % self.baseRepo.__str__())
+        self.data.method.method = "url"
         self.data.method.url = "file:/mnt/sysimage/export/rocks/install/rocks-dist/x86_64"
         self.updateBaseRepo()
        
