@@ -130,14 +130,14 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.ifaceSelected=''
         self.refresh()
         self.ifaceCombo.set_active(0)
-        self.ifaceSelected = self.ifaceCombo.get_active_id().split(';')[0]
+        devString = 'eth0:0;virt'
+        if self.ifaceCombo.get_active() >= 0 :
+            devString = self.ifaceCombo.get_active_id()
+        self.ifaceSelected = devString.split(';')[0]
         # intialize DNS,IPV4 addr/netmask
-        self.MTU = self.MTUComboBox.get_active_id().split()[0]
         self.privateHostname = network.getHostname().split('.',1)[0]
-        self.privateAddress = self.IPv4_Address.get_text()
+        self.formValues()
         self.derivedValues()
-        self.privateNetmask = self.IPv4_Netmask.get_text()
-        self.privateDNS = self.privateDNS_Entry.get_text()
         self.visited = False
 
     @property
@@ -146,6 +146,12 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         aparts = map(lambda x: int(x),self.privateAddress.split('.'))
         netaddr = map(lambda x: nparts[x] & aparts[x], range(0,len(nparts)))
         return ".".join(map(lambda x: x.__str__(),netaddr))
+
+    def formValues(self):
+        self.MTU = self.MTUComboBox.get_active_id().split()[0]
+        self.privateAddress = self.IPv4_Address.get_text()
+        self.privateNetmask = self.IPv4_Netmask.get_text()
+        self.privateDNS = self.privateDNS_Entry.get_text()
 
     def derivedValues(self):
         """ these are values in the Rocks DB that can be changed 
@@ -201,6 +207,7 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         # This is all about setting variables in the 
         # self.data.addons.org_rocks_rolls.info 
+        self.formValues()
         self.derivedValues()
         for var in infoMap.keys(): 
             rocks_info.setValue(self.data.addons.org_rocks_rolls.info, \

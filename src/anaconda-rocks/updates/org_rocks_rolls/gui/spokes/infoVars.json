@@ -118,22 +118,22 @@
     }, 
     {
         "required": true, 
-        "value": "10.1.1.1", 
-        "varname": "Kickstart_PrivateKickstartHost", 
-        "infoHelp": "", 
-        "param": "IP of kickstart host", 
+        "value": "", 
+        "varname": "Kickstart_PrivateSyslogHost", 
+        "infoHelp": "Syslog Host for nodes on Private Network", 
+        "param": "Syslog Host for nodes on Private Network",
         "validate": null, 
         "display": false
-    }, 
+    },
     {
         "required": true, 
-        "value": "10.1.1.1", 
-        "varname": "Kickstart_PrivateSyslogHost", 
-        "infoHelp": "", 
-        "param": "IP of Syslog Host on Private Side", 
+        "value": "", 
+        "varname": "Kickstart_PrivateKickstartHost", 
+        "infoHelp": "Private Address for the Kickstart Host", 
+        "param": "Private Address for the Kickstart Host", 
         "validate": null, 
         "display": false
-    }, 
+    },
     {
         "required": true, 
         "value": "central.rocksclusters.org", 
@@ -295,24 +295,6 @@
         "param": "Public Interface MTU", 
         "validate": null, 
         "display": true
-    },
-    {
-        "required": true, 
-        "value": "", 
-        "varname": "Kickstart_PrivateSyslogHost", 
-        "infoHelp": "Syslog Host for nodes on Private Network", 
-        "param": "Syslog Host for nodes on Private Network",
-        "validate": null, 
-        "display": false
-    },
-    {
-        "required": true, 
-        "value": "", 
-        "varname": "Kickstart_PrivateKickstartHost", 
-        "infoHelp": "Private Address for the Kickstart Host", 
-        "param": "Private Address for the Kickstart Host", 
-        "validate": null, 
-        "display": false
     },
     {
         "required": true, 

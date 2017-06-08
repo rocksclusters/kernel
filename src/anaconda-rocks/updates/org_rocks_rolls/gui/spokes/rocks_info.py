@@ -32,6 +32,7 @@ import sys
 import gi
 import urllib
 import subprocess
+import logging
 gi.require_version('Gtk','3.0')
 from gi.repository import Gtk, GObject
 
@@ -110,18 +111,14 @@ def getValue(ksdata,varname):
 
 ## Set the value in info store
 def setValue(info, varname,value):
+    log = logging.getLogger('anaconda')
+    log.info("Trying to set '%s' to '%s' in object '%s'" % \
+        (varname,value.__str__(),hex(id(info))))
     for row in info:
         if row[VARIDX] == varname:
+            log.info("Setting '%s' to '%s'" % (varname,value.__str__())) 
             row[VALIDX] = value.__str__()
             break 
-
-    
-def setValue(info, varname,value):
-    for row in info:
-        if row[VARIDX] == varname:
-            row[VALIDX] = value.__str__()
-            break 
-
 
 class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
     """
@@ -215,6 +212,8 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         """
         ### Master of information is rocks_rolls.info structure.
         self.mapAnacondaValues(self.data.addons.org_rocks_rolls.info)
+        self.log.info("ROCKS: refresh() info %s" % hex(id(self.data.addons.org_rocks_rolls.info)))
+        self.log.info("ROCKS: refresh() info %s" % self.data.addons.org_rocks_rolls.info.__str__())
         self.infoStore.clear()
         for infoEntry in self.data.addons.org_rocks_rolls.info:
             if type(infoEntry[1]) is list:
@@ -234,8 +233,9 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         # used in other anaconda widgets won't work
         infoParams = []
         for r in self.infoStore:
-            infoParams.append((r[:]))
-        self.data.addons.org_rocks_rolls.info = infoParams 
+            setValue(self.data.addons.org_rocks_rolls.info,r[2],r[1])
+        # self.data.addons.org_rocks_rolls.info = infoParams 
+        self.log.info("ROCKS: info %s" % hex(id(self.data.addons.org_rocks_rolls.info)))
         self.log.info("ROCKS: info %s" % self.data.addons.org_rocks_rolls.info.__str__())
         self.visited = True
 
@@ -281,8 +281,9 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
             return True
         if self.infoStore is None:
             return False
-        required = filter(lambda x: x[4] ,self.infoStore)
+        required = filter(lambda x: x[4] ,self.data.addons.org_rocks_rolls.info)
         completed = filter(lambda x: x[1] is not None and len(x[1]) > 0, required) 
+        self.log.info("ROCKS: completed() required:%d; completed:%d" % (len(required),len(completed)))
         if self.visited and len(required) == len(completed):
             return True
         else:
@@ -402,19 +403,19 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
             except Exception as e:
                 self.log.info("ROCKS: Exception(%s) setting var (%s)" % (e,var))              
 
-        def readDNSConfig(self):
-            """ Read resolv.conf and return a comma-delimited list of 
-                of servers. Empty string if resolv.conf isn't written yet"""
-            servers = []
-            try:
-                with open("/etc/resolv.conf") as f:
-                    for line in f.readlines():
-                        if "nameserver" in line:
-                                servers.append(line.split()[1])
-            except:
-                pass
+    def readDNSConfig(self):
+        """ Read resolv.conf and return a comma-delimited list of 
+            of servers. Empty string if resolv.conf isn't written yet"""
+        servers = []
+        try:
+            with open("/etc/resolv.conf") as f:
+                for line in f.readlines():
+                    if "nameserver" in line:
+                            servers.append(line.split()[1])
+        except:
+            pass
 
-            return  ",".join(servers)
+        return  ",".join(servers)
 
 
 class Foo():
