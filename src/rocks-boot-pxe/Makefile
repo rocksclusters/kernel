@@ -68,7 +68,7 @@ IMAGES = vmlinuz initrd.img
 build:
 	make -C $(REDHAT.ROOT) createlocalrepo
 	- mkdir $(TMPBUILD) 
-	yum -c $(REDHAT.ROOT)/yum.conf -y --installroot=$(TMPBUILD) install rocks-boot 
+	yum -c $(REDHAT.ROOT)/yum.conf -y --disablerepo='*' --enablerepo=kernel-roll --installroot=$(TMPBUILD) install rocks-boot 
 
 install::
 	mkdir -p $(ROOT)/$(PKGROOT)
