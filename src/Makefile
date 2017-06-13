@@ -150,6 +150,7 @@ SRCDIRS = `find . -type d -maxdepth 1 \
 	-not -name keyutils \
 	-not -name rocks-boot \
 	-not -name rocks-boot-7 \
+	-not -name rocks-boot-pxe \
 	-not -name .` 
 
 ifeq ($(strip $(ROCKS.OS.VERSION.MAJOR)), 5)
@@ -161,7 +162,7 @@ SRCDIRS += rocks-boot
 endif
 
 ifeq ($(strip $(ROCKS.OS.VERSION.MAJOR)), 7)
-SRCDIRS += rocks-boot-7
+SRCDIRS += rocks-boot-7 rocks-boot-pxe
 endif
 
 
