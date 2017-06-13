@@ -45,6 +45,10 @@ import thread
 
 
 
+STATUSMSG = ["%d Rolls Selected", "Please Select Required Rolls ", "Hostname='localhost'. Please Change it"]
+COMPLETE = 0
+CONFIGURE = 1
+BADHOSTNAME = 2
 
 ## Defines for Roll Source
 NETWORK = 0
@@ -159,6 +163,8 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         ## from template
         # self._entry = self.builder.get_object("textEntry")
 
+        self.readyState = CONFIGURE
+
     def refresh(self):
         """
         The refresh method that is called every time the spoke is displayed.
@@ -214,7 +220,15 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         """
 
-        # this spoke is always ready
+        # Check if the hostname starts with "localhost"
+        # if
+	myHostname = subprocess.check_output(['hostname','-s']).strip()
+        if myHostname.startswith("localhost"):
+            self.readyState=BADHOSTNAME
+            return False
+        # if the readyState was BADHOSTNAME return to CONFIGURE state
+        if self.readyState == BADHOSTNAME:
+            self.readyState = CONFIGURE
         return True
 
     @property
@@ -230,14 +244,19 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         if self.clientInstall:
             return True
+        if self.readyState == BADHOSTNAME:
+            return False
+
         #return bool(self.data.addons.org_rocks_rolls.text)
         sel = map(lambda x: x[0], self.selectStore)
         req = filter(lambda x: x in self.requiredRolls, sel)
         if len(req) >= len(self.requiredRolls):
             self.data.addons.org_rocks_rolls.haverolls = True 
+            self.readyState = COMPLETE
             return True
         else:
             self.data.addons.org_rocks_rolls.haverolls = False 
+            self.readyState = CONFIGURE
             return False
 
     @property
@@ -265,7 +284,10 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         """
 
-        return "%d rolls selected" % len (self.selectStore)
+        if self.readyState == COMPLETE:
+            return STATUSMSG[COMPLETE] %  len (self.selectStore)
+        else:
+            return STATUSMSG[self.readyState]
 
     ### handlers ###
     def on_entry_icon_clicked(self, entry, *args):

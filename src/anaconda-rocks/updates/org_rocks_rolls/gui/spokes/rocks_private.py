@@ -69,6 +69,11 @@ infoMap['privateGateway'] = 'Kickstart_PrivateGateway'
 infoMap['privateDNSServers'] = 'Kickstart_PrivateDNSServers'
 infoMap['privateNetmaskCIDR'] = 'Kickstart_PrivateNetmaskCIDR'
 
+STATUSMSG = ["All Configuration Complete", "Please Configure Local Network", "Hostname='localhost'. Please Change it"]
+COMPLETE = 0
+CONFIGURE = 1
+BADHOSTNAME = 2
+
 FIELDNAMES=["label","device","type","mac"]
 LABELIDX = FIELDNAMES.index("label")
 DEVICEIDX = FIELDNAMES.index("device")
@@ -126,6 +131,7 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         self.privateDNS_Entry = self.builder.get_object("privateDNS")
         self.IPv4_Address = self.builder.get_object("IPv4_Address")
         self.IPv4_Netmask = self.builder.get_object("IPv4_Netmask")
+        self.readyState = CONFIGURE
         # Populate the private interface combo
         self.ifaceSelected=''
         self.refresh()
@@ -135,7 +141,6 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
             devString = self.ifaceCombo.get_active_id()
         self.ifaceSelected = devString.split(';')[0]
         # intialize DNS,IPV4 addr/netmask
-        self.privateHostname = network.getHostname().split('.',1)[0]
         self.formValues()
         self.derivedValues()
         self.visited = False
@@ -157,6 +162,7 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         """ these are values in the Rocks DB that can be changed 
             after installation for customized. But in general, they 
             are simply replicas """
+        self.privateHostname = subprocess.check_output(['hostname','-s']).strip() 
         self.privateSyslogHost = self.privateAddress
         self.privateKickstartHost = self.privateAddress
         self.privateGateway = self.privateAddress
@@ -212,7 +218,7 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         for var in infoMap.keys(): 
             rocks_info.setValue(self.data.addons.org_rocks_rolls.info, \
                 infoMap[var], eval("self.%s"%var))
-        self.visited = True
+        self.readyState = COMPLETE
 
     def execute(self):
         """
@@ -231,7 +237,18 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         :rtype: bool
 
         """
+        self.derivedValues()
+        # Check if the hostname starts with "localhost"
+        # if
+        if self.privateHostname.startswith("localhost"):
+            self.readyState=BADHOSTNAME
+            return False
+        # if the readyState was BADHOSTNAME return to CONFIGURE state
+        if self.readyState == BADHOSTNAME:
+            self.readyState = CONFIGURE
+
         return True
+
         #if self.data.addons.org_rocks_rolls.haverolls is None:
         #    return False
         # return self.data.addons.org_rocks_rolls.haverolls 
@@ -249,7 +266,7 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         # return True
         if self.clientInstall:
             return True
-        return self.visited 
+        return (self.readyState == COMPLETE) 
 
     @property
     def mandatory(self):
@@ -274,12 +291,7 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         :rtype: str
 
         """
-        if  not self.ready:
-            return "Please Select Rolls First"
-        if self.completed:
-            return "All Required Configuration Entered"
-        else:
-            return "Configure Private Network" 
+        return STATUSMSG[self.readyState] 
 
     ### handlers ###
     def ifaceCombo_handler(self,widget):
