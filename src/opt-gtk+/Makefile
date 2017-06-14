@@ -67,6 +67,7 @@ build:
 	unxz -c $(TARFILE) | $(TAR) xvf - 
 	(								\
 		cd $(SUBDIR) ; 						\
+		. /etc/profile.d/modules.sh;				\
 		module load opt-devel;					\
 		./configure --prefix=$(PKGROOT) ;			\
 		$(MAKE) ; 						\
@@ -76,6 +77,7 @@ install::
 	mkdir -p $(ROOT)/$(PKGROOT)
 	(								\
 		cd $(SUBDIR);						\
+		. /etc/profile.d/modules.sh;				\
 		module load opt-devel;					\
 		$(MAKE) prefix=$(ROOT)/$(PKGROOT) install;		\
 	)
