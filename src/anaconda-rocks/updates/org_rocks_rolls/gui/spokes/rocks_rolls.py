@@ -40,7 +40,7 @@ from org_rocks_rolls.categories.RocksRolls import RocksRollsCategory
 from org_rocks_rolls import RocksEnv
 from pyanaconda.ui.gui import GUIObject
 from pyanaconda.ui.gui.spokes import NormalSpoke
-from pyanaconda.ui.common import FirstbootSpokeMixIn
+from pyanaconda.ui.communication import hubQ
 import thread
 
 
@@ -57,7 +57,7 @@ CD = 1
 # export only the spoke, no helper functions, classes or constants
 __all__ = ["RocksRollsSpoke"]
 
-class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
+class RocksRollsSpoke(NormalSpoke):
     """
     Class for the RocksRolls spoke. This spoke will be in the RocksRollsCategory 
     category and thus on the Summary hub. It is a very simple example of a unit
@@ -69,7 +69,6 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
     :see: pyanaconda.ui.common.UIObject
     :see: pyanaconda.ui.common.Spoke
     :see: pyanaconda.ui.gui.GUIObject
-    :see: pyanaconda.ui.common.FirstbootSpokeMixIn
     :see: pyanaconda.ui.gui.spokes.NormalSpoke
 
     """
@@ -204,7 +203,7 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
 
         """
 
-        if self.completed and not self.clientInstall:
+        if self._completed and not self.clientInstall:
             self.writeRollsXML()
             if self.requireDB:
                 self.builddb()
@@ -227,12 +226,31 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
             self.readyState=BADHOSTNAME
             return False
         # if the readyState was BADHOSTNAME return to CONFIGURE state
+	# send a message to Hub that we are now ready (only way to
+        # to remove this spoke from _notReady list
         if self.readyState == BADHOSTNAME:
             self.readyState = CONFIGURE
+            hubQ.send_ready(self.__class__.__name__, True)
+        self.log.info("rocks_rolls.py:ready")
         return True
+
 
     @property
     def completed(self):
+        """
+        The completed property that tells whether all mandatory items on the
+        spoke are set, or not. The spoke will be marked on the hub as completed
+        or uncompleted acording to the returned value.
+
+        :rtype: bool
+
+        """
+        rval = self._completed
+        self.log.info("rocks_rolls.py:completed:%s" % rval)
+        return rval
+
+    @property
+    def _completed(self):
         """
         The completed property that tells whether all mandatory items on the
         spoke are set, or not. The spoke will be marked on the hub as completed
@@ -268,8 +286,6 @@ class RocksRollsSpoke(FirstbootSpokeMixIn, NormalSpoke):
         :rtype: bool
 
         """
-
-        # this is an optional spoke that is not mandatory to be completed
         return True
 
     @property

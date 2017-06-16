@@ -41,7 +41,7 @@ from org_rocks_rolls.gui.spokes import rocks_info
 from org_rocks_rolls import RocksEnv
 from pyanaconda.ui.gui import GUIObject
 from pyanaconda.ui.gui.spokes import NormalSpoke
-from pyanaconda.ui.common import FirstbootSpokeMixIn
+from pyanaconda.ui.communication import hubQ
 from pyanaconda import network
 from pyanaconda import nm
 import thread
@@ -80,7 +80,7 @@ DEVICEIDX = FIELDNAMES.index("device")
 TYPEIDX = FIELDNAMES.index("type")
 MACIDX = FIELDNAMES.index("mac")
 
-class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
+class RocksPrivateIfaceSpoke(NormalSpoke):
     """
     Class for the RocksConfig spoke. This spoke will be in the RocksRollsCategory 
     category and thus on the Summary hub. 
@@ -246,7 +246,9 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         # if the readyState was BADHOSTNAME return to CONFIGURE state
         if self.readyState == BADHOSTNAME:
             self.readyState = CONFIGURE
+            hubQ.send_ready(self.__class__.__name__, True)
 
+        self.log.info("rocks_private.py:ready")
         return True
 
         #if self.data.addons.org_rocks_rolls.haverolls is None:
@@ -266,7 +268,9 @@ class RocksPrivateIfaceSpoke(FirstbootSpokeMixIn, NormalSpoke):
         # return True
         if self.clientInstall:
             return True
-        return (self.readyState == COMPLETE) 
+        rval = (self.readyState == COMPLETE)
+        self.log.info("rocks_private.py:completed:%s" % rval)
+        return rval 
 
     @property
     def mandatory(self):

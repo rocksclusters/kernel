@@ -41,7 +41,7 @@ from org_rocks_rolls.categories.RocksRolls import RocksRollsCategory
 from org_rocks_rolls import RocksEnv
 from pyanaconda.ui.gui import GUIObject
 from pyanaconda.ui.gui.spokes import NormalSpoke
-from pyanaconda.ui.common import FirstbootSpokeMixIn
+from pyanaconda.ui.communication import hubQ
 from pyanaconda import network
 from pyanaconda import nm
 import thread
@@ -120,19 +120,16 @@ def setValue(info, varname,value):
             row[VALIDX] = value.__str__()
             break 
 
-class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
+class RocksConfigSpoke(NormalSpoke):
     """
     Class for the RocksConfig spoke. This spoke will be in the RocksRollsCategory 
     category and thus on the Summary hub. It is a very simple example of a unit
-    for the Anaconda's graphical user interface. Since it is also inherited form
-    the FirstbootSpokeMixIn, it will also appear in the Initial Setup (successor
-    of the Firstboot tool).
+    for the Anaconda's graphical user interface. 
 
 
     :see: pyanaconda.ui.common.UIObject
     :see: pyanaconda.ui.common.Spoke
     :see: pyanaconda.ui.gui.GUIObject
-    :see: pyanaconda.ui.common.FirstbootSpokeMixIn
     :see: pyanaconda.ui.gui.spokes.NormalSpoke
 
     """
@@ -199,6 +196,7 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         # merge entries into self.data.addons.org_rocks_rolls.info 
         self.merge(jsoninfo)
         self.visited = False
+	self.readyState = True
         
 
     def refresh(self):
@@ -260,14 +258,37 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
         try:
             device = network.default_route_device()
             if device is None:
+                self.readyState=False
                 return False 
         except:
+            self.readyState=False
             return False
 
+        # When we change from not ready to ready, send a HubQ message
+        if self.readyState is False:
+            self.readyState = True
+            hubQ.send_ready(self.__class__.__name__, True)
+
+        self.log.info("rocks_info.py:ready")
         return True
+
 
     @property
     def completed(self):
+        """
+        The completed property that tells whether all mandatory items on the
+        spoke are set, or not. The spoke will be marked on the hub as completed
+        or uncompleted acording to the returned value.
+
+        :rtype: bool
+
+        """
+        rval = self._completed
+        self.log.info("rocks_info.py:completed:%s" % rval)
+        return rval
+
+    @property
+    def _completed(self):
         """
         The completed property that tells whether all mandatory items on the
         spoke are set, or not. The spoke will be marked on the hub as completed
@@ -316,7 +337,7 @@ class RocksConfigSpoke(FirstbootSpokeMixIn, NormalSpoke):
             return "Configuration Defined By Kickstart"
         if not self.ready:
             return "Please Configure your Public Network"
-        if  self.completed:
+        if  self._completed:
             return "All Configuration Entered"
         else:
             return "Configure Your Cluster" 
