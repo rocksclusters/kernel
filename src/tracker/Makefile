@@ -110,7 +110,8 @@ EXTRA	+= -DTIMEIT
 #EXTRA	+= -DDEBUG
 #EXTRA	+= -DDEBUG1
 EXTRA	+= -pg -g
-EXECS	= tracker-client unregister-file tracker-server peer-done stop-server dump-tables 
+EXECS	= tracker-client unregister-file tracker-server peer-done stop-server dump-tables
+SCRIPTS	= tracker.ak 
 
 MYSQL	= 0
 
@@ -171,7 +172,7 @@ server2.o:	server2.c
 
 install::
 	mkdir -p $(ROOT)/$(PKGROOT)/bin
-	cp $(EXECS) $(ROOT)/$(PKGROOT)/bin
+	$(INSTALL) $(EXECS) $(SCRIPTS) -m755 $(ROOT)/$(PKGROOT)/bin
 
 clean::
 	rm -f $(NAME).spec.in

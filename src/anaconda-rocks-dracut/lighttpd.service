@@ -1,0 +1,13 @@
+[Unit]
+Description=lighttpd service used during Rocks installation
+Before=anaconda-pre.service
+Requires=basic.target
+After=basic.target
+
+[Service]
+Type=forking
+ExecStart=/lib/dracut/modules.d/70rocks/start-lighttpd.sh
+Restart=on-abort
+
+[Install]
+WantedBy=anaconda.target

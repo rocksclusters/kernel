@@ -138,3 +138,10 @@ append etc/group "rocksdb:x:403:"
 mkdir tracker
 move opt/rocks/bin/tracker-client tracker
 move opt/rocks/bin/peer-done tracker
+move opt/rocks/bin/tracker.ak tracker
+move opt/rocks/bin/unregister-file tracker
+
+## Start lighttpd/tracker as part of the anaconda target. 
+mkdir lib/systemd/system/anaconda.target.wants
+#symlink /lib/systemd/system/lighttpd.service lib/systemd/system/anaconda.target.wants/lighttpd.service
+systemctl enable lighttpd.service

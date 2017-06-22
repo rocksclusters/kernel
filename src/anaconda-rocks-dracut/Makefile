@@ -54,7 +54,7 @@
 # 
 # @Copyright@
 #
-SCRIPTS = module-setup.sh start-lighttpd.sh
+DRACUT_SCRIPTS = module-setup.sh start-lighttpd.sh
 REDHAT.ROOT     = $(CURDIR)/../../
 -include $(ROCKSROOT)/etc/Rules.mk
 include Rules.mk
@@ -63,8 +63,10 @@ include Rules.mk
 build:
 
 install::
-	mkdir -p $(ROOT)/$(PKGROOT)/$(MODDIR)
-	$(INSTALL) -m 755 $(SCRIPTS) $(ROOT)/$(PKGROOT)/$(MODDIR) 
+	mkdir -p $(ROOT)/$(DRACUT_DEST)/$(MODDIR)
+	$(INSTALL) -m 755 $(DRACUT_SCRIPTS) $(ROOT)/$(DRACUT_DEST)/$(MODDIR) 
+	mkdir -p $(ROOT)/$(SYSTEMD_DEST)
+	$(INSTALL) -m 755 $(SYSTEMD_SCRIPTS) $(ROOT)/$(SYSTEMD_DEST)
 	
 
 clean::
