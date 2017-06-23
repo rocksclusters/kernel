@@ -11,8 +11,12 @@ if [ ! -f $CLIENTCONF ]; then
 fi
 
 NZCONF=$(cat $CLIENTCONF)
-if [ "x$NZCONF" == "x" ]; then exit; fi
+if [ "x$NZCONF" == "x" ]; then return 0; fi
 
+# check if lighttpd is already running. if so. We're done
+ps ax | grep lighttpd | grep -q -v grep 
+if [ $? -eq 0 ]; then return 0; fi
+ 
 if [ ! -d /run/tracker ]; then
 	mkdir /run/tracker
 fi;
