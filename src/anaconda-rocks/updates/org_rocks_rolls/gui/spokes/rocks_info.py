@@ -53,9 +53,11 @@ __all__ = ["RocksConfigSpoke"]
 
 # File that holds JSON of clusterInfo variables.
 INFOFILE = "infoVars.json"
-FIELDNAMES = ['param','value','varname','infoHelp','required','display','validate' ]
+FIELDNAMES = ['param','value','varname','infoHelp','required','display','validate', 'color']
 VARIDX = FIELDNAMES.index("varname")
 VALIDX = FIELDNAMES.index("value")
+VISIDX = FIELDNAMES.index("display")
+COLORIDX = FIELDNAMES.index("color")
 
 # Field names are:
 #        param: String. Displayed Parameter Text 
@@ -65,6 +67,7 @@ VALIDX = FIELDNAMES.index("value")
 #        required: Boolean.  Required that that this parameter has a value 
 #        display: Boolean. Display on the UI 
 #        validate: String.  Validation Method 
+#        color: String.  Color of cell for disply 
 # 
 # These fields are mapped into gui's ClusterInfoStore (in RocksInfo.glade).
 # ClusterInfoStore only has indices, so must keep the map of these dictionary 
@@ -344,7 +347,15 @@ class RocksConfigSpoke(NormalSpoke):
 
     ### handlers ###
     def InfoUpdated(self,cr,path,text):
-        self.infoStore[path][1] = text
+        # path is the index of "visible" variables, there may be others
+        # not shown. need to adjust path with offset
+        target = int(path)
+        offset = 0
+        for i in range(0,len(self.infoStore)):	
+            if not self.infoStore[i][VISIDX]: offset += 1
+            if target == 0: break
+            if self.infoStore[i][VISIDX]: target -= 1
+        self.infoStore[int(path)+offset][VALIDX] = text
 
     def on_entry_icon_clicked(self, entry, *args):
         """Handler for the textEntry's "icon-release" signal."""
@@ -389,14 +400,16 @@ class RocksConfigSpoke(NormalSpoke):
         mapping["Kickstart_Lang"]="ksdata.lang.lang"
         mapping["Kickstart_Langsupport"]=mapping["Kickstart_Lang"]
         mapping["Kickstart_Timezone"] = "ksdata.timezone.timezone"
-        mapping["Kickstart_PublicNTPHost"] = "ksdata.timezone.ntpservers"
+        # Need to find a better way to get NTP info.  
+        # mapping["Kickstart_PublicNTPHost"] = "ksdata.timezone.ntpservers"
         mapping["Kickstart_PublicDNSServers"] = "self.readDNSConfig()" 
         ## Network may not be up, so these may fail
         try:
             mapping["Kickstart_PublicInterface"] = "network.default_route_device()"
             mapping["Kickstart_PublicAddress"] = "network.get_default_device_ip()"
-            mapping["Kickstart_PublicHostname"]="network.getHostname().split('.',1)[0]"
-            mapping["Kickstart_PublicDNSDomain"]="subprocess.check_output(['hostname','--fqdn']).strip().split('.',1)[1]"
+            mapping["Kickstart_PublicFQDN"]="subprocess.check_output(['hostname']).strip()"
+            mapping["Kickstart_PublicHostname"]="subprocess.check_output(['hostname']).strip().split('.',1)[0]"
+            mapping["Kickstart_PublicDNSDomain"]="subprocess.check_output(['hostname']).strip().split('.',1)[1]"
             ## get the public networking values
             pubif = eval(mapping["Kickstart_PublicInterface"])
             pubaddr = eval(mapping["Kickstart_PublicAddress"])
