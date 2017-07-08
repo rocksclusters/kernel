@@ -453,7 +453,7 @@ class RocksConfigSpoke(NormalSpoke):
             else:
                 row[COLORIDX] = "white"
             if row[DERIVEDIDX]:
-                row[COLORIDX] = "gray"
+                row[COLORIDX] = "light gray"
 
     def readDNSConfig(self):
         """ Read resolv.conf and return a comma-delimited list of 
