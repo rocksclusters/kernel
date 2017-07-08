@@ -53,11 +53,13 @@ __all__ = ["RocksConfigSpoke"]
 
 # File that holds JSON of clusterInfo variables.
 INFOFILE = "infoVars.json"
-FIELDNAMES = ['param','value','varname','infoHelp','required','display','validate', 'color']
+FIELDNAMES = ['param','value','varname','infoHelp','required','display','validate', 'color','derived']
 VARIDX = FIELDNAMES.index("varname")
 VALIDX = FIELDNAMES.index("value")
 VISIDX = FIELDNAMES.index("display")
 COLORIDX = FIELDNAMES.index("color")
+REQUIREDIDX = FIELDNAMES.index("required")
+DERIVEDIDX = FIELDNAMES.index("derived")
 
 # Field names are:
 #        param: String. Displayed Parameter Text 
@@ -222,6 +224,7 @@ class RocksConfigSpoke(NormalSpoke):
             if type(infoEntry[1]) is not str:
                 infoEntry[1] = infoEntry[1].__str__()
             self.infoStore.append(infoEntry)
+        self.setColors()
 
     def apply(self):
         """
@@ -355,7 +358,11 @@ class RocksConfigSpoke(NormalSpoke):
             if not self.infoStore[i][VISIDX]: offset += 1
             if target == 0: break
             if self.infoStore[i][VISIDX]: target -= 1
-        self.infoStore[int(path)+offset][VALIDX] = text
+        idx = int(path) + offset
+        # set the value only if not a derived value
+        if not self.infoStore[idx][DERIVEDIDX]:
+            self.infoStore[idx][VALIDX] = text
+        self.setColors()
 
     def on_entry_icon_clicked(self, entry, *args):
         """Handler for the textEntry's "icon-release" signal."""
@@ -436,6 +443,17 @@ class RocksConfigSpoke(NormalSpoke):
                 setValue(info, var,eval(mapping[var]))
             except Exception as e:
                 self.log.info("ROCKS: Exception(%s) setting var (%s)" % (e,var))              
+    ## Set colors of value record for better visual feedback
+    ## when validation methods are defined, this is where they should be
+    ## be invoked
+    def setColors(self):
+        for row in self.infoStore:
+            if len(row[VALIDX]) == 0 and row[REQUIREDIDX]:
+                row[COLORIDX] = "red"
+            else:
+                row[COLORIDX] = "white"
+            if row[DERIVEDIDX]:
+                row[COLORIDX] = "gray"
 
     def readDNSConfig(self):
         """ Read resolv.conf and return a comma-delimited list of 

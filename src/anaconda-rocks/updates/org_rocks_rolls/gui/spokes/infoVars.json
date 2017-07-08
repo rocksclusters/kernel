@@ -6,6 +6,7 @@
         "infoHelp": "This must be the fully-qualified domain name of your cluster head node(e.g, abc.university.edu). This is a derived field.", 
         "param": "Fully-Qualified Domain Name", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": true
     }, 
@@ -16,6 +17,7 @@
         "infoHelp": "This is the short name of the public interfaace (e.g, abc of abc.university.edu", 
         "param": "Public Host Name", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": false 
     }, 
@@ -26,6 +28,7 @@
         "infoHelp": "The name of the cluster (used on web pages and reports)", 
         "param": "Cluster Name", 
         "validate": null,
+	"derived": false,
 	"color": "green", 
         "display": true
     }, 
@@ -36,6 +39,7 @@
         "infoHelp": "email of contact for this cluster. Will be used for reports and notification", 
         "param": "Contact", 
         "validate": null,
+	"derived": false,
 	"color": "green", 
         "display": true
     }, 
@@ -46,6 +50,7 @@
         "infoHelp": "URL for the project that this cluster supports", 
         "param": "Project URL", 
         "validate": null,
+	"derived": false,
 	"color": "green", 
         "display": true
     }, 
@@ -56,6 +61,7 @@
         "infoHelp": "Physical Location of this cluster", 
         "param": "Latitude/Longitude", 
         "validate": null,
+	"derived": false,
 	"color": "green", 
         "display": true
     }, 
@@ -66,6 +72,7 @@
         "infoHelp": "The Name of your organization, used when building a certificate for this host", 
         "param": "Certificate Organization", 
         "validate": null,
+	"derived": false,
 	"color": "green", 
         "display": true
     }, 
@@ -76,6 +83,7 @@
         "infoHelp": "Your City for the certificate", 
         "param": "Certificate Locality", 
         "validate": null,
+	"derived": false,
 	"color": "green", 
         "display": true
     }, 
@@ -86,6 +94,7 @@
         "infoHelp": "Your State", 
         "param": "Certificate State", 
         "validate": null,
+	"derived": false,
 	"color": "green", 
         "display": true
     }, 
@@ -96,6 +105,7 @@
         "infoHelp": "Your Country", 
         "param": "Certificate Country", 
         "validate": null,
+	"derived": false,
 	"color": "green", 
         "display": true
     }, 
@@ -106,6 +116,7 @@
         "infoHelp": "", 
         "param": "Private Hostname", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": false
     }, 
@@ -116,6 +127,7 @@
         "infoHelp": "", 
         "param": "Private Kickstart CGI", 
         "validate": null,
+	"derived": false,
 	"color": "green", 
         "display": false
     }, 
@@ -126,6 +138,7 @@
         "infoHelp": "", 
         "param": "Kickstart Distribution", 
         "validate": null,
+	"derived": false,
 	"color": "green", 
         "display": false
     }, 
@@ -136,6 +149,7 @@
         "infoHelp": "", 
         "param": "Kickstart Base Dir", 
         "validate": null,
+	"derived": false,
 	"color": "green", 
         "display": false
     }, 
@@ -146,6 +160,7 @@
         "infoHelp": "Syslog Host for nodes on Private Network", 
         "param": "Syslog Host for nodes on Private Network",
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": false
     },
@@ -156,6 +171,7 @@
         "infoHelp": "Private Address for the Kickstart Host", 
         "param": "Private Address for the Kickstart Host", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": false
     },
@@ -166,6 +182,7 @@
         "infoHelp": "", 
         "param": "Public Kickstart Host", 
         "validate": null,
+	"derived": false,
 	"color": "green", 
         "display": false
     }, 
@@ -176,6 +193,7 @@
         "infoHelp": "Interface to  use for Private Cluster Interface", 
         "param": "Network Device for Private Network", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": true
     }, 
@@ -186,6 +204,7 @@
         "infoHelp": "IP Address for Private Cluster Interface", 
         "param": "Private Cluster IPv4 Address", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display":true 
     }, 
@@ -196,6 +215,7 @@
         "infoHelp": "Netmask for Private Cluster Interface", 
         "param": "Private Cluster Netmask", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display":true 
     }, 
@@ -206,6 +226,7 @@
         "infoHelp": "Network for the private interface", 
         "param": "Private Cluster Network", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display":true 
     }, 
@@ -216,6 +237,7 @@
         "infoHelp": "MTU for Private Cluster Interface", 
         "param": "Private Cluster Interface MTU", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display":true 
     }, 
@@ -226,6 +248,7 @@
         "infoHelp": "DNS Name for Private Cluster Interface", 
         "param": "Private DNS Domain", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": false
     }, 
@@ -236,6 +259,7 @@
         "infoHelp": "DNS Name for Public Cluster Interface", 
         "param": "Public DNS Domain", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": false
     }, 
@@ -246,6 +270,7 @@
         "infoHelp": "Language Setting", 
         "param": "Language", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": false
     }, 
@@ -256,6 +281,7 @@
         "infoHelp": "Language Support", 
         "param": "Language Support", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": false
     }, 
@@ -266,6 +292,7 @@
         "infoHelp": "Keyboard Definition", 
         "param": "Keyboard", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": false
     },
@@ -276,6 +303,7 @@
         "infoHelp": "Timezone", 
         "param": "Timezone", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": true
     },
@@ -286,6 +314,7 @@
         "infoHelp": "Network Time Protocol Servers", 
         "param": "NTP Servers", 
         "validate": null,
+	"derived": false,
 	"color": "green", 
         "display": true
     },
@@ -296,6 +325,7 @@
         "infoHelp": "IPv4 Address for Public Interface ", 
         "param": "Public IPv4 Address", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": true
     },
@@ -306,6 +336,7 @@
         "infoHelp": "Physical Interface for Public Network", 
         "param": "Public Interface", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": true
     },
@@ -316,6 +347,7 @@
         "infoHelp": "IPv4 Network for the Public Interface", 
         "param": "Public IPv4 Network", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": true
     },
@@ -326,6 +358,7 @@
         "infoHelp": "IPv4 Netmask for the Public Interface", 
         "param": "Public IPv4 Netmask", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": true
     },
@@ -336,6 +369,7 @@
         "infoHelp": "MTU for Public Interface", 
         "param": "Public Interface MTU", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": true
     },
@@ -346,6 +380,7 @@
         "infoHelp": "Addresses for Public DNS Servers", 
         "param": "Addresses for Public DNS Servers", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": false
     },
@@ -356,6 +391,7 @@
         "infoHelp": "Gateway for Private Network Nodes", 
         "param": "Gateway for Private Network Nodes", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": false
     },
@@ -366,6 +402,7 @@
         "infoHelp": "DNS Servers for Private Network Nodes", 
         "param": "DNS Servers for Private Network Nodes",
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": false
     },
@@ -376,6 +413,7 @@
         "infoHelp": "CIDR for Private Network", 
         "param": "CIDR for Private Network", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": false
     },
@@ -386,6 +424,7 @@
         "infoHelp": "Gateway for the Public Interface", 
         "param": "Default Router for Public IPv4 Network", 
         "validate": null,
+	"derived": true,
 	"color": "green", 
         "display": true
     }
