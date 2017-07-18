@@ -7,7 +7,6 @@ After=basic.target
 [Service]
 Type=oneshot
 ExecStart=/lib/dracut/modules.d/70rocks/rockspart.sh
-Restart=on-abort
 
 [Install]
 WantedBy=anaconda.target

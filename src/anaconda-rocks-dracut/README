@@ -1,0 +1,9 @@
+These are hooks into anaconda to manage some rocks-added capabilities.
+#1 - lighttpd service (used for avalanche/scalable installation) must be started in
+the context of the initial ram disk AND restarted when the installer 
+transitions from its initrd state to the running state.  It's a more
+complicated setup because of this.
+
+#2 - rockspart service. This enables stateful partitions on compute nodes. This needs to be called when in the running state, but before anaconda the kickstart
+file is read by anaconda. It is setup as systemd service. It is turned on 
+in the postinstall configuration of the rocks-boot-7 package.

@@ -145,3 +145,5 @@ move opt/rocks/bin/unregister-file tracker
 mkdir lib/systemd/system/anaconda.target.wants
 #symlink /lib/systemd/system/lighttpd.service lib/systemd/system/anaconda.target.wants/lighttpd.service
 systemctl enable lighttpd.service
+## Run the rockspart service for automated/user-defined/DB-defined  partitioning
+systemctl enable rockspart.service
