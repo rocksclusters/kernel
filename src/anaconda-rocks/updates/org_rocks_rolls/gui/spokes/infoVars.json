@@ -2,11 +2,24 @@
     {
         "required": true, 
         "value": "", 
-        "varname": "Kickstart_PublicHostname", 
-        "infoHelp": "This must be the fully-qualified domain name of your cluster head node(e.g, abc.university.edu", 
+        "varname": "Kickstart_PublicFQDN", 
+        "infoHelp": "This must be the fully-qualified domain name of your cluster head node(e.g, abc.university.edu). This is a derived field.", 
         "param": "Fully-Qualified Domain Name", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": true
+    }, 
+    {
+        "required": true, 
+        "value": "", 
+        "varname": "Kickstart_PublicHostname", 
+        "infoHelp": "This is the short name of the public interfaace (e.g, abc of abc.university.edu", 
+        "param": "Public Host Name", 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
+        "display": false 
     }, 
     {
         "required": true, 
@@ -14,7 +27,9 @@
         "varname": "Info_ClusterName", 
         "infoHelp": "The name of the cluster (used on web pages and reports)", 
         "param": "Cluster Name", 
-        "validate": null, 
+        "validate": null,
+	"derived": false,
+	"color": "green", 
         "display": true
     }, 
     {
@@ -23,7 +38,9 @@
         "varname": "Info_ClusterContact", 
         "infoHelp": "email of contact for this cluster. Will be used for reports and notification", 
         "param": "Contact", 
-        "validate": null, 
+        "validate": null,
+	"derived": false,
+	"color": "green", 
         "display": true
     }, 
     {
@@ -32,7 +49,9 @@
         "varname": "Info_ClusterURL", 
         "infoHelp": "URL for the project that this cluster supports", 
         "param": "Project URL", 
-        "validate": null, 
+        "validate": null,
+	"derived": false,
+	"color": "green", 
         "display": true
     }, 
     {
@@ -41,7 +60,9 @@
         "varname": "Info_ClusterLatLong", 
         "infoHelp": "Physical Location of this cluster", 
         "param": "Latitude/Longitude", 
-        "validate": null, 
+        "validate": null,
+	"derived": false,
+	"color": "green", 
         "display": true
     }, 
     {
@@ -50,7 +71,9 @@
         "varname": "Info_CertificateOrganization", 
         "infoHelp": "The Name of your organization, used when building a certificate for this host", 
         "param": "Certificate Organization", 
-        "validate": null, 
+        "validate": null,
+	"derived": false,
+	"color": "green", 
         "display": true
     }, 
     {
@@ -59,7 +82,9 @@
         "varname": "Info_CertificateLocality", 
         "infoHelp": "Your City for the certificate", 
         "param": "Certificate Locality", 
-        "validate": null, 
+        "validate": null,
+	"derived": false,
+	"color": "green", 
         "display": true
     }, 
     {
@@ -68,7 +93,9 @@
         "varname": "Info_CertificateState", 
         "infoHelp": "Your State", 
         "param": "Certificate State", 
-        "validate": null, 
+        "validate": null,
+	"derived": false,
+	"color": "green", 
         "display": true
     }, 
     {
@@ -77,7 +104,9 @@
         "varname": "Info_CertificateCountry", 
         "infoHelp": "Your Country", 
         "param": "Certificate Country", 
-        "validate": null, 
+        "validate": null,
+	"derived": false,
+	"color": "green", 
         "display": true
     }, 
     {
@@ -86,7 +115,9 @@
         "varname": "Kickstart_PrivateHostname", 
         "infoHelp": "", 
         "param": "Private Hostname", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": false
     }, 
     {
@@ -95,7 +126,9 @@
         "varname": "Kickstart_PrivateKickstartCGI", 
         "infoHelp": "", 
         "param": "Private Kickstart CGI", 
-        "validate": null, 
+        "validate": null,
+	"derived": false,
+	"color": "green", 
         "display": false
     }, 
     {
@@ -104,7 +137,9 @@
         "varname": "Kickstart_DistroDir", 
         "infoHelp": "", 
         "param": "Kickstart Distribution", 
-        "validate": null, 
+        "validate": null,
+	"derived": false,
+	"color": "green", 
         "display": false
     }, 
     {
@@ -113,7 +148,9 @@
         "varname": "Kickstart_PrivateKickstartBasedir", 
         "infoHelp": "", 
         "param": "Kickstart Base Dir", 
-        "validate": null, 
+        "validate": null,
+	"derived": false,
+	"color": "green", 
         "display": false
     }, 
     {
@@ -122,7 +159,9 @@
         "varname": "Kickstart_PrivateSyslogHost", 
         "infoHelp": "Syslog Host for nodes on Private Network", 
         "param": "Syslog Host for nodes on Private Network",
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": false
     },
     {
@@ -131,7 +170,9 @@
         "varname": "Kickstart_PrivateKickstartHost", 
         "infoHelp": "Private Address for the Kickstart Host", 
         "param": "Private Address for the Kickstart Host", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": false
     },
     {
@@ -140,7 +181,9 @@
         "varname": "Kickstart_PublicKickstartHost", 
         "infoHelp": "", 
         "param": "Public Kickstart Host", 
-        "validate": null, 
+        "validate": null,
+	"derived": false,
+	"color": "green", 
         "display": false
     }, 
     {
@@ -149,7 +192,9 @@
         "varname": "Kickstart_PrivateInterface", 
         "infoHelp": "Interface to  use for Private Cluster Interface", 
         "param": "Network Device for Private Network", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": true
     }, 
     {
@@ -158,7 +203,9 @@
         "varname": "Kickstart_PrivateAddress", 
         "infoHelp": "IP Address for Private Cluster Interface", 
         "param": "Private Cluster IPv4 Address", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display":true 
     }, 
     {
@@ -167,7 +214,9 @@
         "varname": "Kickstart_PrivateNetmask", 
         "infoHelp": "Netmask for Private Cluster Interface", 
         "param": "Private Cluster Netmask", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display":true 
     }, 
     {
@@ -176,7 +225,9 @@
         "varname": "Kickstart_PrivateNetwork", 
         "infoHelp": "Network for the private interface", 
         "param": "Private Cluster Network", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display":true 
     }, 
     {
@@ -185,7 +236,9 @@
         "varname": "Kickstart_PrivateMTU", 
         "infoHelp": "MTU for Private Cluster Interface", 
         "param": "Private Cluster Interface MTU", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display":true 
     }, 
     {
@@ -194,7 +247,9 @@
         "varname": "Kickstart_PrivateDNSDomain", 
         "infoHelp": "DNS Name for Private Cluster Interface", 
         "param": "Private DNS Domain", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": false
     }, 
     {
@@ -203,7 +258,9 @@
         "varname": "Kickstart_PublicDNSDomain", 
         "infoHelp": "DNS Name for Public Cluster Interface", 
         "param": "Public DNS Domain", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": false
     }, 
     {
@@ -212,7 +269,9 @@
         "varname": "Kickstart_Lang", 
         "infoHelp": "Language Setting", 
         "param": "Language", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": false
     }, 
     {
@@ -221,7 +280,9 @@
         "varname": "Kickstart_Langsupport", 
         "infoHelp": "Language Support", 
         "param": "Language Support", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": false
     }, 
     {
@@ -230,7 +291,9 @@
         "varname": "Kickstart_Keyboard", 
         "infoHelp": "Keyboard Definition", 
         "param": "Keyboard", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": false
     },
     {
@@ -239,7 +302,9 @@
         "varname": "Kickstart_Timezone", 
         "infoHelp": "Timezone", 
         "param": "Timezone", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": true
     },
     {
@@ -248,7 +313,9 @@
         "varname": "Kickstart_PublicNTPHost", 
         "infoHelp": "Network Time Protocol Servers", 
         "param": "NTP Servers", 
-        "validate": null, 
+        "validate": null,
+	"derived": false,
+	"color": "green", 
         "display": true
     },
     {
@@ -257,7 +324,9 @@
         "varname": "Kickstart_PublicAddress", 
         "infoHelp": "IPv4 Address for Public Interface ", 
         "param": "Public IPv4 Address", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": true
     },
     {
@@ -266,7 +335,9 @@
         "varname": "Kickstart_PublicInterface", 
         "infoHelp": "Physical Interface for Public Network", 
         "param": "Public Interface", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": true
     },
     {
@@ -275,7 +346,9 @@
         "varname": "Kickstart_PublicNetwork", 
         "infoHelp": "IPv4 Network for the Public Interface", 
         "param": "Public IPv4 Network", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": true
     },
     {
@@ -284,7 +357,9 @@
         "varname": "Kickstart_PublicNetmask", 
         "infoHelp": "IPv4 Netmask for the Public Interface", 
         "param": "Public IPv4 Netmask", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": true
     },
     {
@@ -293,7 +368,9 @@
         "varname": "Kickstart_PublicMTU", 
         "infoHelp": "MTU for Public Interface", 
         "param": "Public Interface MTU", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": true
     },
     {
@@ -302,7 +379,9 @@
         "varname": "Kickstart_PublicDNSServers", 
         "infoHelp": "Addresses for Public DNS Servers", 
         "param": "Addresses for Public DNS Servers", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": false
     },
     {
@@ -311,7 +390,9 @@
         "varname": "Kickstart_PrivateGateway", 
         "infoHelp": "Gateway for Private Network Nodes", 
         "param": "Gateway for Private Network Nodes", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": false
     },
     {
@@ -320,7 +401,9 @@
         "varname": "Kickstart_PrivateDNSServers", 
         "infoHelp": "DNS Servers for Private Network Nodes", 
         "param": "DNS Servers for Private Network Nodes",
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": false
     },
     {
@@ -329,7 +412,9 @@
         "varname": "Kickstart_PrivateNetmaskCIDR", 
         "infoHelp": "CIDR for Private Network", 
         "param": "CIDR for Private Network", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": false
     },
     {
@@ -338,7 +423,9 @@
         "varname": "Kickstart_PublicGateway", 
         "infoHelp": "Gateway for the Public Interface", 
         "param": "Default Router for Public IPv4 Network", 
-        "validate": null, 
+        "validate": null,
+	"derived": true,
+	"color": "green", 
         "display": true
     }
 ]

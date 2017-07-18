@@ -19,6 +19,10 @@
       <column type="gboolean"/>
       <!-- column-name validate -->
       <column type="gchararray"/>
+      <!-- column-name color -->
+      <column type="gchararray"/>
+      <!-- column-name derived -->
+      <column type="gboolean"/>
     </columns>
   </object>
   <object class="GtkTreeModelFilter" id="ClusterInfoFilter">
@@ -36,7 +40,6 @@
         <property name="spacing">6</property>
         <child internal-child="nav_box">
           <object class="GtkEventBox" id="AnacondaSpokeWindow-nav_box1">
-            <property name="name">nav-box</property>
             <property name="can_focus">False</property>
             <child internal-child="nav_area">
               <object class="GtkGrid" id="AnacondaSpokeWindow-nav_area1">
@@ -69,7 +72,7 @@
                   <object class="GtkLabel" id="label1">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">Configuration Information.  You must complete all entries marked as "required".  Hover over each line to get a longer detailed explanation</property>
+                    <property name="label" translatable="yes">Configuration Information.  You must complete all required entries marked (in red, if invalid). Grey colored entries are entered elsewhere in the installer and shown here for brevity.  Hover over each line to get a longer detailed explanation</property>
                     <property name="justify">center</property>
                     <property name="wrap">True</property>
                     <property name="lines">2</property>
@@ -97,6 +100,7 @@
             <property name="model">ClusterInfoFilter</property>
             <property name="search_column">0</property>
             <property name="hover_selection">True</property>
+            <property name="level_indentation">5</property>
             <property name="enable_grid_lines">both</property>
             <property name="tooltip_column">3</property>
             <child internal-child="selection">
@@ -114,7 +118,6 @@
                     <property name="width_chars">40</property>
                   </object>
                   <attributes>
-                    <attribute name="cell-background">1</attribute>
                     <attribute name="visible">5</attribute>
                     <attribute name="text">0</attribute>
                   </attributes>
@@ -124,6 +127,7 @@
             <child>
               <object class="GtkTreeViewColumn" id="treeviewcolumn2">
                 <property name="resizable">True</property>
+                <property name="sizing">fixed</property>
                 <property name="title" translatable="yes">value</property>
                 <child>
                   <object class="GtkCellRendererText" id="cellrenderertext2">
@@ -133,24 +137,8 @@
                   </object>
                   <attributes>
                     <attribute name="visible">5</attribute>
+                    <attribute name="background">7</attribute>
                     <attribute name="text">1</attribute>
-                  </attributes>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkTreeViewColumn" id="treeviewcolumn3">
-                <property name="min_width">40</property>
-                <property name="max_width">40</property>
-                <property name="title" translatable="yes">required</property>
-                <child>
-                  <object class="GtkCellRendererToggle" id="cellrenderertoggle1">
-                    <property name="width">20</property>
-                    <property name="activatable">False</property>
-                  </object>
-                  <attributes>
-                    <attribute name="visible">5</attribute>
-                    <attribute name="active">4</attribute>
                   </attributes>
                 </child>
               </object>
