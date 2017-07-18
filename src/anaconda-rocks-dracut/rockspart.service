@@ -1,0 +1,13 @@
+[Unit]
+Description=Rocks Partitioning Processing 
+Before=anaconda-pre.service
+Requires=basic.target
+After=basic.target
+
+[Service]
+Type=oneshot
+ExecStart=/lib/dracut/modules.d/70rocks/rockspart.sh
+Restart=on-abort
+
+[Install]
+WantedBy=anaconda.target
