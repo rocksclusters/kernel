@@ -1,8 +1,8 @@
 [Unit]
 Description=Rocks Partitioning Processing 
-Before=anaconda-pre.service
+After=anaconda-pre.service
 Requires=basic.target
-After=basic.target
+Before=anaconda.service
 
 [Service]
 Type=oneshot

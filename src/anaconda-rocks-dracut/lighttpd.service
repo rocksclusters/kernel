@@ -6,7 +6,9 @@ After=basic.target
 
 [Service]
 Type=forking
-ExecStart=/lib/dracut/modules.d/70rocks/start-lighttpd.sh
+PIDFile=/var/run/lighttpd.pid
+ExecStart=/lighttpd/sbin/lighttpd -f /lighttpd/conf/lighttpd.conf
+ExecStartPre=/lib/dracut/modules.d/70rocks/start-lighttpd-systemd.sh
 Restart=on-abort
 
 [Install]
