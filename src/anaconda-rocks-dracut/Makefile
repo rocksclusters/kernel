@@ -67,6 +67,7 @@ install::
 	$(INSTALL) -m 755 $(DRACUT_SCRIPTS) $(ROOT)/$(DRACUT_DEST)/$(MODDIR) 
 	mkdir -p $(ROOT)/$(SYSTEMD_DEST)
 	$(INSTALL) -m 755 $(SYSTEMD_SCRIPTS) $(ROOT)/$(SYSTEMD_DEST)
+	$(INSTALL) -m 755 $(KSFETCH) $(ROOT)
 	
 
 clean::

@@ -26,6 +26,9 @@ install() {
     for i in $(find /lighttpd -type f); do 
     	inst_binary $i 
     done
+    # get the fetchRocksKS.py script
+    inst_binary /fetchRocksKS.py
+
     # bring up lighttpd in initrd. Can get and cache installer,
     # xml files, pkgs. 
     inst_hook initqueue/online 10 "$moddir/start-lighttpd.sh"
