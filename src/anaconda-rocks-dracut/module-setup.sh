@@ -32,5 +32,13 @@ install() {
     # bring up lighttpd in initrd. Can get and cache installer,
     # xml files, pkgs. 
     inst_hook initqueue/online 10 "$moddir/start-lighttpd.sh"
+
+    # gracefully stop lighttpd when transitioning to real root
+    inst_hook pre-privot 20 "$moddir/stop-lighttpd.sh"
+
+    # unregister all files and then gracefully stop lighttpd 
+    # when shutting down 
+    inst_hook shutdown 19 "$moddir/peer-done.sh"
+    inst_hook shutdown 20 "$moddir/stop-lighttpd.sh"
 }
 

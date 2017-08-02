@@ -54,7 +54,7 @@
 # 
 # @Copyright@
 #
-DRACUT_SCRIPTS = module-setup.sh start-lighttpd.sh start-lighttpd-systemd.sh rockspart.sh
+DRACUT_SCRIPTS = module-setup.sh start-lighttpd.sh start-lighttpd-systemd.sh rockspart.sh stop-lighttpd.sh peer-done.sh
 REDHAT.ROOT     = $(CURDIR)/../../
 -include $(ROCKSROOT)/etc/Rules.mk
 include Rules.mk
