@@ -34,7 +34,7 @@ install() {
     inst_hook initqueue/online 10 "$moddir/start-lighttpd.sh"
 
     # gracefully stop lighttpd when transitioning to real root
-    inst_hook pre-privot 20 "$moddir/stop-lighttpd.sh"
+    inst_hook pre-pivot 20 "$moddir/stop-lighttpd.sh"
 
     # unregister all files and then gracefully stop lighttpd 
     # when shutting down 
