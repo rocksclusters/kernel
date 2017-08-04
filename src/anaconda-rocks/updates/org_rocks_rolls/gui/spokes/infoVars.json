@@ -428,4 +428,16 @@
 	"color": "green", 
         "display": true
     }
+
+    {
+        "required": false, 
+        "value": "True", 
+        "varname": "UseTracker", 
+        "infoHelp": "Determine if the Tracker should be used for client installs", 
+        "param": "Boolean to determine if tracker should be used", 
+        "validate": null,
+	"derived": false,
+	"color": "green", 
+        "display": false
+    }
 ]
