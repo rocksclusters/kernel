@@ -201,7 +201,7 @@ class RocksRollsData(AddonData):
             if not pkg in ksdata.packages.packageList:
                 ksdata.packages.packageList.append(pkg)
 
-        ## Genereate the post scripts section
+        ## Generate the post scripts section
         log.info("ROCKS GENERATING POST SCRIPTS")
         cmd = ["/opt/rocks/sbin/kgen","--section=post"]
         p = subprocess.Popen(cmd,stdin=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -211,6 +211,12 @@ class RocksRollsData(AddonData):
         ksparser = kickstart.AnacondaKSParser(ksdata)
         ksparser.readKickstartFromString(self.postscripts, reset=False)
 
+        ## Add eula and firstboot stanzas 
+        log.info("ROCKS FIRSTBOOT/EULA")
+        ksparser = kickstart.AnacondaKSParser(ksdata)
+        ksparser.readKickstartFromString("eula --agreed", reset=False)
+        ksparser.readKickstartFromString("firstboot --disable", reset=False)
+        log.info("ROCKS FIRSBOOT/EULA END ")
     def addAttr(self,attr,value):
         if value is None or attr is None:
             return
