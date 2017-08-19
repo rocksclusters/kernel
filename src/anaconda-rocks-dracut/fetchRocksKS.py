@@ -77,9 +77,16 @@ try:
 			request.add_header(macHeader,os.environ[key])
 			pstr = "%s: %s\r\n"%(macHeader,os.environ[key])
 			macargs += pstr
+	cpus = open("/proc/cpuinfo")
+	lines = cpus.readlines()
+	cpus.close()
+	np=filter(lambda x: x.startswith('processor'),lines)	
+	if len(np) > 0:
+		request.add_header('np',len(np))
+	# print "XXX" + str(np) + str(len(np))
+
 except Exception as e:
 	print "# urllib2 call had exception %s" % str(e) 
-
 
 retries = RETRIES
 ## Print some debug statements
