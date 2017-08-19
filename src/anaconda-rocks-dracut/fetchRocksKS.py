@@ -17,7 +17,7 @@
 #       can ssh to the node with passwd "rescueME" 
 #       attempts to leave a failure note on the frontend
 #
-DEFAULTURL = "http://10.1.124.1/install/sbin/kickstart.cgi"
+DEFAULTURL = "https://10.1.75.1/install/sbin/kickstart.cgi"
 RETRIES = 4
 MINTIMEOUT = 2
 MAXTIMEOUT = 20
@@ -64,17 +64,22 @@ lines = sys.stdin.readlines()
 query=""
 macargs=""
 
-print "# Looking for provisioning mac"
-for key in os.environ.keys():
-	if key.startswith("HTTP_X_RHN_PROVISIONING_MAC"):
-
-		iface = int(key.split("_")[-1])
-		pstr = "X-RHN-Provisioning-MAC-%d: %s\r\n"%(iface,os.environ[key])
-		macargs += pstr
 try:
 	request = urllib2.Request(url,query)
+
+	print "# Looking for provisioning mac"
+
+	for key in os.environ.keys():
+		if key.startswith("HTTP_X_RHN_PROVISIONING_MAC"):
+
+			iface = int(key.split("_")[-1])
+			macHeader = "X-RHN-Provisioning-MAC-%d" % iface
+			request.add_header(macHeader,os.environ[key])
+			pstr = "%s: %s\r\n"%(macHeader,os.environ[key])
+			macargs += pstr
 except Exception as e:
 	print "# urllib2 call had exception %s" % str(e) 
+
 
 retries = RETRIES
 ## Print some debug statements
