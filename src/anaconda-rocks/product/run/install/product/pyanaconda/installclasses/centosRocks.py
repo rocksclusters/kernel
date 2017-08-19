@@ -27,6 +27,8 @@ from blivet.platform import platform
 from blivet.devicelibs import swap
 from blivet.size import Size
 import logging
+import shutil
+import os
 
 class RHELBaseInstallClass(BaseInstallClass):
     name = "Rocks CentOS-based Linux"
@@ -116,20 +118,40 @@ class RocksYumPayload(YumPayload):
         super(RocksYumPayload,self).__init__(data)
         self.lighttpdProc = None
         self.clientInstall = RocksEnv.RocksEnv().clientInstall
+        self.trackerPath = RocksEnv.RocksEnv().trackerPath
+        self.installPath = "/install"
+        self.installPathSave = self.installPath + ".orig"
 
     def preInstall(self, packages=None, groups=None):
         """ Perform pre-installation tasks. """ 
         log = logging.getLogger("packaging")
 
         ## XXX - not complete. Just works for Frontend install
-	if not self.clientInstall:
-        	self.lighttpd(log)
-        	log.info("RocksYumPayload preInstallHook  - downloading rolls")
-        	RocksGetRolls()
-        	log.info("RocksYumPayload preInstallHook  - rolls downloaded")
-        	## Now tell YumPayload that our repo has changed
-        	self.useRocksLocalRepo(log)
-        	self.shutdownRocksDB(log) 
+        if not self.clientInstall:
+            self.lighttpd(log)
+            log.info("RocksYumPayload preInstallHook  - downloading rolls")
+            RocksGetRolls()
+            log.info("RocksYumPayload preInstallHook  - rolls downloaded")
+            ## Now tell YumPayload that our repo has changed
+            self.useRocksLocalRepo(log)
+            self.shutdownRocksDB(log) 
+
+        if self.clientInstall and self.trackerPath is not None:
+            # if trackerPath is not None, then mv everything from
+            # installPath to the trackerPath, and create a link
+            if self.trackerPath != self.installPath:
+                # remove trackerPath
+                try:
+                    shutil.rmtree(self.trackerPath)
+                except OSError as err:
+                    os.unlink(self.trackerPath)
+
+                # Copy existing data from /install 
+                shutil.copytree(self.installPath,self.trackerPath) 
+
+                # move install and then softlink
+                os.rename(self.installPath, self.installPathSave)
+                os.symlink(self.trackerPath,self.installPath)
 
         super(RocksYumPayload, self).preInstall(packages, groups)
 

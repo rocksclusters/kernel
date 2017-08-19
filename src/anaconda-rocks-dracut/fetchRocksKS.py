@@ -81,7 +81,7 @@ retries = RETRIES
 print "# URL is %s" % url
 print "# Query is %s" % query
 print "# Environment is %s" % str(os.environ)
-print "# Macargs is %s" % macargs 
+print "# Macargs is %s" % macargs.replace("\r","").replace("\n"," ")
 
 goodResponse = False
 while retries > 0:

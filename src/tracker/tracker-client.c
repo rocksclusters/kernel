@@ -636,6 +636,10 @@ getremote(char *filename, peer_t *peer, char *range, CURL *curlhandle)
 	 * from a peer
 	 */
 
+#ifndef ROCKS7
+	/* NOTE: in Rocks 7, the logic of where to place files (memory, alt
+	 * file system) is part of the installer logic
+	*/
 	/*
 	 * first, let's see if the file systems have been formatted. if
 	 * so, then copy over all the files that were downloaded in the
@@ -656,6 +660,7 @@ getremote(char *filename, peer_t *peer, char *range, CURL *curlhandle)
 			symlink("/mnt/sysimage/install", "/install");
 		}
 	}
+#endif
 
 #ifdef	TIMEIT
 	gettimeofday(&end_time, NULL);

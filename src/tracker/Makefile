@@ -109,6 +109,9 @@ EXTRA	= -Wall `apr-1-config --cppflags --cflags`
 EXTRA	+= -DTIMEIT 
 #EXTRA	+= -DDEBUG
 #EXTRA	+= -DDEBUG1
+ifeq ($(strip $(VERSION.MAJOR)), 7)
+EXTRA += -DROCKS7
+endif
 EXTRA	+= -pg -g
 EXECS	= tracker-client unregister-file tracker-server peer-done stop-server dump-tables
 SCRIPTS	= tracker.ak 
