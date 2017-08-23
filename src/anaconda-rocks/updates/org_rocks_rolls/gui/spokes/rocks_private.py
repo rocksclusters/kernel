@@ -63,6 +63,7 @@ infoMap['privateAddress']= 'Kickstart_PrivateAddress'
 infoMap['privateNetmask']='Kickstart_PrivateNetmask'
 infoMap['privateNetwork']='Kickstart_PrivateNetwork'
 infoMap['ifaceSelected'] ='Kickstart_PrivateInterface'
+infoMap['privateNTPHost']='Kickstart_PrivateNTPHost'
 infoMap['privateSyslogHost'] = 'Kickstart_PrivateSyslogHost'
 infoMap['privateKickstartHost'] = 'Kickstart_PrivateKickstartHost'
 infoMap['privateGateway'] = 'Kickstart_PrivateGateway'
@@ -163,6 +164,7 @@ class RocksPrivateIfaceSpoke(NormalSpoke):
             after installation for customized. But in general, they 
             are simply replicas """
         self.privateHostname = subprocess.check_output(['hostname','-s']).strip() 
+        self.privateNTPHost = "%s.%s" % (self.privateHostname,self.privateDNS)
         self.privateSyslogHost = self.privateAddress
         self.privateKickstartHost = self.privateAddress
         self.privateGateway = self.privateAddress
