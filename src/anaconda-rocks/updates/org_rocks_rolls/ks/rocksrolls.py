@@ -27,6 +27,7 @@ import subprocess
 from pyanaconda.addons import AddonData
 from pyanaconda.iutil import getSysroot
 from pyanaconda import kickstart
+from pyanaconda import nm 
 from org_rocks_rolls import RocksEnv
 
 from pykickstart.options import KSOptionParser
@@ -184,6 +185,16 @@ class RocksRollsData(AddonData):
         for key in atdict.keys():
             f.write( "%s:%s\n" % (key,atdict[key]) )
         f.close()
+
+        ## Write out all of the Ethernet devices so that we can load
+        ## Load into the installed FE database. See database-data.xm
+        etherifs = filter(lambda x: nm.nm_device_type_is_ethernet(x),\
+           nm.nm_devices())
+        ethermacs = map(lambda x: nm.nm_device_perm_hwaddress(x),etherifs)
+        g = open("/tmp/frontend-ifaces.sh")
+        g.write("/opt/rocks/bin/rocks config host interface localhost iface='%s' mac='%s' flag='' module=''\n" % \
+            (",".join(etherifs),",".join(ethermacs)))
+        g.close()
 
         cmd = ["/opt/rocks/bin/rocks","list","node", "xml", \
            "attrs=%s" % attrs, "basedir=/tmp/rocks/export/profile", "server"]
