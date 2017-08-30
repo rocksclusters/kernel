@@ -114,9 +114,14 @@ class RocksRollsSpoke(NormalSpoke):
         """
 
         NormalSpoke.__init__(self, data, storage, payload, instclass)
-        self.clientInstall = RocksEnv.RocksEnv().clientInstall
+        r = RocksEnv.RocksEnv()
+        self.clientInstall = r.clientInstall
 
-        self.defaultUrl ="http://beta6.rocksclusters.org/install/rolls"
+        self.defaultCentral ="beta7.rocksclusters.org"
+        if r.central is not None:
+            self.defaultCentral = r.central
+        self.defaultUrl ="http://%s/install/rolls" % self.defaultCentral
+
         self.defaultCDPath = "/run/install/repo"
 
         self.selectAll = True
@@ -125,7 +130,6 @@ class RocksRollsSpoke(NormalSpoke):
         self.requireDB = True
 
         self.requiredRolls = ('core','base','kernel')
-
 
     def initialize(self):
         """
@@ -340,7 +344,7 @@ class RocksRollsSpoke(NormalSpoke):
 
         #
         # if this is a CD-based roll, then mount the disk
-	# just read from a local path
+        # just read from a local path
         #
         if self.rollSource == CD:
             # XXX Fix this to really do mounting in 7 XXX
@@ -363,7 +367,8 @@ class RocksRollsSpoke(NormalSpoke):
         for roll in rollList:
             (name,version,arch,url,diskid) = roll    
             self.listStore.append(row=(False,name,version,arch,url,diskid))
-
+        if len(rollList) == 0:
+            self.listStore.append(row=(False,"NO ROLLS FOUND!","","","",""))
 
     def selectRolls(self,widget):
         selected = filter(lambda x : x[0], self.listStore)
@@ -372,9 +377,10 @@ class RocksRollsSpoke(NormalSpoke):
             for a in self.selectStore:
                 if (a[0],a[1],a[2]) == (name,version,arch):
                     self.selectStore.remove(a.iter)
-            self.selectStore.append((name,version,arch,url,diskid))      
-            self.log.info("ROCKS - Select Rolls %s" % (name,version,arch,url,diskid).__str__()) 
-            self.install.getKickstartFiles((name,version,arch,"%s/" % url,diskid))
+            if len(url) > 0:
+                self.selectStore.append((name,version,arch,url,diskid))      
+                self.log.info("ROCKS - Select Rolls %s" % (name,version,arch,url,diskid).__str__()) 
+                self.install.getKickstartFiles((name,version,arch,"%s/" % url,diskid))
         self.listStore.clear()
 
     def doPopup(self,tview,path,c):
