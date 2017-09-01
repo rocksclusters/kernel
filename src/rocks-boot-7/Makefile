@@ -64,6 +64,8 @@ include Rules.mk
 
 LORAXBUILD = loraxtmp
 LORAXCONF = lorax.conf
+ISOCONFIG = usr/share/lorax/config_files/x86/isolinux.cfg 
+APPENDLINE = central=$(CENTRAL)
 build:
 	## create a local rocks distribution
 	/opt/rocks/bin/rocks create distro
@@ -71,12 +73,14 @@ build:
 	rpm2cpio `find rocks-dist -name 'lorax*$(ARCH).rpm'` | cpio --extract -c --make-directories '*/usr/share/lorax/*'
 	## Apply Our patches to the template
 	(cd patch-files; $(TAR) cf - *) | $(TAR) xvf - 
+	## Patch the isolinux.cfg to set up our central
+	$(SED) -i -e '/append/s/$$/ $(APPENDLINE)/' $(ISOCONFIG)
 	echo "[lorax]" > $(LORAXCONF)
 	echo "sharedir=`pwd`/usr/share/lorax" >> $(LORAXCONF)
 	## Create a local repo of THIS roll's RPMS
 	$(MAKE) -C $(REDHAT.ROOT) createlocalrepo
 	## Use Lorax to Build images
-	lorax -p Rocks -v $(ROCKS_VERSION) -r $(RELEASE) -s `pwd`/rocks-dist/$(ARCH) -s $(REDHAT.ROOT)/localrepo -c `pwd`/$(LORAXCONF) --noupgrade `pwd`/$(LORAXBUILD) 
+	lorax $(ISFINAL) -p Rocks -v $(ROCKS_VERSION) -r $(RELEASE) -s `pwd`/rocks-dist/$(ARCH) -s $(REDHAT.ROOT)/localrepo -c `pwd`/$(LORAXCONF) --noupgrade `pwd`/$(LORAXBUILD) 
 
 
 install::
