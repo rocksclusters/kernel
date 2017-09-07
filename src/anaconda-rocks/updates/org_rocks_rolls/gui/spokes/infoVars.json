@@ -320,6 +320,17 @@
     },
     {
         "required": true, 
+        "value": "pool.ntp.org", 
+        "varname": "Kickstart_PrivateNTPHost", 
+        "infoHelp": "Network Time Protocol Servers for Clients", 
+        "param": "NTP Servers for Clients", 
+        "validate": null,
+	"derived": false,
+	"color": "green", 
+        "display": false
+    },
+    {
+        "required": true, 
         "value": "", 
         "varname": "Kickstart_PublicAddress", 
         "infoHelp": "IPv4 Address for Public Interface ", 
