@@ -45,10 +45,11 @@ import thread
 
 
 
-STATUSMSG = ["%d Rolls Selected", "Please Select Required Rolls ", "Hostname='localhost'. Please Change it"]
+STATUSMSG = ["%d Rolls Selected", "Please Select Required Rolls ", "Hostname='localhost'. Please Change it", "Building Database, Please Wait"]
 COMPLETE = 0
 CONFIGURE = 1
 BADHOSTNAME = 2
+BUILDING = 3
 
 ## Defines for Roll Source
 NETWORK = 0
@@ -225,16 +226,19 @@ class RocksRollsSpoke(NormalSpoke):
 
         # Check if the hostname starts with "localhost"
         # if
-	myHostname = subprocess.check_output(['hostname','-s']).strip()
+        myHostname = subprocess.check_output(['hostname','-s']).strip()
         if myHostname.startswith("localhost"):
             self.readyState=BADHOSTNAME
             return False
         # if the readyState was BADHOSTNAME return to CONFIGURE state
-	# send a message to Hub that we are now ready (only way to
+        # send a message to Hub that we are now ready (only way to
         # to remove this spoke from _notReady list
         if self.readyState == BADHOSTNAME:
             self.readyState = CONFIGURE
             hubQ.send_ready(self.__class__.__name__, True)
+        if self.readyState == BUILDING:
+            self.log.info("rocks_rolls.py:building db (ready)")
+            return False            
         self.log.info("rocks_rolls.py:ready")
         return True
 
@@ -433,7 +437,7 @@ class RocksRollsSpoke(NormalSpoke):
 
         f.write('</rolls>\n')
         f.close()
-    def builddb(self):
+    def builddb_old(self):
         dialog = Gtk.Dialog("Build Database", parent=self.main_window, flags=0,
             buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
              Gtk.STOCK_OK, Gtk.ResponseType.OK))
@@ -446,11 +450,23 @@ class RocksRollsSpoke(NormalSpoke):
         thread.start_new_thread(self.buildit,(dialog,))
         #self.buildit(dialog)
 
+
+    def builddb(self):
+        oldReady = self.readyState 
+        self.log.info("rocks_rolls.py:building db (builddb)")
+        self.readyState = BUILDING
+        hubQ.send_ready(self.__class__.__name__, False)
+        self.buildit(None)
+        self.readyState = oldReady
+        self.log.info("rocks_rolls.py: database built (builddb)")
+        hubQ.send_ready(self.__class__.__name__, True)
+
     def buildit(self,dialog):
         cmd = ["/opt/rocks/bin/builddb.sh", "/tmp/rocks"]
         p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         p1.communicate() 
-        dialog.destroy()
+        if dialog is not None:
+            dialog.destroy()
 
 class RocksRollsDialog(GUIObject):
     """
