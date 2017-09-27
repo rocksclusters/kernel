@@ -26,6 +26,8 @@ import sys
 import urllib,urllib2
 import random
 import time
+import ssl
+
 print "# Opening /proc/cmdline looking for rocks.ks"
 arg = []
 url = None
@@ -41,7 +43,7 @@ timezone --utc America/Los_Angeles
 sshpw --username root rescueME
 # This presection reboots the node
 %%pre
-if [ -f /tracker/peer-done ]; then /tracker/peer-done fi
+if [ -f /tracker/peer-done ]; then /tracker/peer-done; fi
 /bin/curl --max-time 5 %s
 /sbin/shutdown -r now
 %%end
@@ -63,6 +65,7 @@ if url is None:
 lines = sys.stdin.readlines()
 query=""
 macargs=""
+sslContext = ssl._create_unverified_context()
 
 try:
 	request = urllib2.Request(url,query)
@@ -99,7 +102,7 @@ goodResponse = False
 while retries > 0:
 	try:
 		retries = retries - 1
-		response = urllib2.urlopen(request,macargs,MAXTIMEOUT)
+		response = urllib2.urlopen(request,macargs,MAXTIMEOUT,context=sslContext)
 		goodResponse=True
 		break
 
