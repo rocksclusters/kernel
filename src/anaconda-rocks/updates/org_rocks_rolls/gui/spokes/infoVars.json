@@ -8,6 +8,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": true
     }, 
     {
@@ -19,6 +20,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false 
     }, 
     {
@@ -30,6 +32,7 @@
         "validate": null,
 	"derived": false,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": true
     }, 
     {
@@ -41,6 +44,7 @@
         "validate": null,
 	"derived": false,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": true
     }, 
     {
@@ -52,6 +56,7 @@
         "validate": null,
 	"derived": false,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": true
     }, 
     {
@@ -63,6 +68,7 @@
         "validate": null,
 	"derived": false,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": true
     }, 
     {
@@ -74,6 +80,7 @@
         "validate": null,
 	"derived": false,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": true
     }, 
     {
@@ -85,6 +92,7 @@
         "validate": null,
 	"derived": false,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": true
     }, 
     {
@@ -96,6 +104,7 @@
         "validate": null,
 	"derived": false,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": true
     }, 
     {
@@ -107,6 +116,7 @@
         "validate": null,
 	"derived": false,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": true
     }, 
     {
@@ -118,6 +128,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     }, 
     {
@@ -129,6 +140,7 @@
         "validate": null,
 	"derived": false,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     }, 
     {
@@ -140,6 +152,7 @@
         "validate": null,
 	"derived": false,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     }, 
     {
@@ -151,6 +164,7 @@
         "validate": null,
 	"derived": false,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     }, 
     {
@@ -162,6 +176,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     },
     {
@@ -173,6 +188,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     },
     {
@@ -184,6 +200,7 @@
         "validate": null,
 	"derived": false,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     }, 
     {
@@ -195,6 +212,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": true
     }, 
     {
@@ -206,6 +224,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display":true 
     }, 
     {
@@ -217,6 +236,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display":true 
     }, 
     {
@@ -228,7 +248,8 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
-        "display":true 
+	"colorlabel": "green", 
+        "display": false 
     }, 
     {
         "required": true, 
@@ -239,6 +260,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display":true 
     }, 
     {
@@ -250,6 +272,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     }, 
     {
@@ -261,6 +284,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     }, 
     {
@@ -272,6 +296,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     }, 
     {
@@ -283,6 +308,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     }, 
     {
@@ -294,6 +320,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     },
     {
@@ -305,6 +332,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": true
     },
     {
@@ -316,6 +344,7 @@
         "validate": null,
 	"derived": false,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": true
     },
     {
@@ -327,6 +356,7 @@
         "validate": null,
 	"derived": false,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     },
     {
@@ -338,7 +368,8 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
-        "display": true
+	"colorlabel": "green", 
+        "display": false 
     },
     {
         "required": true, 
@@ -349,6 +380,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": true
     },
     {
@@ -360,7 +392,8 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
-        "display": true
+	"colorlabel": "green", 
+        "display": false 
     },
     {
         "required": true, 
@@ -371,6 +404,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": true
     },
     {
@@ -382,6 +416,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": true
     },
     {
@@ -393,6 +428,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     },
     {
@@ -404,6 +440,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     },
     {
@@ -415,6 +452,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     },
     {
@@ -426,6 +464,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     },
     {
@@ -437,6 +476,7 @@
         "validate": null,
 	"derived": true,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": true
     },
     {
@@ -448,6 +488,7 @@
         "validate": null,
 	"derived": false,
 	"color": "green", 
+	"colorlabel": "green", 
         "display": false
     }
 ]

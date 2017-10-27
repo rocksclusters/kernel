@@ -23,6 +23,8 @@
       <column type="gchararray"/>
       <!-- column-name derived -->
       <column type="gboolean"/>
+      <!-- column-name colorlabel -->
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkTreeModelFilter" id="ClusterInfoFilter">
@@ -80,7 +82,7 @@
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">True</property>
+                    <property name="fill">False</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
@@ -88,66 +90,78 @@
             </child>
           </object>
           <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
             <property name="position">1</property>
           </packing>
         </child>
         <child>
-          <object class="GtkTreeView" id="treeview1">
+          <object class="GtkScrolledWindow" id="scrolledwindowattrs">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="model">ClusterInfoFilter</property>
-            <property name="search_column">0</property>
-            <property name="hover_selection">True</property>
-            <property name="level_indentation">5</property>
-            <property name="enable_grid_lines">both</property>
-            <property name="tooltip_column">3</property>
-            <child internal-child="selection">
-              <object class="GtkTreeSelection" id="treeview-selection1"/>
-            </child>
+            <property name="vscrollbar_policy">automatic</property>
+            <property name="hscrollbar_policy">automatic</property>
             <child>
-              <object class="GtkTreeViewColumn" id="treeviewcolumn1">
-                <property name="title" translatable="yes">parameter</property>
-                <property name="sort_order">descending</property>
+              <object class="GtkTreeView" id="treeview1">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="model">ClusterInfoFilter</property>
+                <property name="search_column">0</property>
+                <property name="hover_selection">True</property>
+                <property name="level_indentation">5</property>
+                <property name="enable_grid_lines">both</property>
+                <property name="tooltip_column">3</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection" id="treeview-selection1"/>
+                </child>
                 <child>
-                  <object class="GtkCellRendererText" id="cellrenderertext1">
-                    <property name="background_gdk">#7373d2d21616</property>
-                    <property name="foreground_gdk">#000000000000</property>
-                    <property name="weight">600</property>
-                    <property name="width_chars">40</property>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+                    <property name="title" translatable="yes">parameter</property>
+                    <property name="sort_order">descending</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="cellrenderertext1">
+                        <property name="background_gdk">#7373d2d21616</property>
+                        <property name="foreground_gdk">#000000000000</property>
+                        <property name="weight">600</property>
+                        <property name="width_chars">40</property>
+                      </object>
+                      <attributes>
+                        <attribute name="visible">5</attribute>
+                        <attribute name="text">0</attribute>
+                        <attribute name="background">9</attribute>
+                      </attributes>
+                    </child>
                   </object>
-                  <attributes>
-                    <attribute name="visible">5</attribute>
-                    <attribute name="text">0</attribute>
-                  </attributes>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumn2">
+                    <property name="resizable">True</property>
+                    <property name="sizing">fixed</property>
+                    <property name="title" translatable="yes">value</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="cellrenderertext2">
+                        <property name="editable">True</property>
+                        <property name="width_chars">50</property>
+                        <signal name="edited" handler="InfoUpdated" swapped="no"/>
+                      </object>
+                      <attributes>
+                        <attribute name="visible">5</attribute>
+                        <attribute name="background">7</attribute>
+                        <attribute name="text">1</attribute>
+                      </attributes>
+                    </child>
+                  </object>
                 </child>
               </object>
-            </child>
-            <child>
-              <object class="GtkTreeViewColumn" id="treeviewcolumn2">
-                <property name="resizable">True</property>
-                <property name="sizing">fixed</property>
-                <property name="title" translatable="yes">value</property>
-                <child>
-                  <object class="GtkCellRendererText" id="cellrenderertext2">
-                    <property name="editable">True</property>
-                    <property name="width_chars">50</property>
-                    <signal name="edited" handler="InfoUpdated" swapped="no"/>
-                  </object>
-                  <attributes>
-                    <attribute name="visible">5</attribute>
-                    <attribute name="background">7</attribute>
-                    <attribute name="text">1</attribute>
-                  </attributes>
-                </child>
-              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
+             <property name="expand">True</property>
+             <property name="fill">True</property>
           </packing>
         </child>
       </object>
