@@ -54,13 +54,14 @@ __all__ = ["RocksConfigSpoke"]
 # File that holds JSON of clusterInfo variables.
 INFOFILE = "infoVars.json"
 PROFILES = "/tmp/rocks/export/profile"
-FIELDNAMES = ['param','value','varname','infoHelp','required','display','validate', 'color','derived','colorlabel']
+FIELDNAMES = ['param','value','varname','infoHelp','required','display','validate', 'color','derived','colorlabel','initialize']
 VARIDX = FIELDNAMES.index("varname")
 VALIDX = FIELDNAMES.index("value")
 VISIDX = FIELDNAMES.index("display")
 COLORIDX = FIELDNAMES.index("color")
 REQUIREDIDX = FIELDNAMES.index("required")
 DERIVEDIDX = FIELDNAMES.index("derived")
+INITIALIZEIDX = FIELDNAMES.index("initialize")
 
 # Field names are:
 #        param: String. Displayed Parameter Text 
@@ -72,7 +73,7 @@ DERIVEDIDX = FIELDNAMES.index("derived")
 #        validate: String.  Validation Method 
 #        color: String.  Color of cell for disply 
 #        colorlabel: String.  Color of label 
-# 
+#        initialize: String.  name of existing attr to initialize this param
 # These fields are mapped into gui's ClusterInfoStore (in RocksInfo.glade).
 # ClusterInfoStore only has indices, so must keep the map of these dictionary 
 # values consistent with their indices in the UI
@@ -409,10 +410,19 @@ class RocksConfigSpoke(NormalSpoke):
                 rollInfo = json.load(f)
                 f.close()
                 rollParams = [[z[idx] for idx in FIELDNAMES ] for z in rollInfo] 
-        	self.log.info("ROCKS: readRollJSON rollParams (%s)" % str(rollParams))              
+                # Try to initialize params using other attributes.
+                # If no initialize is defined for a particular attr, just
+                # keep trying.
+                for param in rollParams:
+                    try:
+                        param[VALIDX] = getValue(self.data,param[INITIALIZEIDX])
+                    except Exception as e:
+                        self.log.info("ROCKS: readRollJSON param set exception (%s)" % str(e))              
+                self.log.info("ROCKS: readRollJSON rollParams (%s)" % str(rollParams))              
+
                 self.merge(rollParams)
             except Exception as e:
-        	self.log.info("ROCKS: readRollJSON exception (%s)" % str(e))              
+                self.log.info("ROCKS: readRollJSON exception (%s)" % str(e))              
     
     def merge(self, defaultinfo):
         """ merge data from defaultinfo into org_rocks_rolls.info 

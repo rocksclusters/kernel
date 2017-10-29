@@ -25,6 +25,8 @@
       <column type="gboolean"/>
       <!-- column-name colorlabel -->
       <column type="gchararray"/>
+      <!-- column-name initialize -->
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkTreeModelFilter" id="ClusterInfoFilter">

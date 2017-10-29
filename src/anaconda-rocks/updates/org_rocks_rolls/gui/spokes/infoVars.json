@@ -2,6 +2,7 @@
     {
         "required": true, 
         "value": "", 
+        "initialize": null,
         "varname": "Kickstart_PublicFQDN", 
         "infoHelp": "This must be the fully-qualified domain name of your cluster head node(e.g, abc.university.edu). This is a derived field.", 
         "param": "Fully-Qualified Domain Name", 
@@ -14,6 +15,7 @@
     {
         "required": true, 
         "value": "", 
+        "initialize": null,
         "varname": "Kickstart_PublicHostname", 
         "infoHelp": "This is the short name of the public interfaace (e.g, abc of abc.university.edu", 
         "param": "Public Host Name", 
@@ -26,6 +28,7 @@
     {
         "required": true, 
         "value": "", 
+        "initialize": null,
         "varname": "Info_ClusterName", 
         "infoHelp": "The name of the cluster (used on web pages and reports)", 
         "param": "Cluster Name", 
@@ -38,6 +41,7 @@
     {
         "required": true, 
         "value": "admin@place.org", 
+        "initialize": null,
         "varname": "Info_ClusterContact", 
         "infoHelp": "email of contact for this cluster. Will be used for reports and notification", 
         "param": "Contact", 
@@ -50,6 +54,7 @@
     {
         "required": false, 
         "value": "http://www.place.org", 
+        "initialize": null,
         "varname": "Info_ClusterURL", 
         "infoHelp": "URL for the project that this cluster supports", 
         "param": "Project URL", 
@@ -62,6 +67,7 @@
     {
         "required": false, 
         "value": "N32.86 W117.22", 
+        "initialize": null,
         "varname": "Info_ClusterLatLong", 
         "infoHelp": "Physical Location of this cluster", 
         "param": "Latitude/Longitude", 
@@ -74,6 +80,7 @@
     {
         "required": false, 
         "value": "SDSC", 
+        "initialize": null,
         "varname": "Info_CertificateOrganization", 
         "infoHelp": "The Name of your organization, used when building a certificate for this host", 
         "param": "Certificate Organization", 
@@ -86,6 +93,7 @@
     {
         "required": false, 
         "value": "San Diego", 
+        "initialize": null,
         "varname": "Info_CertificateLocality", 
         "infoHelp": "Your City for the certificate", 
         "param": "Certificate Locality", 
@@ -98,6 +106,7 @@
     {
         "required": false, 
         "value": "California", 
+        "initialize": null,
         "varname": "Info_CertificateState", 
         "infoHelp": "Your State", 
         "param": "Certificate State", 
@@ -110,6 +119,7 @@
     {
         "required": false, 
         "value": "US", 
+        "initialize": null,
         "varname": "Info_CertificateCountry", 
         "infoHelp": "Your Country", 
         "param": "Certificate Country", 
@@ -122,6 +132,7 @@
     {
         "required": true, 
         "value": "replaceme", 
+        "initialize": null,
         "varname": "Kickstart_PrivateHostname", 
         "infoHelp": "", 
         "param": "Private Hostname", 
@@ -134,6 +145,7 @@
     {
         "required": true, 
         "value": "sbin/kickstart.cgi", 
+        "initialize": null,
         "varname": "Kickstart_PrivateKickstartCGI", 
         "infoHelp": "", 
         "param": "Private Kickstart CGI", 
@@ -146,6 +158,7 @@
     {
         "required": true, 
         "value": "/export/rocks", 
+        "initialize": null,
         "varname": "Kickstart_DistroDir", 
         "infoHelp": "", 
         "param": "Kickstart Distribution", 
@@ -158,6 +171,7 @@
     {
         "required": true, 
         "value": "install", 
+        "initialize": null,
         "varname": "Kickstart_PrivateKickstartBasedir", 
         "infoHelp": "", 
         "param": "Kickstart Base Dir", 
@@ -170,6 +184,7 @@
     {
         "required": true, 
         "value": "", 
+        "initialize": null,
         "varname": "Kickstart_PrivateSyslogHost", 
         "infoHelp": "Syslog Host for nodes on Private Network", 
         "param": "Syslog Host for nodes on Private Network",
@@ -182,6 +197,7 @@
     {
         "required": true, 
         "value": "", 
+        "initialize": null,
         "varname": "Kickstart_PrivateKickstartHost", 
         "infoHelp": "Private Address for the Kickstart Host", 
         "param": "Private Address for the Kickstart Host", 
@@ -194,6 +210,7 @@
     {
         "required": true, 
         "value": "central.rocksclusters.org", 
+        "initialize": null,
         "varname": "Kickstart_PublicKickstartHost", 
         "infoHelp": "", 
         "param": "Public Kickstart Host", 
@@ -206,6 +223,7 @@
     {
         "required": true, 
         "value": "local", 
+        "initialize": null,
         "varname": "Kickstart_PrivateInterface", 
         "infoHelp": "Interface to  use for Private Cluster Interface", 
         "param": "Network Device for Private Network", 
@@ -218,6 +236,7 @@
     {
         "required": true, 
         "value": "10.1.1.1", 
+        "initialize": null,
         "varname": "Kickstart_PrivateAddress", 
         "infoHelp": "IP Address for Private Cluster Interface", 
         "param": "Private Cluster IPv4 Address", 
@@ -230,6 +249,7 @@
     {
         "required": true, 
         "value": "255.255.255.0", 
+        "initialize": null,
         "varname": "Kickstart_PrivateNetmask", 
         "infoHelp": "Netmask for Private Cluster Interface", 
         "param": "Private Cluster Netmask", 
@@ -242,6 +262,7 @@
     {
         "required": true, 
         "value": "10.1.1.0", 
+        "initialize": null,
         "varname": "Kickstart_PrivateNetwork", 
         "infoHelp": "Network for the private interface", 
         "param": "Private Cluster Network", 
@@ -254,6 +275,7 @@
     {
         "required": true, 
         "value": "1500", 
+        "initialize": null,
         "varname": "Kickstart_PrivateMTU", 
         "infoHelp": "MTU for Private Cluster Interface", 
         "param": "Private Cluster Interface MTU", 
@@ -266,6 +288,7 @@
     {
         "required": true, 
         "value": "local", 
+        "initialize": null,
         "varname": "Kickstart_PrivateDNSDomain", 
         "infoHelp": "DNS Name for Private Cluster Interface", 
         "param": "Private DNS Domain", 
@@ -278,6 +301,7 @@
     {
         "required": true, 
         "value": "replaceme", 
+        "initialize": null,
         "varname": "Kickstart_PublicDNSDomain", 
         "infoHelp": "DNS Name for Public Cluster Interface", 
         "param": "Public DNS Domain", 
@@ -290,6 +314,7 @@
     {
         "required": true, 
         "value": "en_US", 
+        "initialize": null,
         "varname": "Kickstart_Lang", 
         "infoHelp": "Language Setting", 
         "param": "Language", 
@@ -302,6 +327,7 @@
     {
         "required": true, 
         "value": "en_US", 
+        "initialize": null,
         "varname": "Kickstart_Langsupport", 
         "infoHelp": "Language Support", 
         "param": "Language Support", 
@@ -314,6 +340,7 @@
     {
         "required": true, 
         "value": "us", 
+        "initialize": null,
         "varname": "Kickstart_Keyboard", 
         "infoHelp": "Keyboard Definition", 
         "param": "Keyboard", 
@@ -326,6 +353,7 @@
     {
         "required": true, 
         "value": "America/Los_Angeles", 
+        "initialize": null,
         "varname": "Kickstart_Timezone", 
         "infoHelp": "Timezone", 
         "param": "Timezone", 
@@ -338,6 +366,7 @@
     {
         "required": true, 
         "value": "pool.ntp.org", 
+        "initialize": null,
         "varname": "Kickstart_PublicNTPHost", 
         "infoHelp": "Network Time Protocol Servers", 
         "param": "NTP Servers", 
@@ -350,6 +379,7 @@
     {
         "required": true, 
         "value": "pool.ntp.org", 
+        "initialize": null,
         "varname": "Kickstart_PrivateNTPHost", 
         "infoHelp": "Network Time Protocol Servers for Clients", 
         "param": "NTP Servers for Clients", 
@@ -362,6 +392,7 @@
     {
         "required": true, 
         "value": "", 
+        "initialize": null,
         "varname": "Kickstart_PublicAddress", 
         "infoHelp": "IPv4 Address for Public Interface ", 
         "param": "Public IPv4 Address", 
@@ -374,6 +405,7 @@
     {
         "required": true, 
         "value": "", 
+        "initialize": null,
         "varname": "Kickstart_PublicInterface", 
         "infoHelp": "Physical Interface for Public Network", 
         "param": "Public Interface", 
@@ -386,6 +418,7 @@
     {
         "required": true, 
         "value": "", 
+        "initialize": null,
         "varname": "Kickstart_PublicNetwork", 
         "infoHelp": "IPv4 Network for the Public Interface", 
         "param": "Public IPv4 Network", 
@@ -398,6 +431,7 @@
     {
         "required": true, 
         "value": "", 
+        "initialize": null,
         "varname": "Kickstart_PublicNetmask", 
         "infoHelp": "IPv4 Netmask for the Public Interface", 
         "param": "Public IPv4 Netmask", 
@@ -410,6 +444,7 @@
     {
         "required": true, 
         "value": "", 
+        "initialize": null,
         "varname": "Kickstart_PublicMTU", 
         "infoHelp": "MTU for Public Interface", 
         "param": "Public Interface MTU", 
@@ -422,6 +457,7 @@
     {
         "required": true, 
         "value": "8.8.8.8", 
+        "initialize": null,
         "varname": "Kickstart_PublicDNSServers", 
         "infoHelp": "Addresses for Public DNS Servers", 
         "param": "Addresses for Public DNS Servers", 
@@ -434,6 +470,7 @@
     {
         "required": true, 
         "value": "", 
+        "initialize": null,
         "varname": "Kickstart_PrivateGateway", 
         "infoHelp": "Gateway for Private Network Nodes", 
         "param": "Gateway for Private Network Nodes", 
@@ -446,6 +483,7 @@
     {
         "required": true, 
         "value": "", 
+        "initialize": null,
         "varname": "Kickstart_PrivateDNSServers", 
         "infoHelp": "DNS Servers for Private Network Nodes", 
         "param": "DNS Servers for Private Network Nodes",
@@ -458,6 +496,7 @@
     {
         "required": true, 
         "value": "", 
+        "initialize": null,
         "varname": "Kickstart_PrivateNetmaskCIDR", 
         "infoHelp": "CIDR for Private Network", 
         "param": "CIDR for Private Network", 
@@ -470,6 +509,7 @@
     {
         "required": true, 
         "value": "", 
+        "initialize": null,
         "varname": "Kickstart_PublicGateway", 
         "infoHelp": "Gateway for the Public Interface", 
         "param": "Default Router for Public IPv4 Network", 
@@ -482,6 +522,7 @@
     {
         "required": false, 
         "value": "True", 
+        "initialize": null,
         "varname": "UseTracker", 
         "infoHelp": "Determine if the Tracker should be used for client installs", 
         "param": "Boolean to determine if tracker should be used", 
