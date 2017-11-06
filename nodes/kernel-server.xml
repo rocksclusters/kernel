@@ -44,6 +44,8 @@ new XML node file to help support kernel roll rebuilding
 </changelog>
 
 
+<package os='linux' cond="rocks_version_major == 7">rocks-boot</package>
+
 <!-- packages that are needed to correctly rebuild the kernel roll -->
 <package>pcre</package>
 <package>pcre-devel</package>
