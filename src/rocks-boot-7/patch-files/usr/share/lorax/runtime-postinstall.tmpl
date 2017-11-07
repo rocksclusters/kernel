@@ -148,3 +148,7 @@ mkdir lib/systemd/system/anaconda.target.wants
 systemctl enable lighttpd.service
 ## Run the rockspart service for automated/user-defined/DB-defined  partitioning
 systemctl enable rockspart.service
+
+## Setup sshd to allow forwarding. Set VNC is set to accept connections only on 
+## localhost in a modified vnc.py
+append etc/ssh/sshd_config.anaconda "AllowTcpForwarding yes"
