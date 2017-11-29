@@ -23,7 +23,7 @@ class RocksEnv(object):
     def central(self):
         """ read /proc/cmdline and get the central"""
         try:
-            return cmdargs['central']
+            return self.cmdargs['central']
         except:
             return None 
     
