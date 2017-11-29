@@ -84,6 +84,8 @@ build:
 	lorax $(ISFINAL) -p Rocks -v $(ROCKS_VERSION) -r $(RELEASE) -s `pwd`/rocks-dist/$(ARCH) -s $(REDHAT.ROOT)/localrepo -c `pwd`/$(LORAXCONF) --noupgrade `pwd`/$(LORAXBUILD) 
 
 
+showvars:
+	echo "CENTRAL=" $(CENTRAL)
 install::
 	mkdir -p $(ROOT)/$(PKGROOT)
 	(cd $(LORAXBUILD); $(TAR) cf - --exclude=boot.iso * ) | \

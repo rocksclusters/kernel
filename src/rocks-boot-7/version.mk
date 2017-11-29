@@ -4,9 +4,9 @@ RELEASE		= 0
 RPM.PREFIX	= $(PKGROOT)
 INSTALLERISO	= rocks-installer-$(VERSION.MAJOR)-$(VERSION.MINOR).iso
 
-# ISFINAL = --isfinal
+ISFINAL = --isfinal
 ifdef ISFINAL
-CENTRAL=central-$(VERSION)-x86-64.rocksclusters.org
+CENTRAL=central-$(shell echo $(VERSION) | tr . -)-x86-64.rocksclusters.org
 else
 CENTRAL=beta7.rocksclusters.org
 endif
