@@ -177,15 +177,3 @@ copyright rpm pkg clean::
 	for i in $(SRCDIRS) ; do \
 		(cd $$i; make $@) ; \
 	done
-
-default:	pkg
-
-foo:
-	echo $(SRCDIRS)
-	echo $(ROCKS.OS.VERSION.MAJOR)
-
-copyright rpm pkg clean::
-	for i in $(SRCDIRS) ; do \
-		(cd $$i; make $@) ; \
-	done
-
