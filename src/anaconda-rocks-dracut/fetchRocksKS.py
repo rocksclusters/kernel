@@ -17,7 +17,7 @@
 #       can ssh to the node with passwd "rescueME" 
 #       attempts to leave a failure note on the frontend
 #
-DEFAULTURL = "https://10.1.75.1/install/sbin/kickstart.cgi"
+DEFAULTURL = "https://10.1.117.1/install/sbin/kickstart.cgi"
 RETRIES = 4
 MINTIMEOUT = 2
 MAXTIMEOUT = 20
@@ -28,7 +28,7 @@ import random
 import time
 import ssl
 
-print "# Opening /proc/cmdline looking for rocks.ks"
+print "# Opening /proc/cmdline looking for rocks.ks and rocks.ks.timeout"
 arg = []
 url = None
 RESCUE_KICKSTART="""
@@ -54,6 +54,7 @@ try:
 	lines = f.readlines()
 	f.close()
 	arg = filter(lambda x: x[0]=="rocks.ks",map(lambda y: y.split('=')," ".join(lines).split()))
+	maxTimeout = filter(lambda x: x[0]=="rocks.ks.timeout",map(lambda y: y.split('=')," ".join(lines).split()))
 except Exception as e:
 	print "# had exception %s" % e.__str__()
 
@@ -61,6 +62,8 @@ if len(arg) > 0:
 	url = arg[0][1]
 if url is None:
 	url = DEFAULTURL
+if len(maxTimeout) == 0:
+	maxTimeout = MAXTIMEOUT
 
 lines = sys.stdin.readlines()
 query=""
@@ -102,7 +105,7 @@ goodResponse = False
 while retries > 0:
 	try:
 		retries = retries - 1
-		response = urllib2.urlopen(request,macargs,MAXTIMEOUT,context=sslContext)
+		response = urllib2.urlopen(request,macargs,maxTimeout,context=sslContext)
 		goodResponse=True
 		break
 
@@ -111,7 +114,7 @@ while retries > 0:
 		if e.headers.has_key("Retry-After"):
 			timeout = int(e.headers["Retry-After"]) 
 		if timeout is None:
-			timeout = MAXTIMEOUT
+			timeout = maxTimeout
 		sleeptime = random.randint(MINTIMEOUT,timeout)
 		# syslog.syslog(syslog.LOG_INFO,"ROCKS: Kickstart Service Busy. Retries left (%d) in %d secs" % (retries, sleeptime))
 		time.sleep(sleeptime)
@@ -119,7 +122,10 @@ while retries > 0:
 		# This is a generic error (bad url, ...)
 		# retry until we can't anylonger
 		pass
-
+	except Exception as e:
+		# Unknown exception, bad stuff, so just print the rescue
+		# kickstart file
+		break	
 
 if goodResponse:
 	print response.read()
