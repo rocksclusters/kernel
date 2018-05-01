@@ -192,7 +192,7 @@ class RocksPrivateIfaceSpoke(NormalSpoke):
             entry=[None,None,None,None]
             entry[DEVICEIDX] = x
             entry[TYPEIDX] = "ethernet"
-            entry[MACIDX] = nm.nm_device_perm_hwaddress(x)
+            entry[MACIDX] = nm.nm_device_valid_hwaddress(x)
             entry[LABELIDX] = "%s;%s" % (x,entry[MACIDX])
             self.deviceStore.append(entry)
         if len(privates) == 0:
