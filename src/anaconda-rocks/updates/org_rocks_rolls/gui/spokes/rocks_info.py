@@ -410,12 +410,16 @@ class RocksConfigSpoke(NormalSpoke):
                 rollInfo = json.load(f)
                 f.close()
                 rollParams = [[z[idx] for idx in FIELDNAMES ] for z in rollInfo] 
-                # Try to initialize params using other attributes.
+                # Try to initialize params using other attributes (only
+                # roll parameter has a non-zero initializer)
                 # If no initialize is defined for a particular attr, just
                 # keep trying.
                 for param in rollParams:
                     try:
-                        param[VALIDX] = getValue(self.data,param[INITIALIZEIDX])
+                        initAttr = param[INITIALIZEIDX]
+                        if len(initAttr) == 0:
+                            continue
+                        param[VALIDX] = getValue(self.data,initAttr)
                     except Exception as e:
                         self.log.info("ROCKS: readRollJSON param set exception (%s)" % str(e))              
                 self.log.info("ROCKS: readRollJSON rollParams (%s)" % str(rollParams))              
