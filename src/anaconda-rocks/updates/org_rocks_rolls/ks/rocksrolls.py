@@ -190,7 +190,7 @@ class RocksRollsData(AddonData):
         ## Load into the installed FE database. See database-data.xm
         etherifs = filter(lambda x: nm.nm_device_type_is_ethernet(x),\
            nm.nm_devices())
-        ethermacs = map(lambda x: nm.nm_device_perm_hwaddress(x),etherifs)
+        ethermacs = map(lambda x: nm.nm_device_valid_hwaddress(x),etherifs)
         g = open("/tmp/frontend-ifaces.sh","w")
         g.write("/opt/rocks/bin/rocks config host interface localhost iface='%s' mac='%s' flag='' module=''\n" % \
             (",".join(etherifs),",".join(ethermacs)))
