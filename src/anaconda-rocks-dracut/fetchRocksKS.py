@@ -41,11 +41,11 @@ install
 reboot
 timezone --utc America/Los_Angeles
 sshpw --username root rescueME
-# This presection reboots the node
+# This presection reboots the node after 2 minutes
 %%pre
 if [ -f /tracker/peer-done ]; then /tracker/peer-done; fi
-/bin/curl --max-time 5 %s
-/sbin/shutdown -r now
+/bin/curl -k --max-time 5 %s
+/sbin/shutdown -r +2 
 %%end
 """
 ## read /proc/cmdline and look for rocks.ks=
@@ -54,16 +54,25 @@ try:
 	lines = f.readlines()
 	f.close()
 	arg = filter(lambda x: x[0]=="rocks.ks",map(lambda y: y.split('=')," ".join(lines).split()))
-	maxTimeout = filter(lambda x: x[0]=="rocks.ks.timeout",map(lambda y: y.split('=')," ".join(lines).split()))
+	ksTimeout = filter(lambda x: x[0]=="rocks.ks.timeout",map(lambda y: y.split('=')," ".join(lines).split()))
 except Exception as e:
 	print "# had exception %s" % e.__str__()
 
-if len(arg) > 0:
-	url = arg[0][1]
-if url is None:
-	url = DEFAULTURL
-if len(maxTimeout) == 0:
-	maxTimeout = MAXTIMEOUT
+## Set the url, if misformatted use the default 
+url = DEFAULTURL
+try:
+	if len(arg) > 0:
+		url = arg[0][1]
+except:
+	pass	
+
+# Set the maximum timeout, override if rocks.ks.timeout specified 
+maxTimeout = MAXTIMEOUT
+try:
+	if len(ksTimeout) > 0:
+		maxTimeout = ksTimeout[0][1]
+except:
+	pass
 
 lines = sys.stdin.readlines()
 query=""
@@ -122,13 +131,22 @@ while retries > 0:
 		# This is a generic error (bad url, ...)
 		# retry until we can't anylonger
 		pass
+	except socket.timeout as e:
+		# Timed out waiting
+		pass
 	except Exception as e:
 		# Unknown exception, bad stuff, so just print the rescue
 		# kickstart file
 		break	
 
-if goodResponse:
-	print response.read()
+## Read the response
+try:
+	ksContents = response.read()
+except:
+	ksContents = ""
+
+if goodResponse and len(ksContents) > 0:
+	print ksContents 
 else:
 	# Try to leave a rescue note on the front end
 	requestFailed = urllib2.Request(url+".FAILED")

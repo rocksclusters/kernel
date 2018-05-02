@@ -1,5 +1,5 @@
 NAME		= anaconda-rocks-dracut
-RELEASE		= 0
+RELEASE		= 1
 DRACUT_DEST 	= /lib/dracut/modules.d
 MODDIR		= 70rocks
 SYSTEMD_FOLDER = /lib/systemd/system
