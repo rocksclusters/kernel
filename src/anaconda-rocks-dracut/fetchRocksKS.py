@@ -27,6 +27,7 @@ import urllib,urllib2
 import random
 import time
 import ssl
+import socket
 
 print "# Opening /proc/cmdline looking for rocks.ks and rocks.ks.timeout"
 arg = []
@@ -70,7 +71,7 @@ except:
 maxTimeout = MAXTIMEOUT
 try:
 	if len(ksTimeout) > 0:
-		maxTimeout = ksTimeout[0][1]
+		maxTimeout = int(ksTimeout[0][1])
 except:
 	pass
 
@@ -109,6 +110,7 @@ print "# URL is %s" % url
 print "# Query is %s" % query
 print "# Environment is %s" % str(os.environ)
 print "# Macargs is %s" % macargs.replace("\r","").replace("\n"," ")
+print "# Timeout is %d" % maxTimeout 
 
 goodResponse = False
 while retries > 0:
