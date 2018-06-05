@@ -91,7 +91,7 @@ fi
 
 
 compile fastcgi
-install fcgi
+install foundation-fcgi
 compile sqlite 
 install foundation-sqlite
 

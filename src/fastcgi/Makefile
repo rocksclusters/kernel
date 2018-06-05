@@ -110,10 +110,10 @@ include Rules.mk
 
 
 build:
-	tar zvfx $(NAME)-$(VERSION).tar.gz
+	tar zvfx $(TARNAME)-$(VERSION).tar.gz
 	cd patch-files && find . -type f | grep -v CVS | cpio -pduv ../
 	(								\
-		cd $(NAME)-$(VERSION) ;					\
+		cd $(TARNAME)-$(VERSION);					\
 		./configure --prefix=$(PKGROOT) ;			\
 		$(MAKE) ; 						\
 	)
@@ -121,12 +121,12 @@ build:
 install::
 	mkdir -p $(ROOT)/$(PKGROOT)
 	(								\
-		cd $(NAME)-$(VERSION) ;					\
+		cd $(TARNAME)-$(VERSION) ;				\
 		$(MAKE) prefix=$(ROOT)/$(PKGROOT) install;		\
 	)
 	
 
 clean::
-	rm -rf $(NAME)-$(VERSION)
+	rm -rf $(TARNAME)-$(VERSION)
 	rm -f $(NAME).spec.in
 
