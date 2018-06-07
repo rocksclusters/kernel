@@ -21,6 +21,7 @@ installpkg kernel
 ## arch-specific packages (bootloaders etc.)
 %if basearch == "aarch64":
     installpkg efibootmgr grub2-efi-aa64-cdboot grubby shim-aa64
+    installpkg grub2-tools grub2-tools-minimal grub2-tools-extra
 %endif
 %if basearch in ("arm", "armhfp"):
     installpkg kernel-lpae kernel-tegra
@@ -35,7 +36,7 @@ installpkg kernel
 %endif
 %if basearch in ("i386", "x86_64"):
     installpkg biosdevname memtest86+ syslinux
-    # installpkg grub2-tools grub2-tools-minimal
+    installpkg grub2-tools grub2-tools-minimal grub2-tools-extra
     installpkg efibootmgr
     installpkg shim-ia32 grub2-efi-ia32-cdboot
 %endif
@@ -46,14 +47,14 @@ installpkg kernel
 %endif
 
 %if basearch == "s390x":
-    installpkg lsscsi s390utils-base s390utils-cmsfs-fuse
+    installpkg lsscsi s390utils-base s390utils-cmsfs-fuse s390utils-hmcdrvfs
 %endif
 
 ## yay, plymouth
 installpkg plymouth
 
 ## extra dracut modules
-installpkg anaconda-dracut dracut-network dracut-config-generic
+installpkg anaconda-dracut dracut-network dracut-config-generic dracut-fips
 
 ## redhat-upgrade-dracut handles upgrades on RHEL
 installpkg redhat-upgrade-dracut redhat-upgrade-dracut-plymouth
@@ -140,7 +141,7 @@ installpkg xorg-x11-fonts-misc
 installpkg gnome-themes-standard gnome-icon-theme-legacy
 
 ## branding & logos
-installpkg fedora-gnome-theme
+installpkg gnome-themes-standard
 
 ## debugging/bug reporting tools
 installpkg gdb-gdbserver
@@ -193,5 +194,6 @@ installpkg filesystem
 installpkg perl
 installpkg libxml2 
 ## END ROCKS
+
 ## actually install all the requested packages
 run_pkg_transaction

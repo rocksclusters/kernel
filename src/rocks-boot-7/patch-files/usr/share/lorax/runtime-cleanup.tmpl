@@ -8,9 +8,9 @@ remove usr/share/i18n
 ## no perl besides s390x
 ## ROCKS -- Commented out the next 3 lines
 #%if basearch != "s390x":
-#     removepkg perl*
+#    removepkg perl*
 #%endif
-## ROCKS
+## END ROCKS
 ## no sound support, thanks
 ## ...except alsa-libs, which are needed by spice-vdagent
 removepkg alsa-*firmware* flac gstreamer-tools libsndfile pulseaudio* sound-theme-freedesktop
@@ -69,10 +69,10 @@ removepkg tigervnc-license ttmkfdir xml-common xorg-x11-font-utils
 removepkg xorg-x11-server-common yum-utils
 
 ## other removals
-## ROCKS - needs sw in opt
-# remove /boot /home /media /opt /srv /tmp/*
-remove /boot /home /media /srv /tmp/*
-## ROCKS
+## ROCKS - needs software in /opt
+#remove /home /media /opt /srv /tmp/*
+remove /home /media /srv /tmp/*
+## END ROCKS
 remove /usr/etc /usr/games /usr/local /usr/tmp
 remove /usr/share/doc /usr/share/info /usr/share/man /usr/share/gnome
 remove /usr/share/mime/application /usr/share/mime/audio /usr/share/mime/image
@@ -91,18 +91,19 @@ removekmod sound drivers/media drivers/hwmon \
            net/atm net/bluetooth net/sched net/sctp \
            net/rds net/l2tp net/decnet net/netfilter net/ipv4 net/ipv6 \
            drivers/watchdog drivers/rtc drivers/input/joystick \
-           drivers/bluetooth drivers/hid drivers/edac \
-           drivers/usb/serial drivers/usb/host drivers/usb/misc \
-           fs/ocfs2 fs/ceph fs/nfsd fs/ubifs fs/nilfs2 \
-           arch/x86/kvm
+           drivers/bluetooth drivers/edac drivers/usb/serial \
+           drivers/usb/host drivers/usb/misc fs/ocfs2 fs/ceph fs/nfsd \
+           fs/ubifs fs/nilfs2 arch/x86/kvm
 ## Need to keep virtio_console.ko and ipmi stuff in drivers/char
 ## Also keep virtio-rng so that the installer can get sufficient randomness for
 ## LUKS setup.
 removekmod drivers/char --allbut virtio_console hw_random \
-                                  virtio-rng ipmi
+                                  virtio-rng ipmi hmcdrv
 removekmod drivers/staging --allbut zram
 removekmod drivers/video --allbut hyperv_fb syscopyarea sysfillrect sysimgblt fb_sys_fops
 remove lib/modules/*/{build,source,*.map}
+## Need to keep hid-multitouch and i2c-hid in drivers/hid, rhbz#1526323
+removekmod drivers/hid --allbut hid-multitouch i2c-hid
 ## NOTE: depmod gets re-run after cleanup finishes
 
 ## remove unused themes, theme engines, icons, etc.
@@ -256,12 +257,11 @@ removefrom libsemanage /etc/selinux/*
 removefrom libstdc++ /usr/share/*
 removefrom libuser /usr/bin/* /usr/sbin/* /usr/share/locale/*
 removefrom libvorbis /usr/${libdir}/libvorbisenc.*
-
-## ROCKS commented out the next 3 lines
+## ROCKS -- Commented out the next 3 lines
 #removefrom libxml2 /usr/bin/*
 #removefrom libxml2-python /usr/${libdir}/python?.?/site-packages/libxml2mod.a
 #removefrom libxml2-python /usr/${libdir}/python?.?/site-packages/libxml2mod.la
-## ROCKS
+## END ROCKS
 removefrom lldpad /etc/*
 removefrom lua /usr/bin/*
 removefrom madan-fonts /usr/share/fonts/madan/*
@@ -354,6 +354,11 @@ removefrom subscription-manager --allbut /etc/rhsm/* /usr/share/rhsm/* /var/log/
 ## cleanup_python_files()
 runcmd find ${root} -name "*.pyo" -type f -delete
 runcmd find ${root} -name "*.pyc" -type f -exec ln -sf /dev/null {} \;
+
+## cleanup /boot/ leaving vmlinuz, and .*hmac files
+runcmd chroot ${root} find /boot \! -name "vmlinuz*" \
+                            -and \! -name ".vmlinuz*" \
+                            -and \! -name boot -delete
 
 ## remove any broken links in /etc or /usr
 ## (broken systemd service links lead to confusing noise at boot)
