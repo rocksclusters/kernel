@@ -81,7 +81,7 @@ build:
 	## Create a local repo of THIS roll's RPMS
 	$(MAKE) -C $(REDHAT.ROOT) createlocalrepo
 	## Use Lorax to Build images
-	lorax $(ISFINAL) -p Rocks -v $(ROCKS_VERSION) -r $(RELEASE) -s `pwd`/rocks-dist/$(ARCH) -s $(REDHAT.ROOT)/localrepo -c `pwd`/$(LORAXCONF) --noupgrade `pwd`/$(LORAXBUILD) 
+	lorax $(ISFINAL) -p Rocks -v $(ROCKS_VERSION) -r $(RELEASE) -s `pwd`/rocks-dist/$(ARCH) -s $(REDHAT.ROOT)/localrepo -c `pwd`/$(LORAXCONF) --noupgrade --rootfs-size=3 `pwd`/$(LORAXBUILD) 
 
 
 showvars:
