@@ -7,10 +7,10 @@ TRACKERROOT=/tracker
 CLIENTCONF=/tmp/rocks.conf
 # Make sure we have a tracker configuration
 if [ ! -f $CLIENTCONF ]; then
-	cat /proc/cmdline | awk -f /tracker/tracker.ak  > $CLIENTCONF
+	/usr/bin/cat /proc/cmdline | /usr/bin/awk -f /tracker/tracker.ak  > $CLIENTCONF
 fi
 
-NZCONF=$(cat $CLIENTCONF)
+NZCONF=$(/usr/bin/cat $CLIENTCONF)
 if [ "x$NZCONF" == "x" ]; then return 0; fi
 
 # check if lighttpd is already running. if so. We're done

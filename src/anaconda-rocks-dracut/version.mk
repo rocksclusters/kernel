@@ -1,6 +1,6 @@
 NAME		= anaconda-rocks-dracut
 RELEASE		= 1
-DRACUT_DEST 	= /lib/dracut/modules.d
+DRACUT_DEST 	= /usr/lib/dracut/modules.d
 MODDIR		= 70rocks
 SYSTEMD_FOLDER = /lib/systemd/system
 SYSTEMD_INITSCRIPT = lighttpd.service
